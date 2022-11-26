@@ -1,0 +1,490 @@
+/*
+ * Copyright (c) 2022 Hisilicon Technologies Co., Ltd.
+ * Hikptool is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ *
+ * See the Mulan PSL v2 for more details.
+ */
+
+#include <stdint.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include "tool_lib.h"
+#include "hikptdev_plug.h"
+#include "os_common.h"
+#include "pcie_common.h"
+#include "pcie_reg_dump.h"
+
+int g_pcie_dumpreg_fd;
+
+struct pcie_dumpreg_info g_reg_table_tl[] = {
+	{0, "TL_ASPM_IDLE_CNT"},
+	{0, "TL_ASPM_IDLE_EN"},
+	{0, "TL_PM_DC_CTRL"},
+	{0, "TL_PM_STATE"},
+	{0, "TL_PM_UC_CTRL"},
+	{0, "TL_ENTER_L0_CTRL"},
+	{0, "TL_PM_TIMEOUT_CTRL"},
+	{0, "TL_INT_STATUS0"},
+	{0, "TL_INT_STATUS1"},
+	{0, "TL_RX_POSTED_CREDIT_DF"},
+	{0, "TL_RX_NON_POSTED_CREDIT_DF"},
+	{0, "TL_RX_CPL_CREDIT_DF"},
+	{0, "TL_RX_CDT_INI_UP_DF"},
+	{0, "RX_ASYN_STONE_FIFO_STATUS"},
+	{0, "TL_RX_ERR_STATUS"},
+	{0, "TL_TX_VC0_P_FC_LEFT"},
+	{0, "TL_TX_VC0_NP_FC_LEFT"},
+	{0, "TL_TX_VC0_CPL_FC_LEFT"},
+	{0, "TL_TX_VC1_P_FC_LEFT"},
+	{0, "TL_TX_ORDER_P_NUM"},
+	{0, "TL_TX_ORDER_NP_CPL_NUM"},
+	{0, "TL_RX_VC0_POST_CREDIT_LEFT"},
+	{0, "TL_RX_VC0_NONPOST_CREDIT_LEFT"},
+	{0, "TL_RX_VC0_CPL_CREDIT_LEFT"},
+	{0, "RX_RX_BUFFER_STATUS"},
+	{0, "TL_RX_POSTED_CREDIT"},
+	{0, "TL_RX_NON_POSTED_CREDIT"},
+	{0, "TL_RX_CPL_CREDIT"},
+	{0, "TL_RX_ERR_CNT"},
+	{0, "TL_RX_NULL_CNT"},
+	{0, "TL_RX_UR_TLP_CNT"},
+	{0, "TL_RX_TOTAL_CNT"},
+	{0, "TL_RX_RCV_PNP_CNT"},
+	{0, "TL_RX_RCV_CPL_CNT"},
+	{0, "TL_RX_POST_CNT"},
+	{0, "TL_RX_NONPOST_CNT"},
+	{0, "TL_RX_CPL_CNT"},
+	{0, "TL_RX_LOC_TLP_CNT"},
+	{0, "TL_RX_ERR_STATUS"},
+	{0, "TL_CFGSPACE_BDF"},
+};
+
+struct pcie_dumpreg_info g_reg_table_dl[] = {
+	{0, "DFX_LCRC_ERR_NUM"},
+	{0, "DFX_DCRC_ERR_NUM"},
+	{0, "DFX_FSM_STATE"},
+	{0, "DL_INT_STATUS"},
+	{0, "DFX_MAC_BP_TIMER"},
+	{0, "DFX_RETRY_CNT"},
+	{0, "DL_MAC_RETRAIN_CNT"},
+	{0, "DFX_DLLP_RX_COUNT_NUM"},
+	{0, "DFX_DLLP_TX_COUNT_NUM"},
+	{0, "DFX_RX_NAK_COUNT"},
+	{0, "DFX_RX_BAD_DLLP_TYPE"},
+	{0, "DL_FC_INIT_ERR_STATUS"},
+};
+
+struct pcie_dumpreg_info g_reg_table_mac[] = {
+	{0, "MAC_REQ_TX_LINK_NUM"},
+	{0, "MAC_REG_MAC_INT_STATUS"},
+	{0, "MAC_REG_MAC_INT_MASK"},
+	{0, "MAC_REG_TEST_COUNTER"},
+	{0, "MAC_REG_LINK_INFO"},
+	{0, "MAC_REG_SYMBOL_UNLOCL_COUNTER"},
+	{0, "MAC_REG_MAC_INT_RO"},
+	{0, "MAC_REG_ENTER_L1L2_TIMEOUT_VAL"},
+	{0, "MAC_PCS_RX_ERR_CNT"},
+	{0, "MAC_RX_ERR_CHECK_EN"},
+	{0, "MAC_TRACE_2BIT_ECC_CNT"},
+	{0, "MAC_TRACE_1BIT_ECC_CNT"},
+	{0, "MAC_LTSSM_TIMEOUT_ENABLE"},
+	{0, "MAC_FRAMING_ERR_CNT"},
+	{0, "MAC_FRAMING_ERR_CTRL"},
+	{0, "MAC_LEAVE_L0_INFO"},
+	{0, "MAC_INT_CE_NFE_SEL"},
+	{0, "MAC_REG_NI_INT_RO"},
+	{0, "MAC_REG_FE_INT_RO"},
+	{0, "MAC_REG_CE_INT_RO"},
+	{0, "MAC_REG_NFE_INT_RO"},
+};
+
+struct pcie_dumpreg_info g_reg_table_pcs[] = {
+	{0, "SERDES_STATUS_RPT"},
+	{0, "EBUF_STATUS"},
+	{0, "GEN3_DEC_ENC_STATUS"},
+	{0, "WAKE_STATUS"},
+	{0, "RECV_DET_OR_PWR_CHAGE"},
+	{0, "EQEVAL_STATUS"},
+	{0, "LANE_INTR_STATUS"},
+};
+
+struct pcie_dumpreg_info g_reg_table_iob_tx[] = {
+	{0, "IOB_TX_ECAM_BASE_ADDR_L"},
+	{0, "IOB_TX_ECAM_BASE_ADDR_H"},
+	{0, "IOB_TX_CXL_BASE_BUS_0"},
+	{0, "IOB_TX_CXL_RCRB_BASE_L_0"},
+	{0, "IOB_TX_CXL_RCRB_BASE_H_0"},
+	{0, "IOB_TX_INT_STATUS0"},
+	{0, "IOB_TX_INT_STATUS1"},
+	{0, "IOB_TX_INT_STATUS2"},
+	{0, "IOB_TX_INT_STATUS3"},
+	{0, "IOB_TX_INT_STATUS4"},
+	{0, "IOB_TX_INT_STATUS5"},
+	{0, "IOB_TX_INT_RO0"},
+	{0, "IOB_TX_INT_RO1"},
+	{0, "IOB_TX_INT_RO2"},
+	{0, "IOB_TX_INT_RO3"},
+	{0, "IOB_TX_INT_RO4"},
+	{0, "IOB_TX_INT_RO5"},
+	{0, "IOB_TX_INT_SEVERITY0"},
+	{0, "IOB_TX_INT_SEVERITY1"},
+	{0, "IOB_TX_INT_SEVERITY2"},
+	{0, "IOB_TX_INT_SEVERITY3"},
+	{0, "IOB_TX_INT_SEVERITY4"},
+	{0, "IOB_TX_INT_SEVERITY5"},
+};
+
+struct pcie_dumpreg_info g_reg_table_iob_rx[] = {
+	{0, "IOB_RX_INT_STATUS"},
+	{0, "IOB_RX_INT_RO"},
+	{0, "IOB_RX_INT_SEVERITY"},
+	{0, "IOB_RX_MSI_MSIX_CTRL_0"},
+	{0, "IOB_RX_MSI_MSIX_ADDR_HIGH_0"},
+	{0, "IOB_RX_MSI_MSIX_ADDR_LOW_0"},
+};
+
+struct pcie_dumpreg_info g_reg_table_ap_glb[] = {
+	{0, "PCIE_ERR_MAPPING"},
+	{0, "PCIE_CXL_ERR_MAPPING"},
+	{0, "PCIE_CE_ENA"},
+	{0, "PCIE_CE_MASK"},
+	{0, "PCIE_UNF_ENA"},
+	{0, "PCIE_UNF_MASK"},
+	{0, "PCIE_UF_ENA"},
+	{0, "PCIE_UF_MASK"},
+	{0, "PCIE_CE_STATUS"},
+	{0, "PCIE_UNF_STATUS"},
+	{0, "PCIE_UF_STATUS"},
+	{0, "PCIE_CXL_CE_ENA"},
+	{0, "PCIE_CXL_CE_MASK"},
+	{0, "PCIE_CXL_UNF_ENA"},
+	{0, "PCIE_CXL_UNF_MASK"},
+	{0, "PCIE_CXL_UF_ENA"},
+	{0, "PCIE_CXL_UF_MASK"},
+	{0, "PCIE_CXL_CE_STATUS"},
+	{0, "PCIE_CXL_UNF_STATUS"},
+	{0, "PCIE_CXL_UF_STATUS"},
+	{0, "PCIE_MSI_MASK"},
+	{0, "PCIE_MSI_STATUS"},
+	{0, "PCIE_AP_NI_ENA"},
+	{0, "PCIE_AP_CE_ENA"},
+	{0, "PCIE_AP_UNF_ENA"},
+	{0, "PCIE_AP_UF_ENA"},
+	{0, "PCIE_AP_NI_MASK"},
+	{0, "PCIE_AP_CE_MASK"},
+	{0, "PCIE_AP_UNF_MASK"},
+	{0, "PCIE_AP_UF_MASK"},
+	{0, "PCIE_AP_NI_STATUS"},
+	{0, "PCIE_AP_CE_STATUS"},
+	{0, "PCIE_AP_UNF_STATUS"},
+	{0, "PCIE_AP_UF_STATUS"},
+	{0, "PCIE_CORE_NI_ENA"},
+	{0, "PCIE_CORE_CE_ENA"},
+	{0, "PCIE_CORE_UNF_ENA"},
+	{0, "PCIE_CORE_UF_ENA"},
+	{0, "PCIE_CORE_NI_MASK"},
+	{0, "PCIE_CORE_CE_MASK"},
+	{0, "PCIE_CORE_UNF_MASK"},
+	{0, "PCIE_CORE_UF_MASK"},
+	{0, "PCIE_CORE_NI_STATUS"},
+	{0, "PCIE_CORE_CE_STATUS"},
+	{0, "PCIE_CORE_UNF_STATUS"},
+	{0, "PCIE_CORE_UF_STATUS"},
+	{0, "PORT_INTX_MAPPING"},
+	{0, "PORT_INTX_INTERRUPT_MODE"},
+	{0, "PORT_INTX_ASSERT_MASK"},
+	{0, "PORT_INTX_DEASSERT_MASK"},
+	{0, "PORT_INTX_ASSERT_STATUS"},
+	{0, "PORT_INTX_DEASSERT_STATUS"},
+	{0, "AP_P2P_PORT_BITMAP_0"},
+	{0, "AP_P2P_CTRL"},
+	{0, "AP_P2P_INFO"},
+	{0, "AP_PORT_EN"},
+};
+
+struct pcie_dumpreg_info g_reg_table_core_glb[] = {
+	{0, "PORT_RESET"},
+	{0, "PHY_RESET"},
+	{0, "PORT_EN"},
+	{0, "PORT_RESET_CFG"},
+	{0, "GLB_PCIEC_MODE_SEL"},
+	{0, "HILINK_INT_MASK"},
+	{0, "HILINK_INT_RO"},
+	{0, "HILINK_INT_STATUS"},
+	{0, "CORE_INT_NI_MSK_0"},
+	{0, "CORE_INT_NI_STATUS_0"},
+	{0, "CORE_INT_NI_RO_0"},
+	{0, "CORE_INT_NI_MSK_1"},
+	{0, "CORE_INT_NI_STATUS_1"},
+	{0, "CORE_INT_NI_RO_1"},
+	{0, "CORE_INT_CE_MSK_0"},
+	{0, "CORE_INT_CE_STATUS_0"},
+	{0, "CORE_INT_CE_RO_0"},
+	{0, "CORE_INT_CE_MSK_1"},
+	{0, "CORE_INT_CE_STATUS_1"},
+	{0, "CORE_INT_CE_RO_1"},
+	{0, "CORE_INT_NFE_MSK_0"},
+	{0, "CORE_INT_NFE_STATUS_0"},
+	{0, "CORE_INT_NFE_RO_0"},
+	{0, "CORE_INT_NFE_MSK_1"},
+	{0, "CORE_INT_NFE_STATUS_1"},
+	{0, "CORE_INT_NFE_RO_1"},
+	{0, "CORE_INT_FE_MSK_0"},
+	{0, "CORE_INT_FE_STATUS_0"},
+	{0, "CORE_INT_FE_RO_0"},
+	{0, "CORE_INT_FE_MSK_1"},
+	{0, "CORE_INT_FE_STATUS_1"},
+	{0, "CORE_INT_FE_RO_1"},
+	{0, "CORE_INT_NI_MSK_2"},
+	{0, "CORE_INT_NI_STATUS_2"},
+	{0, "CORE_INT_NI_RO_2"},
+	{0, "CORE_INT_CE_MSK_2"},
+	{0, "CORE_INT_CE_STATUS_2"},
+	{0, "CORE_INT_CE_RO_2"},
+	{0, "CORE_INT_NFE_MSK_2"},
+	{0, "CORE_INT_NFE_STATUS_2"},
+	{0, "CORE_INT_NFE_RO_2"},
+	{0, "CORE_INT_FE_MSK_2"},
+	{0, "CORE_INT_FE_STATUS_2"},
+	{0, "CORE_INT_FE_RO_2"},
+};
+
+static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
+{
+	char file_name[MAX_LOG_NAME_LEN + 1] = { 0 };
+	char info_str[MAX_LOG_NAME_LEN + 1] = { 0 };
+	int fd_file;
+	int ret;
+
+	ret = snprintf(info_str, sizeof(info_str), "%s_port%u_level%u",
+		       PCIE_DUMPREG_LOGFILE_NAME, port_id, dump_level);
+	if (ret < 0)
+		return -EINVAL;
+
+	ret = generate_file_name((unsigned char *)file_name, MAX_LOG_NAME_LEN,
+		(const unsigned char *)info_str);
+	if (ret)
+		return -EINVAL;
+
+	(void)remove((const char *)file_name);
+	/* Add write permission to the file */
+	fd_file = open(file_name, O_RDWR | O_SYNC | O_CREAT, 0640);
+	if (fd_file < 0) {
+		Err("PCIe DUMPREG", "open %s failed.\n", file_name);
+		return -EPERM;
+	}
+	g_pcie_dumpreg_fd = fd_file;
+
+	return 0;
+}
+
+static int pcie_close_dumpreg_log_file(void)
+{
+	int ret;
+
+	ret = fchmod(g_pcie_dumpreg_fd, 0440);
+	close(g_pcie_dumpreg_fd);
+	/* Revoke write permission of file  */
+	g_pcie_dumpreg_fd = -1;
+
+	return ret;
+}
+
+static void pcie_dumpreg_write_value_to_file(const char *reg_name, uint32_t val)
+{
+	char str[MAX_STR_LEN] = { 0 };
+	ssize_t wr_ret;
+	int ret;
+
+	ret = snprintf(str, sizeof(str), "    %-40s : 0x%x\n", reg_name, val);
+	if (ret < 0 || ret >= sizeof(str)) {
+		Err("PCIe DUMPREG", "pcie dumpreg write info to logfile failed.\n");
+	} else {
+		wr_ret = write(g_pcie_dumpreg_fd, str, strlen(str));
+		if (wr_ret == -1)
+			Err("PCIe DUMPREG", "write info to logfile failed.\n");
+	}
+}
+
+static void pcie_dumpreg_save_glb_analysis_log(const uint32_t *data, uint32_t data_num)
+{
+	uint32_t item_i, data_i;
+
+	data_i = 0;
+	/* IOB_TX REG */
+	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_iob_tx) &&
+		data_i < data_num; item_i++, data_i++) {
+		g_reg_table_iob_tx[item_i].val = data[data_i];
+		pcie_dumpreg_write_value_to_file(g_reg_table_iob_tx[item_i].name,
+						 g_reg_table_iob_tx[item_i].val);
+	}
+	/* IOB_RX REG */
+	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_iob_rx) &&
+		data_i < data_num; item_i++, data_i++) {
+		g_reg_table_iob_rx[item_i].val = data[data_i];
+		pcie_dumpreg_write_value_to_file(g_reg_table_iob_rx[item_i].name,
+						 g_reg_table_iob_rx[item_i].val);
+	}
+	/* AP_GLB REG */
+	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_ap_glb) &&
+		data_i < data_num; item_i++, data_i++) {
+		g_reg_table_ap_glb[item_i].val = data[data_i];
+		pcie_dumpreg_write_value_to_file(g_reg_table_ap_glb[item_i].name,
+						 g_reg_table_ap_glb[item_i].val);
+	}
+	/* CORE_GLB REG */
+	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_core_glb) &&
+		data_i < data_num; item_i++, data_i++) {
+		g_reg_table_core_glb[item_i].val = data[data_i];
+		pcie_dumpreg_write_value_to_file(g_reg_table_core_glb[item_i].name,
+						 g_reg_table_core_glb[item_i].val);
+	}
+}
+
+static void pcie_dumpreg_save_port_analysis_log(uint32_t *data, uint32_t data_num)
+{
+	uint32_t item_i, data_i;
+
+	data_i = 0;
+	/* TL REG */
+	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_tl) &&
+		data_i < data_num; item_i++, data_i++) {
+		g_reg_table_tl[item_i].val = data[data_i];
+		pcie_dumpreg_write_value_to_file(g_reg_table_tl[item_i].name,
+						 g_reg_table_tl[item_i].val);
+	}
+	/* DL REG */
+	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_dl) &&
+		data_i < data_num; item_i++, data_i++) {
+		g_reg_table_dl[item_i].val = data[data_i];
+		pcie_dumpreg_write_value_to_file(g_reg_table_dl[item_i].name,
+						 g_reg_table_dl[item_i].val);
+	}
+	/* MAC REG */
+	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_mac) &&
+		data_i < data_num; item_i++, data_i++) {
+		g_reg_table_mac[item_i].val = data[data_i];
+		pcie_dumpreg_write_value_to_file(g_reg_table_mac[item_i].name,
+						 g_reg_table_mac[item_i].val);
+	}
+	/* PCS REG */
+	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_pcs) &&
+		data_i < data_num; item_i++, data_i++) {
+		g_reg_table_pcs[item_i].val = data[data_i];
+		pcie_dumpreg_write_value_to_file(g_reg_table_pcs[item_i].name,
+						 g_reg_table_pcs[item_i].val);
+	}
+}
+
+static int pcie_dumpreg_write_header_to_file(uint32_t version,
+					     const struct pcie_dump_req_para *req_data)
+{
+	char str[MAX_STR_LEN] = {0};
+	ssize_t wr_ret;
+	int ret;
+
+	ret = snprintf(str, sizeof(str), "Command Version[%u], dump_level[%u], port_id[%u]\n\n",
+		version, req_data->level, req_data->port_id);
+	if (ret < 0) {
+		Err("PCIe DUMPREG", "pcie dumpreg write header to logfile failed.\n");
+		return -EIO;
+	}
+
+	wr_ret = write(g_pcie_dumpreg_fd, str, strlen(str));
+	if (wr_ret == -1) {
+		Err("PCIe DUMPREG", "write header to logfile failed.\n");
+		return -EIO;
+	}
+
+	return 0;
+}
+
+static int pcie_dumpreg_save_log(uint32_t *data, uint32_t data_num,
+				 uint32_t version, struct pcie_dump_req_para *req_data)
+{
+	size_t expect_data_num = 0;
+	char reg_name[PCIE_REG_NAME_LEN];
+	uint32_t i;
+	int ret;
+
+	(void)pcie_dumpreg_write_header_to_file(version, req_data);
+
+	switch (req_data->level) {
+	case DUMP_GLOBAL_LEVEL:
+		expect_data_num = HIKP_ARRAY_SIZE(g_reg_table_iob_tx) +
+		HIKP_ARRAY_SIZE(g_reg_table_iob_rx) + HIKP_ARRAY_SIZE(g_reg_table_ap_glb) +
+		HIKP_ARRAY_SIZE(g_reg_table_core_glb);
+		break;
+	case DUMP_PORT_LEVEL:
+		expect_data_num = HIKP_ARRAY_SIZE(g_reg_table_tl) +
+				  HIKP_ARRAY_SIZE(g_reg_table_dl) +
+				  HIKP_ARRAY_SIZE(g_reg_table_mac) +
+				  HIKP_ARRAY_SIZE(g_reg_table_pcs);
+		break;
+	default:
+		Err("PCIe DUMPREG", "check dump level failed.\n");
+		return -EINVAL;
+	}
+
+	if (expect_data_num != data_num || version != ORIGINAL_VERSION) {
+		for (i = 0; i < data_num; i++) {
+			ret = snprintf(reg_name, sizeof(reg_name), "REG_%03u", i);
+			if (ret < 0)
+				Err("PCIe DUMPREG", "save log snprintf failed.\n");
+			pcie_dumpreg_write_value_to_file(reg_name, data[i]);
+		}
+	} else if (req_data->level == DUMP_GLOBAL_LEVEL) {
+		pcie_dumpreg_save_glb_analysis_log(data, data_num);
+	} else {
+		pcie_dumpreg_save_port_analysis_log(data, data_num);
+	}
+
+	return 0;
+}
+
+int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level)
+{
+	struct hikp_cmd_header req_header;
+	struct hikp_cmd_ret *cmd_ret = NULL;
+	struct pcie_dump_req_para req_data = { 0 };
+	int ret = 0;
+
+	Info("PCIe DUMPREG", "pcie reg dump start.\n");
+
+	req_data.port_id = port_id;
+	req_data.level = dump_level;
+	hikp_cmd_init(&req_header, PCIE_MOD, PCIE_DUMP, DUMPREG_DUMP);
+	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
+	ret = hikp_rsp_normal_check(cmd_ret);
+	if (ret) {
+		Err("PCIe DUMPREG", "pcie dump cmd_ret check failed, ret: %d.\n", ret);
+		goto free_cmd_ret;
+	}
+	ret = pcie_create_dumpreg_log_file(port_id, dump_level);
+	if (ret)
+		goto free_cmd_ret;
+
+	ret = pcie_dumpreg_save_log(cmd_ret->rsp_data,
+				    cmd_ret->rsp_data_num, cmd_ret->version, &req_data);
+	if (ret) {
+		Err("PCIe DUMPREG", "pcie dump save log failed, ret: %d.\n", ret);
+		goto close_file_ret;
+	}
+
+	Info("PCIe DUMPREG", "pcie reg dump finish.\n");
+close_file_ret:
+	(void)pcie_close_dumpreg_log_file();
+free_cmd_ret:
+	free(cmd_ret);
+
+	return ret;
+}

@@ -1,7 +1,9 @@
 # hikptool
 
 #### Description
-hikptool is a userspace tool for Linux providing enhanced capabilities of   inband information collection and problem location on Kunpeng chips.
+hikptool is a userspace tool for Linux providing enhanced capabilities of inband information collection and problem location on Kunpeng chips.
+
+Note: Only the root user or a user with the root permission can use the hikptool.
 
 #### Software Architecture
 Software architecture description

@@ -23,6 +23,7 @@ macro(get_header_dir_recurse HEADER_DIR_LIST)
 endmacro()
 
 file(GLOB_RECURSE HIKPTOOL_SRC
+	${CMAKE_CURRENT_SOURCE_DIR}/net/*.c
 	${CMAKE_CURRENT_SOURCE_DIR}/ossl/*.c
 	${CMAKE_CURRENT_SOURCE_DIR}/sas/*.c
 	${CMAKE_CURRENT_SOURCE_DIR}/tool_lib/*.c

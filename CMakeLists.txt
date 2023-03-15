@@ -11,7 +11,7 @@
 
 project(hikptool C)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O2 -pie -fPIE -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O2 -fPIC -fPIE -Wall")
 set(CMAKE_SKIP_RPATH TRUE)
 
 macro(get_header_dir_recurse HEADER_DIR_LIST)
@@ -44,6 +44,6 @@ target_include_directories(hikptool PRIVATE ${HIKPTOOL_HEADER_DIR})
 target_link_directories(hikptool PRIVATE ${CMAKE_INSTALL_PREFIX}/lib)
 target_link_libraries(hikptool PRIVATE KPTDEV_SO)
 target_link_options(hikptool PRIVATE
-	-Wl,-z,relro,-z,now -Wl,-z,noexecstack	
+	-Wl,-z,relro,-z,now -Wl,-z,noexecstack -fPIE -pie
 	-g -lpthread -ldl -lm -lrt -T ${CMAKE_CURRENT_SOURCE_DIR}/hikp_register.ld)
 install(TARGETS hikptool RUNTIME DESTINATION bin OPTIONAL)

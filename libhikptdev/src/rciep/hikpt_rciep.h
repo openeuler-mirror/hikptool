@@ -75,8 +75,8 @@ union hikp_space_rsp {
 		uint32_t version; /* 000h */
 		uint32_t rsp_para_num; /* 004h */
 		uint32_t data[HIKP_RSP_DATA_MAX]; /* 008h */
-		uint32_t cpl_status; /* 0F8h */
-		uint32_t pid_record; /* 0FCh */
+		uint32_t rsv; /* 0F8h */
+		uint32_t cpl_status; /* 0FCh */
 		struct iep_doorbell sw_db; /* 100h. Fixed and unmodifiable */
 	} field;
 

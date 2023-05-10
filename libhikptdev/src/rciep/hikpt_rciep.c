@@ -97,7 +97,7 @@ static uint32_t hikp_wait_for_cpl_status(void)
 	uint32_t status;
 
 	do {
-		status = g_hikp_req->field.cpl_status;
+		status = g_hikp_rsp->field.cpl_status;
 		if (status != HIKP_INIT_STAT)
 			return status;
 		count--;

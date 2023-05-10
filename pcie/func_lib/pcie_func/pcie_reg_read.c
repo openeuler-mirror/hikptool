@@ -30,7 +30,6 @@ static struct pcie_module_table g_module_table[] = {
 	{"PCIPC_REG", PCIPC_REG_ID},
 	{"AP_MCTP_REG", AP_MCTP_REG_ID},
 	{"AP_ENGINE_REG", AP_ENGINE_REG_ID},
-	{"AP_INT_REG", AP_INT_REG_ID},
 	{"AP_DMA_REG", AP_DMA_REG_ID},
 	{"TOP_REG", TOP_REG_ID},
 	{"CORE_GLOBAL_REG", CORE_GLOBAL_REG_ID},

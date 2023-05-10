@@ -23,7 +23,7 @@
 
 static struct cmd_serdes_param g_serdes_param = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-#define SERDES_OUTPUT_MAX_SIZE 2048
+#define SERDES_OUTPUT_MAX_SIZE 2560
 static char g_serdes_data_out_buf[SERDES_OUTPUT_MAX_SIZE] = {0};
 
 static int cmd_serdes_maininfo_help(struct major_cmd_ctrl *self, const char *argv)

@@ -22,7 +22,7 @@
 #include "pcie_statistics.h"
 
 static const char *g_global_width_name[GLOBAL_WIDTH_TABLE_SIZE] = {
-	"PCIE_WITDH_X1", "PCIE_WITDH_X2", "PCIE_WITDH_X4", "PCIE_WITDH_X8", "PCIE_WITDH_X16"
+	"PCIE_WIDTH_X1", "PCIE_WIDTH_X2", "PCIE_WIDTH_X4", "PCIE_WIDTH_X8", "PCIE_WIDTH_X16"
 };
 
 static int port_distribution_rsp_data_check(const struct hikp_cmd_ret *cmd_ret, uint32_t *port_num)
@@ -81,7 +81,7 @@ int pcie_port_distribution_get(uint32_t chip_id)
 	for (i = 0; i < pair_num; i++) {
 		if (port_info->info_pair[i].port_width >= HIKP_ARRAY_SIZE(g_global_width_name)) {
 			Info("PCIe Base", "port_id[%u] %s\n", port_info->info_pair[i].port_id,
-			"UNKNOWN_WITDH");
+			"UNKNOWN_WIDTH");
 			continue;
 		}
 		Info("PCIe Base", "port_id[%u] %s\n", port_info->info_pair[i].port_id,

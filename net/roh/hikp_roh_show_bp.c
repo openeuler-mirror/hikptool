@@ -44,7 +44,7 @@ static int hikp_roh_show_bp(struct major_cmd_ctrl *self)
 	union bp_val res;
 	uint8_t flit_bp;
 	int mac_id;
-	int ret;
+	int ret = 0;
 
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	struct hikp_cmd_header req_header = { 0 };

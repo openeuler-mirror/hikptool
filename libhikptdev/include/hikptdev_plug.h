@@ -43,6 +43,7 @@ enum cmd_module_type {
 	MAC_MOD = 8,
 	DPDK_MOD = 9,
 	CXL_MOD = 10,
+	UB_MOD = 11,
 };
 
 void hikp_unlock(void);

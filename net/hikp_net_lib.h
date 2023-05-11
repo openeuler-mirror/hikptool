@@ -98,6 +98,15 @@ enum roce_cmd_type {
 	GET_ROCEE_TSP_CMD,
 };
 
+enum ub_cmd_type {
+	GET_UNIC_PPP_CMD = 0x1,
+	GET_UB_DFX_INFO_CMD,
+	GET_UB_LINK_INFO_CMD,
+	GET_UB_BP_INFO_CMD,
+	GET_UB_CRD_INFO_CMD,
+	GET_UB_BASIC_INFO_CMD,
+};
+
 #define HIKP_MAX_PF_NUM 8
 #define HIKP_NIC_MAX_FUNC_NUM   256
 

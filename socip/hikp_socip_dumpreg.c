@@ -142,7 +142,7 @@ static void hikp_socip_dumpreg_execute(struct major_cmd_ctrl *self)
 	hikp_cmd_init(&req_header, SOCIP_MOD, HIKP_SOCIP_CMD_DUMPREG, param[MODULE_ID_INDEX].val);
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	if (!cmd_ret) {
-		self->err_no=-EINVAL;
+		self->err_no = -EINVAL;
 		HIKP_ERROR_PRINT("hikp_cmd_alloc\n");
 		return;
 	}

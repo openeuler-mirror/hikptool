@@ -184,21 +184,22 @@ static void hikp_serdes_brief_info_print(struct major_cmd_ctrl *self,
 	 "Tap16,Tap17,Tap18,Tap19,Tap20]\n"					\
 	 "FWFourEye: It only takes effect when the firmware is running and "	\
 	 "continuous adaptation is turned on\n"					\
+	 "Snr: [SNR_METRIC,SNR_METRIC_HIS_MIN,SNR_CYCLES,HEH,SNR_METRIC_SW]\n" \
 	 "-----------------------------------------------------"		\
 	 "------------------------------------------------"			\
 	 "-----------------------------------------------------"		\
 	 "------------------------------------------------"			\
-	 "-------------------\n"						\
+	 "--------------------------------\n"						\
 	 "               [       FFE         ]"					\
 	 "[                         CTLE                            ]"		\
 	 "[                                               "			\
 	 "DFE                                              ]"			\
-	 "[     FWFourEye     ][  snr  ]\n"					\
+	 "[     FWFourEye     ][       Snr         ]\n"					\
 	 "-----------------------------------------------------"		\
 	 "-------------------------------------------------"			\
 	 "-----------------------------------------------------"		\
 	 "-------------------------------------------------"			\
-	 "------------------\n")
+	 "--------------------------------\n")
 
 static void hikp_serdes_detail_info_print(struct major_cmd_ctrl *self,
 					  const struct hilink_detail_info *data,
@@ -233,7 +234,10 @@ static void hikp_serdes_detail_info_print(struct major_cmd_ctrl *self,
 		printf("][%4d,%4d,%4d,%4d]",
 		       data[ds_id].eye_diagram.top, data[ds_id].eye_diagram.bottom,
 		       data[ds_id].eye_diagram.left, data[ds_id].eye_diagram.right);
-		printf("[%7d]\n", data[ds_id].snr);
+		/* 0: SNR_METRIC, 1:SNR_METRIC_HIS_MIN */
+		printf("[%3d,%3d,%3d,%3d,%3d]\n", data[ds_id].snr_para[0], data[ds_id].snr_para[1],
+		       /* 2:SNR_CYCLES, 3:HEH, 4:SNR_METRIC_SW */
+		       data[ds_id].snr_para[2], data[ds_id].snr_para[3], data[ds_id].snr_para[4]);
 	}
 }
 

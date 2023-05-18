@@ -431,7 +431,7 @@ void sig_init(void)
 	(void)signal(SIGHUP,  signal_handle);
 	(void)signal(SIGSEGV, signal_handle);
 	(void)signal(SIGBUS,  signal_handle);
-    (void)signal(SIGFPE,  signal_handle);
-    (void)signal(SIGABRT, signal_handle);
-    (void)signal(SIGTSTP, signal_handle); /* Stop process */
+	(void)signal(SIGFPE,  signal_handle);
+	(void)signal(SIGABRT, signal_handle);
+	(void)signal(SIGTSTP, signal_handle); /* Stop process */
 }

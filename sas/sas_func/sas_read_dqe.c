@@ -47,7 +47,7 @@ static int sas_get_dqe(const struct tool_sas_cmd *cmd, uint32_t *reg_save, uint3
 
 static void print_dqe_info(const void *reg_save, uint32_t reg_num)
 {
-	struct hisi_sas_dq_info *dqe = (struct hisi_sas_dq_info *)(reg_save);
+	volatile struct hisi_sas_dq_info *dqe = (volatile struct hisi_sas_dq_info *)(reg_save);
 
 	printf("The dqe dw0 information as below:\n");
 	printf("abort_flag: %u\n", dqe->dw0.abort_flag);

@@ -17,6 +17,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define CONTACT(x, y) x##y
+#define STR_INTER(x) #x
+#define STR(x) STR_INTER(x)
+
 struct print_info {
 	char *buff;
 	size_t buff_size;

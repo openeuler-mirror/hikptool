@@ -77,7 +77,7 @@ static void print_dev_link(const uint32_t *reg_save, uint32_t reg_num)
 
 static void print_dev_info(const void *reg_save, uint32_t reg_num)
 {
-	struct hikp_sas_itct *itct = (struct hikp_sas_itct *)reg_save;
+	volatile struct hikp_sas_itct *itct = (volatile struct hikp_sas_itct *)reg_save;
 
 	printf("The device information as below:\n");
 	printf("dev_type: %d\n", itct->dw0.dev_type);

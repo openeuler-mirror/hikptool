@@ -14,7 +14,9 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <signal.h>
 #include "tool_lib.h"
+#include "hikptdev_plug.h"
 #include "op_logs.h"
 
 static char g_op_log[OP_LOG_FILE_PATH_MAXLEN] = {0};
@@ -22,7 +24,6 @@ static char g_cmd_exec_time[LOG_TIME_LENGTH] = {0};
 static bool g_record = true;
 static bool g_log_info;
 static char g_input_buf[OP_LOG_FILE_W_MAXSIZE + 1] = {0};
-
 
 static void op_log_write(const char *log_data)
 {
@@ -413,4 +414,24 @@ void signal_op_log_write(int signal_code)
 SIGNAL_LOG_OUT:
 	(void)close(fd);
 	(void)uda_unfcntl(&op_log_fd, UDA_FLOCK_BLOCK);
+}
+
+static void signal_handle(int arg)
+{
+	signal_op_log_write(arg);
+	hikp_unlock();
+	_exit(1);
+}
+
+void sig_init(void)
+{
+	(void)signal(SIGINT,  signal_handle); /* Quit process */
+	(void)signal(SIGTERM, signal_handle);
+	(void)signal(SIGQUIT, signal_handle);
+	(void)signal(SIGHUP,  signal_handle);
+	(void)signal(SIGSEGV, signal_handle);
+	(void)signal(SIGBUS,  signal_handle);
+	(void)signal(SIGFPE,  signal_handle);
+	(void)signal(SIGABRT, signal_handle);
+	(void)signal(SIGTSTP, signal_handle); /* Stop process */
 }

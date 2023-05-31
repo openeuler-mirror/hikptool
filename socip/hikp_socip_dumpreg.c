@@ -131,6 +131,7 @@ static void hikp_socip_dumpreg_execute(struct major_cmd_ctrl *self)
 	struct hikp_cmd_ret *cmd_ret;
 
 	if (!check_socip_dumpreg_param()) {
+		self->err_no = -EINVAL;
 		cmd_socip_dump_help(self, NULL);
 		return;
 	}
@@ -141,6 +142,7 @@ static void hikp_socip_dumpreg_execute(struct major_cmd_ctrl *self)
 	hikp_cmd_init(&req_header, SOCIP_MOD, HIKP_SOCIP_CMD_DUMPREG, param[MODULE_ID_INDEX].val);
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	if (!cmd_ret) {
+		self->err_no = -EINVAL;
 		HIKP_ERROR_PRINT("hikp_cmd_alloc\n");
 		return;
 	}

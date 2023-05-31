@@ -45,7 +45,8 @@ struct op_log_print_t {
 	char *str;
 };
 
-void signal_op_log_write(int signal_code);
+void sig_init(void);
+
 void op_log_on(void);
 void op_log_off(void);
 int op_log_initialise(const char *log_dir);

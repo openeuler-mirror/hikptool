@@ -108,13 +108,13 @@ struct pcie_dumpreg_info g_reg_table_mac[] = {
 };
 
 struct pcie_dumpreg_info g_reg_table_pcs[] = {
-	{0, "SERDES_STATUS_RPT"},
-	{0, "EBUF_STATUS"},
-	{0, "GEN3_DEC_ENC_STATUS"},
-	{0, "WAKE_STATUS"},
-	{0, "RECV_DET_OR_PWR_CHAGE"},
-	{0, "EQEVAL_STATUS"},
-	{0, "LANE_INTR_STATUS"},
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(SERDES_STATUS_RPT),
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(EBUF_STATUS),
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(GEN3_DEC_ENC_STATUS),
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(WAKE_STATUS),
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(RECV_DET_OR_PWR_CHAGE),
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(EQEVAL_STATUS),
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(LANE_INTR_STATUS),
 };
 
 struct pcie_dumpreg_info g_reg_table_iob_tx[] = {
@@ -348,6 +348,13 @@ static void pcie_dumpreg_save_glb_analysis_log(const uint32_t *data, uint32_t da
 		pcie_dumpreg_write_value_to_file(g_reg_table_core_glb[item_i].name,
 						 g_reg_table_core_glb[item_i].val);
 	}
+	/* PCS REG */
+	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_pcs) &&
+		data_i < data_num; item_i++, data_i++) {
+		g_reg_table_pcs[item_i].val = data[data_i];
+		pcie_dumpreg_write_value_to_file(g_reg_table_pcs[item_i].name,
+						 g_reg_table_pcs[item_i].val);
+	}
 }
 
 static void pcie_dumpreg_save_port_analysis_log(uint32_t *data, uint32_t data_num)
@@ -375,13 +382,6 @@ static void pcie_dumpreg_save_port_analysis_log(uint32_t *data, uint32_t data_nu
 		g_reg_table_mac[item_i].val = data[data_i];
 		pcie_dumpreg_write_value_to_file(g_reg_table_mac[item_i].name,
 						 g_reg_table_mac[item_i].val);
-	}
-	/* PCS REG */
-	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_pcs) &&
-		data_i < data_num; item_i++, data_i++) {
-		g_reg_table_pcs[item_i].val = data[data_i];
-		pcie_dumpreg_write_value_to_file(g_reg_table_pcs[item_i].name,
-						 g_reg_table_pcs[item_i].val);
 	}
 }
 
@@ -421,14 +421,12 @@ static int pcie_dumpreg_save_log(uint32_t *data, uint32_t data_num,
 	switch (req_data->level) {
 	case DUMP_GLOBAL_LEVEL:
 		expect_data_num = HIKP_ARRAY_SIZE(g_reg_table_iob_tx) +
-		HIKP_ARRAY_SIZE(g_reg_table_iob_rx) + HIKP_ARRAY_SIZE(g_reg_table_ap_glb) +
-		HIKP_ARRAY_SIZE(g_reg_table_core_glb);
+			HIKP_ARRAY_SIZE(g_reg_table_iob_rx) + HIKP_ARRAY_SIZE(g_reg_table_ap_glb) +
+			HIKP_ARRAY_SIZE(g_reg_table_core_glb) + HIKP_ARRAY_SIZE(g_reg_table_pcs);
 		break;
 	case DUMP_PORT_LEVEL:
 		expect_data_num = HIKP_ARRAY_SIZE(g_reg_table_tl) +
-				  HIKP_ARRAY_SIZE(g_reg_table_dl) +
-				  HIKP_ARRAY_SIZE(g_reg_table_mac) +
-				  HIKP_ARRAY_SIZE(g_reg_table_pcs);
+			HIKP_ARRAY_SIZE(g_reg_table_dl) + HIKP_ARRAY_SIZE(g_reg_table_mac);
 		break;
 	default:
 		Err("PCIe DUMPREG", "check dump level failed.\n");

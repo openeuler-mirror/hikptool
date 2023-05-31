@@ -64,6 +64,11 @@ static int mac_cmd_dump_mod(struct major_cmd_ctrl *self, const char *name,
 	uint32_t i;
 	int ret;
 
+	if (blk_num == 0) {
+		printf("%s module is not support dump.\n", name);
+		return 0;
+	}
+
 	printf("============ %10s REG INFO ==============\n", name);
 	printf("\t %s  :\t%10s\n", "offset", "value");
 

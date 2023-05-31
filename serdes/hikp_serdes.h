@@ -192,7 +192,8 @@ struct hilink_detail_info {
 	struct hilink_rx_param rx_ctle_cfg;
 	struct hilink_serdes_rx_tap rx_tap_cfg;
 	struct hilink_4p_eye_result eye_diagram;
-	uint32_t snr;
+	/* 5: (0: SNR_METRIC, 1:SNR_METRIC_HIS_MIN, 2:SNR_CYCLES, 3:HEH, 4:SNR_METRIC_SW) */
+	int32_t snr_para[5];
 };
 
 struct hilink_brief_info {

@@ -141,6 +141,7 @@ static int hikp_roh_get_cam_reg_num(struct major_cmd_ctrl *self)
 	struct roh_mac_req_para req_data = { 0 };
 	struct hikp_cmd_header req_header = { 0 };
 	struct hikp_cmd_ret *cmd_ret = NULL;
+	uint32_t cam_reg_num;
 
 	req_data.bdf = g_roh_mac_param.target.bdf;
 	hikp_cmd_init(&req_header, ROH_MOD, HIKP_ROH_MAC, CMD_GET_CAM_REG_NUM);
@@ -153,7 +154,10 @@ static int hikp_roh_get_cam_reg_num(struct major_cmd_ctrl *self)
 		return -EIO;
 	}
 	mac_rsp = (struct roh_mac_cam_reg_num *)(cmd_ret->rsp_data);
-	return mac_rsp->cam_reg_num;
+	cam_reg_num = mac_rsp->cam_reg_num;
+	free(cmd_ret);
+	cmd_ret = NULL;
+	return cam_reg_num;
 }
 
 static int hikp_roh_build_cam(struct major_cmd_ctrl *self, struct cam_table_entry_t *cam_table)

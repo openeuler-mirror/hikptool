@@ -19,26 +19,6 @@
 /* hikptool command adapter */
 struct cmd_adapter g_tool = { 0 };
 
-static void _sig_ign_handle(int arg)
-{
-	signal_op_log_write(arg);
-	hikp_unlock();
-	_exit(1);
-}
-
-static void sig_init(void)
-{
-	(void)signal(SIGINT, _sig_ign_handle); /* Quit process */
-	(void)signal(SIGTERM, _sig_ign_handle);
-	(void)signal(SIGQUIT, _sig_ign_handle);
-	(void)signal(SIGHUP, _sig_ign_handle);
-	(void)signal(SIGSEGV, _sig_ign_handle);
-	(void)signal(SIGBUS, _sig_ign_handle);
-	(void)signal(SIGFPE, _sig_ign_handle);
-	(void)signal(SIGABRT, _sig_ign_handle);
-	(void)signal(SIGTSTP, _sig_ign_handle); /* Stop process */
-}
-
 static void show_tool_version(const struct cmd_adapter *adapter)
 {
 	printf("%s version %s Huawei\n", adapter->name, adapter->version);

@@ -11,7 +11,8 @@
 
 project(hikptool C)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O2 -fPIC -fPIE -Wall")
+set(CMAKE_C_FLAGS
+	"${CMAKE_C_FLAGS} -O2 -fPIC -fPIE -Wall -Wextra -fno-common -std=gnu11 -Wfloat-equal")
 set(CMAKE_SKIP_RPATH TRUE)
 
 macro(get_header_dir_recurse HEADER_DIR_LIST)

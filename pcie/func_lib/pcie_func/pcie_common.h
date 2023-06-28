@@ -28,6 +28,7 @@ enum pcie_trace_cmd_type {
 	TRACE_CLEAR = 2,
 	TRACE_INFO = 3,
 	TRACE_MODE = 4,
+	TRACE_PM = 5,
 };
 
 enum pcie_info_cmd_type {

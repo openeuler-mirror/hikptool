@@ -43,6 +43,31 @@ union ltssm_state_reg {
 	uint64_t val;
 };
 
+union pm_state_reg {
+	struct {
+		uint64_t pm_state : 6;							 /* [0:5] */
+		uint64_t pm_clock : 18;							 /* [6:23] */
+		uint64_t reserved1 : 8;							 /* [24:31] */
+		uint64_t refclk_stable_vld : 1;                  /* [32] */
+		uint64_t enter_l12_case : 1;            		 /* [33] */
+		uint64_t pm_t_dl_l2_gnt_timeout : 1;             /* [34] */
+		uint64_t pm_t_dl_l1_gnt_timeout : 1;             /* [35] */
+		uint64_t pm_t_dl_l0s_gnt_timeout : 1;            /* [36] */
+		uint64_t pm_t_dl_lastack_timeout : 1;      		 /* [37] */
+		uint64_t pme_turn_off_vld_hold : 1;              /* [38] */
+		uint64_t pm_blk_tlp_timeout : 1;                 /* [39] */
+		uint64_t aspm_nak_vld : 1;            			 /* [40] */
+		uint64_t retrain_link_vld : 1;       			 /* [41] */
+		uint64_t pending_dllp_vld : 1;             		 /* [42] */
+		uint64_t pm_wakeup_tol0_en : 1;           		 /* [43] */
+		uint64_t mac2pm_rx_data_vld : 1;  			     /* [44] */
+		uint64_t dfe_req : 1;      						 /* [45] */
+		uint64_t pm_t_dfe_time_meet : 1; 				 /* [46] */
+		uint64_t reserved2 : 17;              			 /* [47:63] */
+	} bits;
+	uint64_t val;
+};
+
 static int pcie_get_ltssm_trace(uint32_t port_id, uint64_t *ltssm_status, uint32_t *ltssm_num)
 {
 	struct hikp_cmd_header req_header;
@@ -279,4 +304,159 @@ free_cmd_ret:
 	free(cmd_ret);
 
 	return ret;
+}
+
+static int pcie_get_pm_trace(uint32_t port_id, uint64_t *pm_status, uint32_t *pm_num)
+{
+	struct hikp_cmd_header req_header;
+	struct hikp_cmd_ret *cmd_ret = NULL;
+	struct pcie_trace_req_para req_data = { 0 };
+	size_t src_size, dst_size;
+	int ret;
+
+	req_data.port_id = port_id;
+	hikp_cmd_init(&req_header, PCIE_MOD, PCIE_TRACE, TRACE_PM);
+	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
+	ret = hikp_rsp_normal_check(cmd_ret);
+	if (ret) {
+		Err("PCIe Base", "pcie pm trace cmd_ret check failed, ret: %d.\n", ret);
+		goto free_cmd_ret;
+	}
+
+	if (cmd_ret->rsp_data_num == 0) {
+		Err("PCIe Base", "without rsp data.\n");
+		ret = -EINVAL;
+		goto free_cmd_ret;
+	}
+	/* 0: First uint32_t is pm trace num received from TF */
+	*pm_num = cmd_ret->rsp_data[0];
+
+	if ((cmd_ret->rsp_data_num - 1) * sizeof(uint32_t) != (*pm_num) * sizeof(uint64_t)) {
+		Err("PCIe Base", "rsp data number check failed, rsp_data_num: %u, pm_num: %u.\n",
+		    cmd_ret->rsp_data_num, *pm_num);
+		ret = -EINVAL;
+		goto free_cmd_ret;
+	}
+
+	src_size = (*pm_num) * sizeof(uint64_t);
+	dst_size = TRACER_DEPTH * sizeof(uint64_t);
+	if (src_size > dst_size) {
+		Err("PCIe Base", "size check failed, %u > %u.\n", src_size, dst_size);
+		ret = -EINVAL;
+		goto free_cmd_ret;
+	}
+	memcpy(pm_status, (cmd_ret->rsp_data + 1), src_size);
+
+free_cmd_ret:
+	free(cmd_ret);
+	return ret;
+}
+
+struct pcie_pm_num_string g_pm_string_table[] = {
+	{0x0,	"pm_pme_idle"},
+	{0x1,	"pm_wait_dc_pme_msg_send_out"},
+	{0x2,	"pm_wait_dc_tl_enter_l2"},
+	{0x3,	"pm_wait_dc_dl_enter_l2"},
+	{0x4,	"pm_wait_dc_mac_enter_l2"},
+	{0x5,	"pm_dc_enter_l2"},
+	{0x6,	"pm_wait_dc_tl_enter_pcipm_l1"},
+	{0x7,	"pm_wait_dc_dl_enter_pcipm_l1"},
+	{0x8,	"pm_wait_dc_tl_enter_aspm_l1"},
+	{0x9,	"pm_wait_dc_dl_enter_aspm_l1"},
+	{0xa,	"pm_wait_tl_enter_aspm_l0"},
+	{0xb,	"pm_wait_dl_enter_aspm_l0"},
+	{0xc,	"pm_wait_dc_mac_enter_l1"},
+	{0xd,	"pm_wait_mac_enter_l0s"},
+	{0xe,	"pm_device_in_l0s"},
+	{0xf,	"pm_dc_device_in_l1"},
+	{0x10,	"pm_wait_dc_enter_l0"},
+	{0x11,	"pm_wait_uc_tl_enter_l2"},
+	{0x12,	"pm_wait_uc_dl_enter_l2"},
+	{0x13,	"pm_wait_uc_mac_enter_l2"},
+	{0x15,	"pm_wait_uc_tl_enter_pcipm_l1"},
+	{0x17,	"pm_wait_uc_dl_enter_aspm_l1"},
+	{0x18,	"pm_wait_uc_tl_enter_aspm_l1"},
+	{0x1a,	"pm_wait_uc_dl_enter_pcipm_l1"},
+	{0x1c,	"pm_wait_uc_mac_enter_l1"},
+	{0x1d,	"pm_wait_uc_pme_enter_l1_nak_sent_out"},
+	{0x1e,	"pm_wait_uc_enter_l0"},
+	{0x20,	"pm_device_will_enter_l1_substate"},
+	{0x21,	"pm_device_in_l1_1"},
+	{0x22,	"pm_device_will_exit_l1_substate"},
+	{0x23,	"pm_device_in_l1_2_entry"},
+	{0x24,	"pm_device_in_l1_2_idle"},
+	{0x25,	"pm_device_in_l1_2_exit"},
+	{-1,	"unknown"} /* end of array */
+};
+
+static char *hisi_pcie_pm_string_get(uint32_t pm)
+{
+	int i = 0;
+
+	while (g_pm_string_table[i].pm >= 0) {
+		if ((uint32_t)g_pm_string_table[i].pm != pm) {
+			i++;
+			continue;
+		}
+		break;
+	}
+
+	return g_pm_string_table[i].pm_c;
+}
+
+static int pcie_print_pm_trace(const uint64_t *pm_status, uint32_t pm_num)
+{
+	uint32_t i;
+	char *pm_c = NULL;
+	union pm_state_reg pm_val;
+
+	if (pm_num > TRACER_DEPTH || pm_num == 0) {
+		Err("PCIe Base", "pm_num(%u) is over range or zero\n", pm_num);
+		return -EINVAL;
+	}
+	Info("PCIe Base", "pm tracer:\n");
+	Info("PCIe Base", "\ttrace state: %llx\n", pm_status[0]);
+	Info("PCIe Base",
+	     "\tpm[ii]: BE8: 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 "
+	     "BD8:   23:6   5:0 :  pm state\n");
+	for (i = 1; i < pm_num; i++) {
+		pm_val.val = pm_status[i];
+		pm_c = hisi_pcie_pm_string_get((uint32_t)pm_val.bits.pm_state);
+		Info("PCIe Base",
+			"\tpm[%02u]:\t     %x  %x  %x  %x  %x  %x %x %x %x %x %x %x %x %x %x     0x%06x  0x%02x   %s\n",
+			i,
+			(uint32_t)pm_val.bits.pm_t_dfe_time_meet,
+			(uint32_t)pm_val.bits.dfe_req,
+			(uint32_t)pm_val.bits.mac2pm_rx_data_vld,
+			(uint32_t)pm_val.bits.pm_wakeup_tol0_en,
+			(uint32_t)pm_val.bits.pending_dllp_vld,
+			(uint32_t)pm_val.bits.retrain_link_vld,
+			(uint32_t)pm_val.bits.aspm_nak_vld,
+			(uint32_t)pm_val.bits.pm_blk_tlp_timeout,
+			(uint32_t)pm_val.bits.pme_turn_off_vld_hold,
+			(uint32_t)pm_val.bits.pm_t_dl_lastack_timeout,
+			(uint32_t)pm_val.bits.pm_t_dl_l0s_gnt_timeout,
+			(uint32_t)pm_val.bits.pm_t_dl_l1_gnt_timeout,
+			(uint32_t)pm_val.bits.pm_t_dl_l2_gnt_timeout,
+			(uint32_t)pm_val.bits.enter_l12_case,
+			(uint32_t)pm_val.bits.refclk_stable_vld,
+			(uint32_t)pm_val.bits.pm_clock,
+			(uint32_t)pm_val.bits.pm_state,
+			pm_c);
+	}
+
+	return 0;
+}
+
+int pcie_pm_trace(uint32_t port_id)
+{
+	int ret;
+	uint32_t pm_num = 0;
+	uint64_t pm_st_save[TRACER_DEPTH];
+
+	ret = pcie_get_pm_trace(port_id, pm_st_save, &pm_num);
+	if (ret)
+		return ret;
+
+	return pcie_print_pm_trace(pm_st_save, pm_num);
 }

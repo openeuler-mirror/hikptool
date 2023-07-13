@@ -355,6 +355,7 @@ static void mac_cmd_disp_arb_info(const struct mac_cmd_arb_dfx *arb_dfx)
 	mac_cmd_disp_port_param("Default", &arb_dfx->default_cfg);
 	mac_cmd_disp_port_param("BIOS", &arb_dfx->bios_cfg);
 	mac_cmd_disp_port_param("TOOL", &arb_dfx->user_cfg);
+	mac_cmd_disp_port_param("ARB", &arb_dfx->arb_cfg);
 	mac_cmd_disp_port_param("Final", &arb_dfx->port_cfg);
 }
 
@@ -443,7 +444,8 @@ static void mac_cmd_port_execute(struct major_cmd_ctrl *self)
 	}
 
 	port_hw = (struct mac_cmd_port_hardware *)(hw_cmd_ret->rsp_data);
-	if (port_hw->port_type == 1)
+	if (port_hw->port_type == HIKP_PORT_TYPE_PHY ||
+	    port_hw->port_type == HIKP_PORT_TYPE_PHY_SDS)
 		mask |= MAC_LSPORT_PHY;
 
 	mac_cmd_show_port_dfx(self, mask);

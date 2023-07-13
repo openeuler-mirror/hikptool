@@ -95,6 +95,9 @@ enum {
 #define HIKP_MAC_PHY_ABI_PAUSE          HI_BIT(13)
 #define HIKP_MAC_PHY_ABI_ASYM_PAUSE     HI_BIT(14)
 
+#define HIKP_PORT_TYPE_PHY		1
+#define HIKP_PORT_TYPE_PHY_SDS		3
+
 struct mac_item {
 	uint32_t key;
 	const char *name;
@@ -151,6 +154,7 @@ struct mac_cmd_arb_dfx {
 	struct mac_port_param bios_cfg;
 	struct mac_port_param user_cfg;
 	struct mac_port_param port_cfg;
+	struct mac_port_param arb_cfg;
 };
 
 #define MAC_PHY_DFX_REG_NUM     12

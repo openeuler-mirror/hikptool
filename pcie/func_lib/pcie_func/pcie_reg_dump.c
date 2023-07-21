@@ -66,6 +66,8 @@ struct pcie_dumpreg_info g_reg_table_tl[] = {
 	{0, "TL_RX_LOC_TLP_CNT"},
 	{0, "TL_RX_ERR_STATUS"},
 	{0, "TL_CFGSPACE_BDF"},
+	{0, "TL_TX_UR_CNT"},
+	{0, "TL_RX_ERR_STATUS"},
 };
 
 struct pcie_dumpreg_info g_reg_table_dl[] = {
@@ -105,6 +107,28 @@ struct pcie_dumpreg_info g_reg_table_mac[] = {
 	{0, "MAC_REG_FE_INT_RO"},
 	{0, "MAC_REG_CE_INT_RO"},
 	{0, "MAC_REG_NFE_INT_RO"},
+	{0, "MAC_REG_EQ_FIX_LP_TX_PRESET"},
+	{0, "MAC_REG_ESM_32G_EQ_FIX_LP_TX_PRESET"},
+	{0, "MAC_REG_ADJ_HILINK_MODE_EN"},
+	{0, "MAC_REG_EQ_OPT_TX_PRESET_1"},
+	{0, "MAC_REG_LP_GEN3_TX_PRESET_P1_2"},
+	{0, "MAC_REG_GEN3_EQ_OPT_TX_PRESET_2"},
+	{0, "MAC_REG_GEN4_EQ_OPT_TX_PRESET_1"},
+	{0, "MAC_REG_GEN4_EQ_OPT_TX_PRESET_2"},
+	{0, "MAC_REG_LP_GEN4_TX_PRESET_P1_1"},
+	{0, "MAC_REG_LP_GEN4_TX_PRESET_P1_2"},
+	{0, "MAC_REG_DEBUG_PIPE1"},
+	{0, "MAC_REG_DEBUG_PIPE2"},
+	{0, "MAC_REG_DEBUG_PIPE3"},
+	{0, "MAC_REG_DEBUG_PIPE5"},
+	{0, "MAC_REG_DEBUG_PIPE7"},
+	{0, "MAC_REG_DEBUG_PIPE8"},
+	{0, "MAC_REG_DEBUG_PIPE9"},
+	{0, "MAC_REG_DEBUG_PIPE10"},
+	{0, "MAC_REG_DEBUG_PIPE11"},
+	{0, "MAC_LEAVE_L0_INFO"},
+	{0, "DFX_APB_LANE_ERROR_STATUS_0"},
+	{0, "DFX_APB_LANE_ERROR_STATUS_1"},
 };
 
 struct pcie_dumpreg_info g_reg_table_pcs[] = {
@@ -115,6 +139,8 @@ struct pcie_dumpreg_info g_reg_table_pcs[] = {
 	HIKP_PCIE_PCS_LANE_TBL_ENTRY(RECV_DET_OR_PWR_CHAGE),
 	HIKP_PCIE_PCS_LANE_TBL_ENTRY(EQEVAL_STATUS),
 	HIKP_PCIE_PCS_LANE_TBL_ENTRY(LANE_INTR_STATUS),
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(M_PCS_RPT_REG),
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(MSG_BUS_DFX),
 };
 
 struct pcie_dumpreg_info g_reg_table_iob_tx[] = {
@@ -141,6 +167,71 @@ struct pcie_dumpreg_info g_reg_table_iob_tx[] = {
 	{0, "IOB_TX_INT_SEVERITY3"},
 	{0, "IOB_TX_INT_SEVERITY4"},
 	{0, "IOB_TX_INT_SEVERITY5"},
+	{0, "IOB_TX_TCS_DEC_ERR_INFO_L"},
+	{0, "IOB_TX_TCS_DEC_ERR_INFO_H"},
+	{0, "DFX_IOB_TX_P_CNT_0"},
+	{0, "DFX_IOB_TX_P_CNT_1"},
+	{0, "DFX_IOB_TX_P_CNT_2"},
+	{0, "DFX_IOB_TX_P_CNT_3"},
+	{0, "DFX_IOB_TX_P_CNT_4"},
+	{0, "DFX_IOB_TX_NP_CNT_0"},
+	{0, "DFX_IOB_TX_NP_CNT_1"},
+	{0, "DFX_IOB_TX_NP_CNT_2"},
+	{0, "DFX_IOB_TX_NP_CNT_3"},
+	{0, "DFX_IOB_TX_NP_CNT_4"},
+	{0, "DFX_IOB_TX_NP_CNT_5"},
+	{0, "DFX_IOB_TX_NP_CNT_6"},
+	{0, "DFX_IOB_TX_NP_CNT_7"},
+	{0, "DFX_IOB_TX_NP_CNT_8"},
+	{0, "DFX_IOB_TX_NP_CNT_9"},
+	{0, "DFX_IOB_TX_NP_CNT_10"},
+	{0, "DFX_IOB_TX_NP_CNT_11"},
+	{0, "DFX_IOB_TX_CPL_CNT_0"},
+	{0, "DFX_IOB_TX_CPL_CNT_1"},
+	{0, "DFX_IOB_TX_CPL_CNT_2"},
+	{0, "DFX_IOB_TX_REQ_CNT"},
+	{0, "DFX_IOB_TX_STATUS0"},
+	{0, "DFX_IOB_TX_STATUS1"},
+	{0, "DFX_IOB_TX_STATUS2"},
+	{0, "DFX_IOB_TX_STATUS3"},
+	{0, "DFX_IOB_TX_STATUS4"},
+	{0, "DFX_IOB_TX_STATUS5"},
+	{0, "DFX_IOB_TX_ABNORMAL_CNT_0"},
+	{0, "DFX_IOB_TX_ABNORMAL_CNT_1"},
+	{0, "DFX_IOB_TX_ABNORMAL_CNT_2"},
+	{0, "DFX_IOB_TX_ABNORMAL_CNT_3"},
+	{0, "DFX_IOB_TX_ERROR0"},
+	{0, "DFX_IOB_TX_ERROR1"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_0"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_1"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_2"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_3"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_4"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_5"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_6"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_7"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_8"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_9"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_10"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_11"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_12"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_13"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_14"},
+	{0, "DFX_IOB_TX_TCS_NORMAL_CNT_15"},
+	{0, "DFX_IOB_TX_TCS_P2P_CNT_0"},
+	{0, "DFX_IOB_TX_TCS_P2P_CNT_1"},
+	{0, "DFX_IOB_TX_TCS_P2P_CNT_2"},
+	{0, "DFX_IOB_TX_TCS_P2P_CNT_3"},
+	{0, "DFX_IOB_TX_TCS_P2P_CNT_4"},
+	{0, "DFX_IOB_TX_TCS_P2P_CNT_5"},
+	{0, "DFX_IOB_TX_TCS_P2P_CNT_6"},
+	{0, "DFX_IOB_TX_TCS_P2P_CNT_7"},
+	{0, "DFX_IOB_TX_TCS_ARNORAML_CNT_0"},
+	{0, "DFX_IOB_TX_TCS_ARNORAML_CNT_1"},
+	{0, "DFX_IOB_TX_TCS_STATUS0"},
+	{0, "DFX_IOB_TX_TCS_STATUS1"},
+	{0, "DFX_IOB_TX_TCS_STATUS2"},
+	{0, "DFX_IOB_TX_TCS_IDLE"},
 };
 
 struct pcie_dumpreg_info g_reg_table_iob_rx[] = {
@@ -150,6 +241,19 @@ struct pcie_dumpreg_info g_reg_table_iob_rx[] = {
 	{0, "IOB_RX_MSI_MSIX_CTRL_0"},
 	{0, "IOB_RX_MSI_MSIX_ADDR_HIGH_0"},
 	{0, "IOB_RX_MSI_MSIX_ADDR_LOW_0"},
+	{0, "DFX_IOB_RX_CNT_RX_REQ"},
+	{0, "DFX_IOB_RX_CNT_LOC_REQ"},
+	{0, "DFX_IOB_RX_CNT_SEND_AM"},
+	{0, "DFX_IOB_RX_CNT_SEND_LOC"},
+	{0, "DFX_IOB_RX_CNT_RESP_RX"},
+	{0, "DFX_IOB_RX_CNT_RESP_LOC"},
+	{0, "DFX_IOB_RX_CNT_RESP_RECV"},
+	{0, "IOB_RX_INT_STATUS"},
+	{0, "DFX_IOB_RX_AMB_WR_CNT_0"},
+	{0, "DFX_IOB_RX_AMB_WR_CNT_1"},
+	{0, "DFX_IOB_RX_AMB_RD_CNT_0"},
+	{0, "DFX_IOB_RX_AMB_RD_CNT_1"},
+	{0, "DFX_IOB_RX_AMB_INT_NUM"},
 };
 
 struct pcie_dumpreg_info g_reg_table_ap_glb[] = {
@@ -256,6 +360,30 @@ struct pcie_dumpreg_info g_reg_table_core_glb[] = {
 	{0, "CORE_INT_FE_MSK_2"},
 	{0, "CORE_INT_FE_STATUS_2"},
 	{0, "CORE_INT_FE_RO_2"},
+	{0, "PORT07_LINK_MODE"},
+	{0, "PORT815_LINK_MODE"},
+};
+
+struct pcie_dumpreg_info g_reg_table_core_tl[] = {
+	{0, "TL_PM_AUTO_EXIT_TIME_VALUE"},
+	{0, "TL_DFX_PM_CORE_FUNC_EN"},
+	{0, "TL_PM_DFE_TIME_VALUE"},
+};
+
+struct pcie_dumpreg_info g_reg_table_dfx_core_tl[] = {
+	{0, "TL_TX_ASYN_FIFO_ST"},
+	{0, "TL_TX_INGRESS_CNT"},
+	{0, "TL_TX_CTRL_EGRESS_CNT"},
+	{0, "TL_TX_CFG_CNT"},
+	{0, "TL_TX_MEM_RD_CNT"},
+	{0, "TL_TX_MEM_WR_CNT"},
+	{0, "TL_TX_IO_RD_CNT"},
+	{0, "TL_TX_IO_WR_CNT"},
+	{0, "TL_TX_MSG_CNT"},
+	{0, "TL_TX_CPL_CNT"},
+	{0, "TL_TX_ATOMIC_CNT"},
+	{0, "TL_TX_CFG_TX_CNT"},
+	{0, "TL_TX_GEN_CPL_CNT"},
 };
 
 static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
@@ -315,73 +443,33 @@ static void pcie_dumpreg_write_value_to_file(const char *reg_name, uint32_t val)
 	}
 }
 
-static void pcie_dumpreg_save_glb_analysis_log(const uint32_t *data, uint32_t data_num)
+struct pcie_dumpreg_table g_dump_info_glb[] = {
+	{HIKP_ARRAY_SIZE(g_reg_table_iob_tx), g_reg_table_iob_tx},
+	{HIKP_ARRAY_SIZE(g_reg_table_iob_rx), g_reg_table_iob_rx},
+	{HIKP_ARRAY_SIZE(g_reg_table_ap_glb), g_reg_table_ap_glb},
+	{HIKP_ARRAY_SIZE(g_reg_table_core_glb), g_reg_table_core_glb},
+	{HIKP_ARRAY_SIZE(g_reg_table_pcs), g_reg_table_pcs},
+	{HIKP_ARRAY_SIZE(g_reg_table_core_tl), g_reg_table_core_tl},
+	{HIKP_ARRAY_SIZE(g_reg_table_dfx_core_tl), g_reg_table_dfx_core_tl},
+};
+
+struct pcie_dumpreg_table g_dump_info_port[] = {
+	{HIKP_ARRAY_SIZE(g_reg_table_tl), g_reg_table_tl},
+	{HIKP_ARRAY_SIZE(g_reg_table_dl), g_reg_table_dl},
+	{HIKP_ARRAY_SIZE(g_reg_table_mac), g_reg_table_mac},
+};
+
+static void pcie_dumpreg_save_analysis_log(const uint32_t *data, uint32_t data_num,
+	 struct pcie_dumpreg_table *table, uint32_t size)
 {
-	uint32_t item_i, data_i;
+	uint32_t i, j, data_i = 0;
 
-	data_i = 0;
-	/* IOB_TX REG */
-	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_iob_tx) &&
-		data_i < data_num; item_i++, data_i++) {
-		g_reg_table_iob_tx[item_i].val = data[data_i];
-		pcie_dumpreg_write_value_to_file(g_reg_table_iob_tx[item_i].name,
-						 g_reg_table_iob_tx[item_i].val);
-	}
-	/* IOB_RX REG */
-	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_iob_rx) &&
-		data_i < data_num; item_i++, data_i++) {
-		g_reg_table_iob_rx[item_i].val = data[data_i];
-		pcie_dumpreg_write_value_to_file(g_reg_table_iob_rx[item_i].name,
-						 g_reg_table_iob_rx[item_i].val);
-	}
-	/* AP_GLB REG */
-	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_ap_glb) &&
-		data_i < data_num; item_i++, data_i++) {
-		g_reg_table_ap_glb[item_i].val = data[data_i];
-		pcie_dumpreg_write_value_to_file(g_reg_table_ap_glb[item_i].name,
-						 g_reg_table_ap_glb[item_i].val);
-	}
-	/* CORE_GLB REG */
-	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_core_glb) &&
-		data_i < data_num; item_i++, data_i++) {
-		g_reg_table_core_glb[item_i].val = data[data_i];
-		pcie_dumpreg_write_value_to_file(g_reg_table_core_glb[item_i].name,
-						 g_reg_table_core_glb[item_i].val);
-	}
-	/* PCS REG */
-	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_pcs) &&
-		data_i < data_num; item_i++, data_i++) {
-		g_reg_table_pcs[item_i].val = data[data_i];
-		pcie_dumpreg_write_value_to_file(g_reg_table_pcs[item_i].name,
-						 g_reg_table_pcs[item_i].val);
-	}
-}
-
-static void pcie_dumpreg_save_port_analysis_log(uint32_t *data, uint32_t data_num)
-{
-	uint32_t item_i, data_i;
-
-	data_i = 0;
-	/* TL REG */
-	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_tl) &&
-		data_i < data_num; item_i++, data_i++) {
-		g_reg_table_tl[item_i].val = data[data_i];
-		pcie_dumpreg_write_value_to_file(g_reg_table_tl[item_i].name,
-						 g_reg_table_tl[item_i].val);
-	}
-	/* DL REG */
-	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_dl) &&
-		data_i < data_num; item_i++, data_i++) {
-		g_reg_table_dl[item_i].val = data[data_i];
-		pcie_dumpreg_write_value_to_file(g_reg_table_dl[item_i].name,
-						 g_reg_table_dl[item_i].val);
-	}
-	/* MAC REG */
-	for (item_i = 0; item_i < HIKP_ARRAY_SIZE(g_reg_table_mac) &&
-		data_i < data_num; item_i++, data_i++) {
-		g_reg_table_mac[item_i].val = data[data_i];
-		pcie_dumpreg_write_value_to_file(g_reg_table_mac[item_i].name,
-						 g_reg_table_mac[item_i].val);
+	for (i = 0; i < size; i++) {
+		struct pcie_dumpreg_info *info = table[i].dump_info;
+		for (j = 0; j < table[i].size && data_i < data_num; j++, data_i++) {
+			info[j].val = data[data_i];
+			pcie_dumpreg_write_value_to_file(info[j].name, info[j].val);
+		}
 	}
 }
 
@@ -420,13 +508,14 @@ static int pcie_dumpreg_save_log(uint32_t *data, uint32_t data_num,
 
 	switch (req_data->level) {
 	case DUMP_GLOBAL_LEVEL:
-		expect_data_num = HIKP_ARRAY_SIZE(g_reg_table_iob_tx) +
-			HIKP_ARRAY_SIZE(g_reg_table_iob_rx) + HIKP_ARRAY_SIZE(g_reg_table_ap_glb) +
-			HIKP_ARRAY_SIZE(g_reg_table_core_glb) + HIKP_ARRAY_SIZE(g_reg_table_pcs);
+		for (i = 0; i < HIKP_ARRAY_SIZE(g_dump_info_glb); i++) {
+			expect_data_num += g_dump_info_glb[i].size;
+		}
 		break;
 	case DUMP_PORT_LEVEL:
-		expect_data_num = HIKP_ARRAY_SIZE(g_reg_table_tl) +
-			HIKP_ARRAY_SIZE(g_reg_table_dl) + HIKP_ARRAY_SIZE(g_reg_table_mac);
+		for (i = 0; i < HIKP_ARRAY_SIZE(g_dump_info_port); i++) {
+			expect_data_num += g_dump_info_port[i].size;
+		}
 		break;
 	default:
 		Err("PCIe DUMPREG", "check dump level failed.\n");
@@ -441,9 +530,11 @@ static int pcie_dumpreg_save_log(uint32_t *data, uint32_t data_num,
 			pcie_dumpreg_write_value_to_file(reg_name, data[i]);
 		}
 	} else if (req_data->level == DUMP_GLOBAL_LEVEL) {
-		pcie_dumpreg_save_glb_analysis_log(data, data_num);
+		pcie_dumpreg_save_analysis_log(data, data_num,
+		 g_dump_info_glb, HIKP_ARRAY_SIZE(g_dump_info_glb));
 	} else {
-		pcie_dumpreg_save_port_analysis_log(data, data_num);
+		pcie_dumpreg_save_analysis_log(data, data_num,
+		 g_dump_info_port, HIKP_ARRAY_SIZE(g_dump_info_port));
 	}
 
 	return 0;

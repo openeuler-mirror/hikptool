@@ -45,25 +45,25 @@ union ltssm_state_reg {
 
 union pm_state_reg {
 	struct {
-		uint64_t pm_state : 6;							 /* [0:5] */
-		uint64_t pm_clock : 18;							 /* [6:23] */
-		uint64_t reserved1 : 8;							 /* [24:31] */
-		uint64_t refclk_stable_vld : 1;                  /* [32] */
-		uint64_t enter_l12_case : 1;            		 /* [33] */
-		uint64_t pm_t_dl_l2_gnt_timeout : 1;             /* [34] */
-		uint64_t pm_t_dl_l1_gnt_timeout : 1;             /* [35] */
-		uint64_t pm_t_dl_l0s_gnt_timeout : 1;            /* [36] */
-		uint64_t pm_t_dl_lastack_timeout : 1;      		 /* [37] */
-		uint64_t pme_turn_off_vld_hold : 1;              /* [38] */
-		uint64_t pm_blk_tlp_timeout : 1;                 /* [39] */
-		uint64_t aspm_nak_vld : 1;            			 /* [40] */
-		uint64_t retrain_link_vld : 1;       			 /* [41] */
-		uint64_t pending_dllp_vld : 1;             		 /* [42] */
-		uint64_t pm_wakeup_tol0_en : 1;           		 /* [43] */
-		uint64_t mac2pm_rx_data_vld : 1;  			     /* [44] */
-		uint64_t dfe_req : 1;      						 /* [45] */
-		uint64_t pm_t_dfe_time_meet : 1; 				 /* [46] */
-		uint64_t reserved2 : 17;              			 /* [47:63] */
+		uint64_t pm_state : 6;                      /* [0:5] */
+		uint64_t pm_clock : 18;                     /* [6:23] */
+		uint64_t reserved1 : 8;                     /* [24:31] */
+		uint64_t refclk_stable_vld : 1;             /* [32] */
+		uint64_t enter_l12_case : 1;                /* [33] */
+		uint64_t pm_t_dl_l2_gnt_timeout : 1;        /* [34] */
+		uint64_t pm_t_dl_l1_gnt_timeout : 1;        /* [35] */
+		uint64_t pm_t_dl_l0s_gnt_timeout : 1;       /* [36] */
+		uint64_t pm_t_dl_lastack_timeout : 1;       /* [37] */
+		uint64_t pme_turn_off_vld_hold : 1;         /* [38] */
+		uint64_t pm_blk_tlp_timeout : 1;            /* [39] */
+		uint64_t aspm_nak_vld : 1;                  /* [40] */
+		uint64_t retrain_link_vld : 1;              /* [41] */
+		uint64_t pending_dllp_vld : 1;              /* [42] */
+		uint64_t pm_wakeup_tol0_en : 1;             /* [43] */
+		uint64_t mac2pm_rx_data_vld : 1;            /* [44] */
+		uint64_t dfe_req : 1;                       /* [45] */
+		uint64_t pm_t_dfe_time_meet : 1;            /* [46] */
+		uint64_t reserved2 : 17;                    /* [47:63] */
 	} bits;
 	uint64_t val;
 };
@@ -423,7 +423,8 @@ static int pcie_print_pm_trace(const uint64_t *pm_status, uint32_t pm_num)
 		pm_val.val = pm_status[i];
 		pm_c = hisi_pcie_pm_string_get((uint32_t)pm_val.bits.pm_state);
 		Info("PCIe Base",
-			"\tpm[%02u]:\t     %x  %x  %x  %x  %x  %x %x %x %x %x %x %x %x %x %x     0x%06x  0x%02x   %s\n",
+		     "\tpm[%02u]:\t     %x  %x  %x  %x  %x  %x %x %x %x %x %x "
+		     "%x %x %x %x     0x%06x  0x%02x   %s\n",
 			i,
 			(uint32_t)pm_val.bits.pm_t_dfe_time_meet,
 			(uint32_t)pm_val.bits.dfe_req,

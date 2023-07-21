@@ -49,6 +49,11 @@ struct pcie_dump_req_para {
 	uint32_t level;
 };
 
+struct pcie_dumpreg_table {
+	uint32_t size;
+	struct pcie_dumpreg_info *dump_info;
+};
+
 int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level);
 
 #endif

@@ -30,6 +30,7 @@ enum mac_port_sub_cmd {
 	QUERY_PORT_ADAPT_DFX,
 	QUERY_PORT_PHY_DFX,
 	QUERY_HOT_PLUG_CARD_DFX,
+	QUERY_PORT_CDR_DFX,
 };
 
 enum mac_dump_reg_sub_cmd {

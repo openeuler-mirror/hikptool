@@ -16,11 +16,12 @@
 
 #include "hikp_net_lib.h"
 
-#define MAC_LSPORT_LINK     HI_BIT(0)
-#define MAC_LSPORT_MAC      HI_BIT(1)
-#define MAC_LSPORT_PHY      HI_BIT(2)
-#define MAC_LSPORT_ARB      HI_BIT(3)
-#define MAC_HOT_PLUG_CARD      HI_BIT(4)
+#define MAC_LSPORT_LINK		HI_BIT(0)
+#define MAC_LSPORT_MAC		HI_BIT(1)
+#define MAC_LSPORT_PHY		HI_BIT(2)
+#define MAC_LSPORT_ARB		HI_BIT(3)
+#define MAC_HOT_PLUG_CARD	HI_BIT(4)
+#define MAC_LSPORT_CDR		HI_BIT(5)
 
 enum {
 	PORT_CFG_NOT_SET = 0,
@@ -184,6 +185,44 @@ struct mac_cfg_phy_cfg {
 struct mac_cmd_phy_info {
 	struct mac_cfg_phy_cfg phy_cfg;
 	struct mac_cmd_phy_dfx phy_dfx;
+};
+
+enum {
+	PORT_CDR_TYPE_A = 0,
+	PORT_CDR_TYPE_B,
+};
+
+enum {
+	CDR_A_MODE_2PLL = 0,
+	CDR_A_MODE_FASTPI,
+};
+
+enum {
+	CDR_B_MODE_PCS = 0,
+	CDR_B_MODE_CDR,
+};
+
+enum {
+	CDR_STATUS_NORMAL = 0,
+	CDR_STATUS_ERROR,
+};
+
+struct cdr_dfx_info {
+	uint8_t cdr_mode;
+	uint8_t cdr_addr;
+	uint8_t cdr_start_lane;
+	uint8_t cdr_err; /* 0:normal, 1:error */
+};
+
+struct mac_port_cdr_dfx {
+    struct cdr_dfx_info dfx[2]; /* one side reserved max 2 cdr */
+};
+
+struct mac_cmd_cdr_dfx {
+	uint8_t cdr_num;
+	uint8_t cdr_type;
+	struct mac_port_cdr_dfx wire_cdr;
+	struct mac_port_cdr_dfx host_cdr;
 };
 
 struct mac_cmd_dfx_callback {

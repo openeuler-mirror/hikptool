@@ -14,7 +14,7 @@
 #ifndef __HIKP_ROCE_MDB_H__
 #define __HIKP_ROCE_MDB_H__
 
-#include "hikp_net_lib.h"
+#include "hikp_roce_ext_common.h"
 
 #define ROCE_HIKP_MDB_REG_NUM 22
 #define ROCE_HIKP_REG_SWICTH 2

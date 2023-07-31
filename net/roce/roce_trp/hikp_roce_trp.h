@@ -14,7 +14,7 @@
 #ifndef __HIKP_ROCE_TRP_H__
 #define __HIKP_ROCE_TRP_H__
 
-#include "hikp_net_lib.h"
+#include "hikp_roce_ext_common.h"
 
 #define TRP_DIV_NUM_T 4
 #define ROCE_HIKP_TRP_REG_NUM 29

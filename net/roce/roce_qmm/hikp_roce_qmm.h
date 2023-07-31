@@ -14,7 +14,7 @@
 #ifndef __HIKP_ROCE_QMM_H__
 #define __HIKP_ROCE_QMM_H__
 
-#include "hikp_net_lib.h"
+#include "hikp_roce_ext_common.h"
 
 #define ROCE_HIKP_QMM_REG_NUM 36
 #define QMM_BANK_NUM 0x7

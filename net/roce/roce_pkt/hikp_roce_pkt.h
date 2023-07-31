@@ -14,7 +14,7 @@
 #ifndef __HIKP_ROCE_PKT_H__
 #define __HIKP_ROCE_PKT_H__
 
-#include "hikp_net_lib.h"
+#include "hikp_roce_ext_common.h"
 
 #define ROCE_HIKP_PKT_REG_NUM 29
 #define PKT_PER_REG_NUM 2

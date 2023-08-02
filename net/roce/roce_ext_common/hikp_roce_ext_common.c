@@ -44,6 +44,7 @@ static const struct cmd_type_info {
 	{GET_ROCEE_TSP_CMD, "TSP", ROCE_HIKP_TSP_REG_NUM_EXT},
 	{GET_ROCEE_RST_CMD, "RST", ROCE_HIKP_RST_REG_NUM},
 	{GET_ROCEE_GLOBAL_CFG_CMD, "GLOBAL_CFG", ROCE_HIKP_GLOBAL_CFG_REG_NUM},
+	{GET_ROCEE_BOND_CMD, "BOND", ROCE_HIKP_BOND_REG_NUM},
 };
 
 static int get_cmd_info_table_idx(enum roce_cmd_type cmd_type)

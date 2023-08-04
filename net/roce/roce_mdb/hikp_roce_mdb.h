@@ -19,13 +19,22 @@
 #define ROCE_HIKP_MDB_REG_NUM 22
 #define ROCE_HIKP_REG_SWICTH 2
 
+#define ROCE_MDB_CMD_CLEAR (1 << 0)
+#define ROCE_MDB_CMD_EXT (1 << 1)
+
 struct cmd_roce_mdb_param {
 	struct tool_target target;
-	int reset_flag;
+	uint32_t sub_cmd;
+	uint8_t flag;
 };
 
 struct roce_mdb_req_para {
 	struct bdf_t bdf;
+};
+
+struct roce_mdb_req_param_ext {
+	struct roce_mdb_req_para origin_param;
+	uint32_t block_id;
 };
 
 struct roce_mdb_rsp_data {
@@ -36,6 +45,8 @@ struct roce_mdb_rsp_data {
 enum roce_mdb_cmd_type {
 	MDB_SHOW = 0x0,
 	MDB_CLEAR,
+	MDB_EXT,
+	MDB_CLEAR_EXT,
 };
 
 #endif /* __HIKP_ROCE_MDB_H__ */

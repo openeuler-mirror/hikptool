@@ -14,7 +14,6 @@
 #include <unistd.h>
 #include "hikp_roce_mdb.h"
 
-#define ROCE_MDB_CMD_CLEAR HI_BIT(0)
 static struct cmd_roce_mdb_param g_roce_mdb_param = { 0 };
 
 static int hikp_roce_mdb_help(struct major_cmd_ctrl *self, const char *argv)
@@ -25,6 +24,7 @@ static int hikp_roce_mdb_help(struct major_cmd_ctrl *self, const char *argv)
 	printf("    %s, %-25s %s\n", "-h", "--help", "display this help and exit");
 	printf("    %s, %-25s %s\n", "-i", "--interface=<interface>", "device target, e.g. eth0");
 	printf("    %s, %-25s %s\n", "-c", "--clear=<clear>", "clear mdb registers");
+	printf("    %s, %-25s %s\n", "-e", "--extend", "query extend mdb registers");
 	printf("\n");
 
 	return 0;
@@ -34,7 +34,7 @@ static int hikp_roce_mdb_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &(g_roce_mdb_param.target));
 	if (self->err_no) {
-		snprintf(self->err_str, sizeof(self->err_str), "Unknown device %s.", argv);
+		snprintf(self->err_str, sizeof(self->err_str), "Unknown device %s.\n", argv);
 		return self->err_no;
 	}
 
@@ -43,7 +43,8 @@ static int hikp_roce_mdb_target(struct major_cmd_ctrl *self, const char *argv)
 
 static int hikp_roce_mdb_clear_set(struct major_cmd_ctrl *self, const char *argv)
 {
-	g_roce_mdb_param.reset_flag = ROCE_MDB_CMD_CLEAR;
+	g_roce_mdb_param.flag |= ROCE_MDB_CMD_CLEAR;
+
 	return 0;
 }
 
@@ -58,53 +59,78 @@ static void hikp_roce_mdb_print(uint32_t reg_num, struct roce_mdb_rsp_data *mdb_
 	printf("***********************************\n");
 }
 
-static int hikp_roce_mdb_show(struct major_cmd_ctrl *self)
+static int hikp_roce_mdb_get_data(struct hikp_cmd_ret **cmd_ret,
+				  uint32_t block_id)
 {
-	struct roce_mdb_req_para req_data = { 0 };
-	struct roce_mdb_rsp_data *mdb_rsp = NULL;
+	struct roce_mdb_req_param_ext req_data_ext;
 	struct hikp_cmd_header req_header = { 0 };
+	uint32_t req_size;
+	int ret;
+
+	req_data_ext.origin_param.bdf = g_roce_mdb_param.target.bdf;
+	req_data_ext.block_id = block_id;
+
+	req_size = (g_roce_mdb_param.flag & ROCE_MDB_CMD_EXT) ?
+		   sizeof(struct roce_mdb_req_param_ext) :
+		   sizeof(struct roce_mdb_req_para);
+	hikp_cmd_init(&req_header, ROCE_MOD, GET_ROCEE_MDB_CMD,
+		      g_roce_mdb_param.sub_cmd);
+	*cmd_ret = hikp_cmd_alloc(&req_header, &req_data_ext, req_size);
+	ret = hikp_rsp_normal_check(*cmd_ret);
+	if (ret)
+		printf("hikptool roce_mdb cmd_ret malloc failed, sub_cmd = %u, ret = %d.\n",
+			g_roce_mdb_param.sub_cmd, ret);
+
+	return ret;
+}
+
+static void hikp_roce_mdb_execute_origin(struct major_cmd_ctrl *self)
+{
+	struct roce_mdb_rsp_data *mdb_rsp = NULL;
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	uint32_t reg_num;
 	int ret;
 
-	req_data.bdf = g_roce_mdb_param.target.bdf;
-	if (g_roce_mdb_param.reset_flag)
-		hikp_cmd_init(&req_header, ROCE_MOD, GET_ROCEE_MDB_CMD, MDB_CLEAR);
-	else
-		hikp_cmd_init(&req_header, ROCE_MOD, GET_ROCEE_MDB_CMD, MDB_SHOW);
-
-	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
-	ret = hikp_rsp_normal_check(cmd_ret);
-	if (ret != 0)
+	self->err_no = hikp_roce_mdb_get_data(&cmd_ret, 0);
+	if (self->err_no) {
+		printf("hikptool roce_mdb get data failed\n");
 		goto exec_error;
+	}
 
 	reg_num = cmd_ret->rsp_data_num / ROCE_HIKP_REG_SWICTH;
 	if (reg_num != ROCE_HIKP_MDB_REG_NUM) {
 		printf("version might not match.\n");
-		ret = -1;
+		self->err_no = -EPROTO;
 		goto exec_error;
 	}
 
 	mdb_rsp = (struct roce_mdb_rsp_data *)(cmd_ret->rsp_data);
 	hikp_roce_mdb_print(reg_num, mdb_rsp);
-	ret = 0;
 
 exec_error:
-	free(cmd_ret);
-	cmd_ret = NULL;
-	return ret;
+	if (cmd_ret)
+		free(cmd_ret);
 }
 
 static void hikp_roce_mdb_execute(struct major_cmd_ctrl *self)
 {
-	self->err_no = hikp_roce_mdb_show(self);
-	if (self->err_no)
-		return;
+	if (g_roce_mdb_param.flag & ROCE_MDB_CMD_EXT) {
+		g_roce_mdb_param.sub_cmd = (g_roce_mdb_param.flag & ROCE_MDB_CMD_CLEAR) ?
+					   MDB_CLEAR_EXT : MDB_EXT;
+		hikp_roce_ext_execute(self, GET_ROCEE_MDB_CMD,
+				      hikp_roce_mdb_get_data);
+	} else {
+		g_roce_mdb_param.sub_cmd = (g_roce_mdb_param.flag & ROCE_MDB_CMD_CLEAR) ?
+					   MDB_CLEAR : MDB_SHOW;
+		hikp_roce_mdb_execute_origin(self);
+	}
+}
 
-	if (g_roce_mdb_param.reset_flag)
-		printf("clear roce_mdb reg success.\n");
-	else
-		printf("show roce_mdb reg success.\n");
+static int hikp_roce_mdb_ext_set(struct major_cmd_ctrl *self, const char *argv)
+{
+	g_roce_mdb_param.flag |= ROCE_MDB_CMD_EXT;
+
+	return 0;
 }
 
 static void cmd_roce_mdb_init(void)
@@ -117,6 +143,7 @@ static void cmd_roce_mdb_init(void)
 	cmd_option_register("-h", "--help", false, hikp_roce_mdb_help);
 	cmd_option_register("-i", "--interface", true, hikp_roce_mdb_target);
 	cmd_option_register("-c", "--clear", false, hikp_roce_mdb_clear_set);
+	cmd_option_register("-e", "--extend", false, hikp_roce_mdb_ext_set);
 }
 
 HIKP_CMD_DECLARE("roce_mdb", "get or clear roce_mdb registers information", cmd_roce_mdb_init);

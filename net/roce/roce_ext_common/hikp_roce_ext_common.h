@@ -27,6 +27,7 @@
 #define ROCE_HIKP_TIMER_REG_NUM_EXT ROCE_MAX_REG_NUM
 #define ROCE_HIKP_TRP_REG_NUM_EXT ROCE_MAX_REG_NUM
 #define ROCE_HIKP_TSP_REG_NUM_EXT ROCE_MAX_REG_NUM
+#define ROCE_HIKP_RST_REG_NUM ROCE_MAX_REG_NUM
 
 struct roce_ext_head {
 	uint8_t total_block_num;

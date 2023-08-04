@@ -42,6 +42,7 @@ static const struct cmd_type_info {
 	{GET_ROCEE_TIMER_CMD, "TIMER", ROCE_HIKP_TIMER_REG_NUM_EXT},
 	{GET_ROCEE_TRP_CMD, "TRP", ROCE_HIKP_TRP_REG_NUM_EXT},
 	{GET_ROCEE_TSP_CMD, "TSP", ROCE_HIKP_TSP_REG_NUM_EXT},
+	{GET_ROCEE_RST_CMD, "RST", ROCE_HIKP_RST_REG_NUM},
 };
 
 static int get_cmd_info_table_idx(enum roce_cmd_type cmd_type)

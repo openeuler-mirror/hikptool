@@ -100,6 +100,7 @@ enum roce_cmd_type {
 	GET_ROCEE_TIMER_CMD,
 	GET_ROCEE_TRP_CMD,
 	GET_ROCEE_TSP_CMD,
+	GET_ROCEE_RST_CMD,
 };
 
 enum ub_cmd_type {

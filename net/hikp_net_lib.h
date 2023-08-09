@@ -78,6 +78,7 @@ enum nic_cmd_type {
 	GET_FD_INFO_CMD,
 	GET_FEC_INFO_CMD,
 	GET_GRO_INFO_CMD,
+	GET_NCSI_INFO_CMD,
 };
 
 enum roh_cmd_type {
@@ -105,6 +106,10 @@ enum ub_cmd_type {
 	GET_UB_BP_INFO_CMD,
 	GET_UB_CRD_INFO_CMD,
 	GET_UB_BASIC_INFO_CMD,
+};
+
+enum nic_get_ncsi_sub_cmd {
+	NIC_NCSI_GET_DFX_INFO,
 };
 
 #define HIKP_MAX_PF_NUM 8

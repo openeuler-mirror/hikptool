@@ -22,6 +22,9 @@
 struct cmd_roce_qmm_param_t {
 	struct tool_target target;
 	uint32_t bank_id;
+	uint32_t sub_cmd;
+	const char *sub_name;
+	bool ext_flag;
 };
 
 struct roce_qmm_rsp_data {
@@ -34,10 +37,18 @@ struct roce_qmm_req_para {
 	uint32_t bank_id;
 };
 
+struct roce_qmm_req_para_ext {
+	struct roce_qmm_req_para origin_param;
+	uint32_t block_id;
+};
+
 enum roce_qmm_cmd_type {
 	QMM_SHOW_CQC = 0x1,
 	QMM_SHOW_QPC = 0x2,
 	QMM_SHOW_TOP = 0x3,
+	QMM_SHOW_CQC_EXT,
+	QMM_SHOW_QPC_EXT,
+	QMM_SHOW_TOP_EXT,
 };
 
 #endif /* __HIKP_ROCE_QMM_H__ */

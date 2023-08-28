@@ -80,6 +80,7 @@ enum nic_cmd_type {
 	GET_GRO_INFO_CMD,
 	GET_NCSI_INFO_CMD,
 	GET_NOTIFY_PKT_CMD,
+	GET_PORT_FAULT_STATUS = 0xE,
 };
 
 enum roh_cmd_type {

@@ -32,7 +32,7 @@ static int hikp_roce_trp_help(struct major_cmd_ctrl *self, const char *argv)
 	       "this is necessary param COMMON/TRP_RX/GEN_AC/PAYL");
 	printf("    %s, %-25s %s\n", "-b", "--bank=<bank>",
 	       "[option]set which bank to read. (default 0) "
-	       "COMMON : 0~3\n PAYL: 0~1\n GEN_AC : 0~1\n ");
+	       "COMMON : 0~3\n PAYL: 0~1\n GEN_AC : 0~3\n ");
 	printf("\n");
 
 	return 0;

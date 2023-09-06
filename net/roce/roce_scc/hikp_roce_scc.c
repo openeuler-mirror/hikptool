@@ -88,6 +88,7 @@ static int hikp_roce_scc_get_data(struct hikp_cmd_ret **cmd_ret, const uint32_t 
 {
 	struct roce_scc_req_param req_data = { 0 };
 	struct hikp_cmd_header req_header = { 0 };
+	int ret;
 
 	req_data.block_id = *block_id;
 	req_data.bdf = g_roce_scc_param_t.target.bdf;
@@ -99,12 +100,14 @@ static int hikp_roce_scc_get_data(struct hikp_cmd_ret **cmd_ret, const uint32_t 
 
 	hikp_cmd_init(&req_header, ROCE_MOD, GET_ROCEE_SCC_CMD, g_roce_scc_param_t.sub_cmd);
 	*cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
-	if (*cmd_ret == NULL) {
-		printf("hikptool roce_scc cmd_ret malloc failed\n");
-		return -EIO;
+	ret = hikp_rsp_normal_check(*cmd_ret);
+	if (ret) {
+		printf("hikptool roce_scc get cmd data failed, ret: %d\n", ret);
+		free(*cmd_ret);
+		*cmd_ret = NULL;
 	}
 
-	return 0;
+	return ret;
 }
 
 static void hikp_roce_scc_reg_data_free(uint32_t **offset, uint32_t **data)

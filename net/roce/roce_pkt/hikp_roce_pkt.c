@@ -48,15 +48,18 @@ static int hikp_roce_pkt_clear_set(struct major_cmd_ctrl *self, const char *argv
 static int hikp_roce_pkt_get_data(struct hikp_cmd_ret **cmd_ret, struct roce_pkt_req_param req_data)
 {
 	struct hikp_cmd_header req_header = { 0 };
+	int ret;
 
 	hikp_cmd_init(&req_header, ROCE_MOD, GET_ROCEE_PKT_CMD, 0);
 	*cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
-	if (*cmd_ret == NULL) {
-		printf("hikptool roce_pkt cmd_ret malloc failed\n");
-		return -EIO;
+	ret = hikp_rsp_normal_check(*cmd_ret);
+	if (ret) {
+		printf("hikptool roce_pkt get cmd data failed, ret: %d\n", ret);
+		free(*cmd_ret);
+		*cmd_ret = NULL;
 	}
 
-	return 0;
+	return ret;
 }
 
 static void hikp_roce_pkt_print(uint32_t total_block_num,

@@ -309,10 +309,10 @@ static void hikp_serdes_info_cmd_execute(struct major_cmd_ctrl *self)
 
 	hikp_cmd_init(&req_header, SERDES_MOD, SERDES_KEY_INFO, g_serdes_param.sub_cmd);
 	cmd_ret = hikp_cmd_alloc(&req_header, &hilink_cmd, sizeof(hilink_cmd));
-	if (cmd_ret == NULL) {
+	if (cmd_ret == NULL || cmd_ret->status != 0) {
 		snprintf(self->err_str, sizeof(self->err_str), "hikp_cmd_alloc err.");
 		self->err_no = -EINVAL;
-		return;
+		goto err_out;
 	}
 	out_out_header_size = sizeof(out_put.str_len) + sizeof(out_put.result_offset) +
 			      sizeof(out_put.type) + sizeof(out_put.ret_val);
@@ -467,10 +467,10 @@ static void hikp_serdes_dump_cmd_execute(struct major_cmd_ctrl *self)
 
 	hikp_cmd_init(&req_header, SERDES_MOD, SERDES_DUMP_REG, g_serdes_param.sub_cmd);
 	cmd_ret = hikp_cmd_alloc(&req_header, &hilink_cmd, sizeof(hilink_cmd));
-	if (cmd_ret == NULL) {
+	if (cmd_ret == NULL || cmd_ret->status != 0) {
 		self->err_no = -EINVAL;
 		snprintf(self->err_str, sizeof(self->err_str), "hikp_cmd_alloc err.");
-		return;
+		goto err_out;
 	}
 	out_out_header_size = sizeof(out_put.str_len) + sizeof(out_put.result_offset) +
 			      sizeof(out_put.type) + sizeof(out_put.ret_val);

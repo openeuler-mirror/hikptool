@@ -31,8 +31,9 @@ static int sas_get_errcode(const struct tool_sas_cmd *cmd, uint32_t *reg_save, u
 
 	hikp_cmd_init(&req_header, SAS_MOD, SAS_ERRCODE, cmd->sas_cmd_type);
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
-	if (cmd_ret == NULL) {
+	if (cmd_ret == NULL || cmd_ret->status != 0) {
 		printf("sas_errcode excutes hikp_cmd_alloc err\n");
+		free(cmd_ret);
 		return -EINVAL;
 	}
 	*reg_num = cmd_ret->rsp_data_num;

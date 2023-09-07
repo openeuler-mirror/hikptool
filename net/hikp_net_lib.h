@@ -79,6 +79,7 @@ enum nic_cmd_type {
 	GET_FEC_INFO_CMD,
 	GET_GRO_INFO_CMD,
 	GET_NCSI_INFO_CMD,
+	GET_NOTIFY_PKT_CMD,
 };
 
 enum roh_cmd_type {

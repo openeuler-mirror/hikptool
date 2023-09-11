@@ -17,17 +17,21 @@
 #include <unistd.h>
 
 #include "hikp_nic_qos.h"
+#include "hikpt_rciep.h"
 
 static struct nic_qos_param g_qos_param = { 0 };
 
 static void hikp_nic_qos_show_pkt_buf(const void *data);
 static void hikp_nic_qos_show_dcb_info(const void *data);
 static void hikp_nic_qos_show_pause_info(const void *data);
+static void hikp_nic_qos_show_pfc_storm_para(const void *data);
 
 static const struct qos_feature_cmd g_qos_feature_cmd[] = {
 	{"pkt_buf", NIC_PACKET_BUFFER_DUMP, hikp_nic_qos_show_pkt_buf},
 	{"dcb",     NIC_DCB_DUMP,       hikp_nic_qos_show_dcb_info},
 	{"pause",   NIC_PAUSE_DUMP,         hikp_nic_qos_show_pause_info},
+	{"pfc_storm_para", NIC_PFC_STORM_PARA_DUMP,
+	 hikp_nic_qos_show_pfc_storm_para},
 };
 
 static int hikp_nic_qos_cmd_help(struct major_cmd_ctrl *self, const char *argv)
@@ -42,8 +46,12 @@ static int hikp_nic_qos_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 	       "[-g/--get <options>]\n"
 	       "          pkt_buf : get nic packet buffer.\n"
 	       "          dcb     : get dcb information.\n"
-	       "          pause   : get pause information\n");
-
+	       "          pause   : get pause information\n"
+	       "          pfc_storm_para : get pfc storm configuration parameters\n");
+	printf("      %s\n",
+	       "[-d/--dir <options>]\n"
+	       "          tx : transmit.\n"
+	       "          rx : receive.\n");
 	return 0;
 }
 
@@ -134,6 +142,22 @@ static void hikp_nic_qos_show_pause_info(const void *data)
 	printf("pause gap: 0x%x\n", pause->pause_gap);
 }
 
+static void hikp_nic_qos_show_pfc_storm_para(const void *data)
+{
+	struct nic_pfc_storm_para *pfc_storm_para =
+		(struct nic_pfc_storm_para *)data;
+
+	printf("PFC STORM Information:\n");
+	printf("direction: %s\n", pfc_storm_para->dir ? "tx" : "rx");
+	printf("enabled: %s\n", pfc_storm_para->enable ? "on" : "off");
+	printf("period: %ums\n", pfc_storm_para->period_ms);
+	strncmp(g_qos_param.revision_id, HIKP_IEP_REVISION,
+		MAX_PCI_REVISION_LEN) ?
+		printf("check times: %u\n", pfc_storm_para->times) :
+		printf("pfc threshold: %ums\n", pfc_storm_para->times);
+	printf("recovery period: %ums\n", pfc_storm_para->recovery_period_ms);
+}
+
 static int hikp_nic_qos_get_blk(struct hikp_cmd_header *req_header,
 				const struct nic_qos_req_para *req_data,
 				void *buf, size_t buf_len, struct nic_qos_rsp_head *rsp_head)
@@ -181,6 +205,8 @@ static int hikp_nic_query_qos_feature(struct hikp_cmd_header *req_header, const 
 	req_data.bdf = *bdf;
 
 	req_data.block_id = blk_id;
+	req_data.dir = g_qos_param.dir;
+
 	ret = hikp_nic_qos_get_blk(req_header, &req_data, data, buf_len, &rsp_head);
 	if (ret != 0)
 		return ret;
@@ -191,6 +217,8 @@ static int hikp_nic_query_qos_feature(struct hikp_cmd_header *req_header, const 
 	/* Copy the remaining block content if total block number is greater than 1. */
 	for (blk_id = 1; blk_id < total_blk_num; blk_id++) {
 		req_data.block_id = blk_id;
+		req_data.dir = g_qos_param.dir;
+
 		ret = hikp_nic_qos_get_blk(req_header, &req_data,
 					   (uint8_t *)data + total_blk_size,
 					   buf_len - total_blk_size, &rsp_head);
@@ -204,10 +232,11 @@ static int hikp_nic_query_qos_feature(struct hikp_cmd_header *req_header, const 
 
 static void hikp_nic_qos_cmd_execute(struct major_cmd_ctrl *self)
 {
+	char *revision_id = g_qos_param.revision_id;
 	struct bdf_t *bdf = &g_qos_param.target.bdf;
 	union nic_qos_feature_info qos_data = {0};
-	const struct qos_feature_cmd *qos_cmd;
 	struct hikp_cmd_header req_header = {0};
+	const struct qos_feature_cmd *qos_cmd;
 	int ret;
 
 	if (bdf->dev_id != 0) {
@@ -223,6 +252,15 @@ static void hikp_nic_qos_cmd_execute(struct major_cmd_ctrl *self)
 		return;
 	}
 
+	if (g_qos_param.feature_idx == NIC_PFC_STORM_PARA_DUMP &&
+	    g_qos_param.dir == NIC_QUEUE_DIR_NONE) {
+		hikp_nic_qos_cmd_help(self, NULL);
+		snprintf(self->err_str, sizeof(self->err_str),
+			 "-d/--dir param error!");
+		self->err_no = -EINVAL;
+		return;
+	}
+
 	qos_cmd = &g_qos_feature_cmd[g_qos_param.feature_idx];
 	hikp_cmd_init(&req_header, NIC_MOD, GET_QOS_INFO_CMD, qos_cmd->sub_cmd_code);
 	ret = hikp_nic_query_qos_feature(&req_header, &g_qos_param.target.bdf, &qos_data);
@@ -232,6 +270,13 @@ static void hikp_nic_qos_cmd_execute(struct major_cmd_ctrl *self)
 		self->err_no = ret;
 		return;
 	}
+
+	memset(revision_id, 0, MAX_PCI_ID_LEN + 1);
+	ret = get_revision_id_by_bdf(bdf, revision_id);
+	// show pfc threshold as default if get revision_id error
+	if (ret)
+		strncpy(g_qos_param.revision_id, HIKP_IEP_REVISION,
+			MAX_PCI_REVISION_LEN);
 
 	printf("############## NIC QOS: %s info ############\n", qos_cmd->feature_name);
 	qos_cmd->show(&qos_data);
@@ -268,11 +313,31 @@ static int hikp_nic_cmd_qos_feature_select(struct major_cmd_ctrl *self, const ch
 	return self->err_no;
 }
 
+static int hikp_nic_cmd_qos_direct(struct major_cmd_ctrl *self,
+				   const char *argv)
+{
+	if (strcmp(argv, "rx") == 0) {
+		g_qos_param.dir = NIC_RX_QUEUE;
+		return 0;
+	}
+	if (strcmp(argv, "tx") == 0) {
+		g_qos_param.dir = NIC_TX_QUEUE;
+		return 0;
+	}
+
+	snprintf(self->err_str, sizeof(self->err_str),
+		 "-d/--dir option is invalid.");
+	self->err_no = -EINVAL;
+
+	return self->err_no;
+}
+
 static void cmd_nic_get_qos_init(void)
 {
 	struct major_cmd_ctrl *major_cmd = get_major_cmd();
 
 	g_qos_param.feature_idx = -1;
+	g_qos_param.dir = NIC_QUEUE_DIR_NONE;
 
 	major_cmd->option_count = 0;
 	major_cmd->execute = hikp_nic_qos_cmd_execute;
@@ -280,6 +345,7 @@ static void cmd_nic_get_qos_init(void)
 	cmd_option_register("-h", "--help", false, hikp_nic_qos_cmd_help);
 	cmd_option_register("-i", "--interface", true, hikp_nic_cmd_get_qos_target);
 	cmd_option_register("-g", "--get", true, hikp_nic_cmd_qos_feature_select);
+	cmd_option_register("-d", "--dir", true, hikp_nic_cmd_qos_direct);
 }
 
 HIKP_CMD_DECLARE("nic_qos", "show qos info of nic!", cmd_nic_get_qos_init);

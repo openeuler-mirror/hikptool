@@ -20,6 +20,7 @@ enum nic_qos_sub_cmd_type {
 	NIC_PACKET_BUFFER_DUMP = 0,
 	NIC_DCB_DUMP,
 	NIC_PAUSE_DUMP,
+	NIC_PFC_STORM_PARA_DUMP,
 };
 
 struct nic_buf_waterline {
@@ -48,6 +49,14 @@ struct nic_pfc_info {
 	uint8_t hw_tc_map; /* enabled TC map in hardware */
 	uint8_t pfc_en;  /* enable pfc bitmap for UP */
 	uint8_t rsv[2];
+};
+
+struct nic_pfc_storm_para {
+	uint32_t dir;
+	uint32_t enable;
+	uint32_t period_ms;
+	uint32_t times;
+	uint32_t recovery_period_ms;
 };
 
 struct nic_ets_info {
@@ -82,6 +91,7 @@ union nic_qos_feature_info {
 	struct nic_pkt_buf_info pkt_buf;
 	struct nic_dcb_info dcb;
 	struct nic_pause_info pause;
+	struct nic_pfc_storm_para pfc_storm_para;
 };
 
 struct nic_qos_rsp_head {
@@ -99,11 +109,21 @@ struct nic_qos_rsp {
 struct nic_qos_req_para {
 	struct bdf_t bdf;
 	uint8_t block_id;
+	uint8_t dir;
+	uint8_t rsv[2];
+};
+
+enum nic_pfc_dir {
+	NIC_RX_QUEUE = 0,
+	NIC_TX_QUEUE,
+	NIC_QUEUE_DIR_NONE,
 };
 
 struct nic_qos_param {
 	struct tool_target target;
 	int feature_idx;
+	enum nic_pfc_dir dir;
+	char revision_id[MAX_PCI_ID_LEN + 1];
 };
 
 #define HIKP_QOS_MAX_FEATURE_NAME_LEN 20

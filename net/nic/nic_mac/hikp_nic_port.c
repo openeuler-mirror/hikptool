@@ -361,11 +361,12 @@ static void mac_cmd_disp_arb_info(const struct mac_cmd_arb_dfx *arb_dfx)
 
 static void mac_cmd_disp_hot_plug_card_info(const struct cmd_hot_plug_card_info *hpc_dfx)
 {
-	printf("\n======================== HOT PLUG CARD INFO =======================\n");
+	printf("\n===================== HOT PLUG CARD INFO =====================\n");
 
 	printf("hot plug card in position: 0x%x\n", hpc_dfx->in_pos);
 	printf("support type: 0x%x\n", hpc_dfx->support_type);
-	printf("current type: 0x%x\n", hpc_dfx->cur_type);
+	if (hpc_dfx->in_pos)
+		printf("current type: 0x%x\n", hpc_dfx->cur_type);
 	printf("----------------------------------------------------------------------------\n");
 }
 
@@ -491,11 +492,43 @@ static void mac_cmd_show_port_dfx(struct major_cmd_ctrl *self, uint32_t mask)
 	}
 }
 
-static void mac_cmd_port_execute(struct major_cmd_ctrl *self)
+static int mac_cmd_get_port_dfx_cap(uint32_t *cap)
 {
 	struct mac_cmd_port_hardware *port_hw = NULL;
+	struct mac_cmd_port_dfx_cap *dfx_cap = NULL;
+	struct hikp_cmd_ret *dfx_cap_resp = NULL;
 	struct hikp_cmd_ret *hw_cmd_ret = NULL;
-	uint32_t mask;
+	int ret;
+
+	ret = mac_cmd_get_dfx_cfg(QUERY_PORT_INFO_DFX_CAP, &dfx_cap_resp);
+	if (ret == 0) {
+		dfx_cap = (struct mac_cmd_port_dfx_cap *)dfx_cap_resp->rsp_data;
+		*cap = dfx_cap->cap_bit_map;
+		free(dfx_cap_resp);
+		dfx_cap_resp = NULL;
+		return ret;
+	}
+
+	/* not support get capability, so use old process */
+	ret = mac_cmd_get_dfx_cfg(QUERY_PORT_HARDWARE, &hw_cmd_ret);
+	if (ret)
+		return ret;
+
+	*cap = MAC_LSPORT_LINK | MAC_LSPORT_MAC | MAC_LSPORT_ARB |
+	       MAC_HOT_PLUG_CARD | MAC_LSPORT_CDR;
+	port_hw = (struct mac_cmd_port_hardware *)(hw_cmd_ret->rsp_data);
+	if (port_hw->port_type == HIKP_PORT_TYPE_PHY ||
+	    port_hw->port_type == HIKP_PORT_TYPE_PHY_SDS)
+		*cap |= MAC_LSPORT_PHY;
+
+	free(hw_cmd_ret);
+	hw_cmd_ret = NULL;
+	return ret;
+}
+
+static void mac_cmd_port_execute(struct major_cmd_ctrl *self)
+{
+	uint32_t dfx_cap;
 	int ret;
 
 	if (!g_port_info.port_flag) {
@@ -504,22 +537,14 @@ static void mac_cmd_port_execute(struct major_cmd_ctrl *self)
 		return;
 	}
 
-	ret = mac_cmd_get_dfx_cfg(QUERY_PORT_HARDWARE, &hw_cmd_ret);
-	if (ret != 0) {
-		printf("hikp_data_proc get port hw failed.\n");
-		self->err_no = -ENOSPC;
+	ret = mac_cmd_get_port_dfx_cap(&dfx_cap);
+	if (ret) {
+		self->err_no = ret;
+		snprintf(self->err_str, sizeof(self->err_str), "Get DFX capability failed.");
 		return;
 	}
 
-	mask = MAC_LSPORT_LINK | MAC_LSPORT_MAC |
-	       MAC_LSPORT_ARB | MAC_HOT_PLUG_CARD | MAC_LSPORT_CDR;
-	port_hw = (struct mac_cmd_port_hardware *)(hw_cmd_ret->rsp_data);
-	if (port_hw->port_type == HIKP_PORT_TYPE_PHY ||
-	    port_hw->port_type == HIKP_PORT_TYPE_PHY_SDS)
-		mask |= MAC_LSPORT_PHY;
-
-	mac_cmd_show_port_dfx(self, mask);
-	free(hw_cmd_ret);
+	mac_cmd_show_port_dfx(self, dfx_cap);
 }
 
 static int mac_cmd_get_port_target(struct major_cmd_ctrl *self, const char *argv)

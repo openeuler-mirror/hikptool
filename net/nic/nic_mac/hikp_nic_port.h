@@ -225,6 +225,11 @@ struct mac_cmd_cdr_dfx {
 	struct mac_port_cdr_dfx host_cdr;
 };
 
+struct mac_cmd_port_dfx_cap {
+	uint32_t cap_bit_map;
+	uint32_t rsvd[3];
+};
+
 struct mac_cmd_dfx_callback {
 	uint32_t mask;
 	void (*show_dfx)(struct major_cmd_ctrl *self);

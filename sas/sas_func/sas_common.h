@@ -22,7 +22,6 @@
 #define IPTT_ICT_STATUS 29
 #define LINK_SPEED_OFFSET 8
 #define LINK_SPEED_WIDTH 4
-#define MAX_DEVICE_NUM 2048
 
 #define DWS_LOST 0
 #define RESET_PROB 1
@@ -73,7 +72,6 @@ enum sas_errcode_cmd_type {
 
 enum sas_dev_cmd_type {
 	DEV_LINK,
-	DEV_INFO,
 	DEV_UNKNOWN_TYPE,
 };
 

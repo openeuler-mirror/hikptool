@@ -34,13 +34,11 @@ struct tool_sas_cmd {
 int sas_set_cmd_type(int cmd_type);
 int sas_get_cmd_type(void);
 int sas_get_phy_id(void);
-int sas_get_dev_id(void);
 int sas_get_que_id(void);
 struct tool_sas_cmd *sas_get_cmd_p(void);
 int sas_set_chip_id(struct major_cmd_ctrl *self, const char *argv);
 int sas_set_phy_id(struct major_cmd_ctrl *self, const char *argv);
 int sas_set_die_id(struct major_cmd_ctrl *self, const char *argv);
-int sas_set_dev_id(struct major_cmd_ctrl *self, const char *argv);
 int sas_set_que_id(struct major_cmd_ctrl *self, const char *argv);
 int sas_set_dqe_id(struct major_cmd_ctrl *self, const char *argv);
 

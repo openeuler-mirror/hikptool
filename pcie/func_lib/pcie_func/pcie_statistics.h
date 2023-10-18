@@ -17,6 +17,7 @@
 #include "pcie_common_api.h"
 
 #define GLOBAL_WIDTH_TABLE_SIZE 5
+#define MAX_MACRO_ONEPORT 3
 
 union mac_test_cnt {
 	/* Define the struct bits */
@@ -88,9 +89,18 @@ union dfx_dcrc_err_num {
 	unsigned int u32;
 };
 
+struct pcie_macro_info {
+	uint32_t id;
+	uint32_t lane_s;
+	uint32_t lane_e;
+};
+
 struct pcie_info_distribution_pair {
 	uint32_t port_id;
 	uint32_t port_width;
+	uint32_t ndie_id;
+	uint32_t macro_num;
+	struct pcie_macro_info macro_info[MAX_MACRO_ONEPORT];
 };
 
 struct pcie_port_info {

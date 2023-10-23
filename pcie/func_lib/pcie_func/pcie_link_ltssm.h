@@ -18,10 +18,16 @@
 
 #define TRACE_STR_NUM 0x20
 #define TRACER_DEPTH 65
+#define PM_TRACE_STR_NUM 0x28
 
 struct pcie_ltssm_num_string {
 	int ltssm;
 	char ltssm_c[TRACE_STR_NUM];
+};
+
+struct pcie_pm_num_string {
+	int pm;
+	char pm_c[PM_TRACE_STR_NUM];
 };
 
 struct pcie_trace_req_para {
@@ -51,5 +57,6 @@ int pcie_ltssm_trace_show(uint32_t port_id);
 int pcie_ltssm_trace_clear(uint32_t port_id);
 int pcie_ltssm_trace_mode_set(uint32_t port_id, uint32_t mode);
 int pcie_ltssm_link_status_get(uint32_t port_id);
+int pcie_pm_trace(uint32_t port_id);
 
 #endif

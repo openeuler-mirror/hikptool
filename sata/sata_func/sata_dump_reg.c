@@ -33,8 +33,9 @@ static int sata_get_reg(const struct tool_sata_cmd *cmd, uint32_t *reg_save, uin
 
 	hikp_cmd_init(&req_header, SATA_MOD, SATA_DUMP, cmd->sata_cmd_type);
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
-	if (cmd_ret == NULL) {
+	if (cmd_ret == NULL || cmd_ret->status != 0) {
 		printf("hikp_data_proc err\n");
+		free(cmd_ret);
 		return -1;
 	}
 	*reg_num = cmd_ret->rsp_data_num;

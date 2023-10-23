@@ -27,6 +27,7 @@ struct pcie_comm_api g_tools_api = {
 	.err_status_clear = pcie_error_state_clear,
 	.reg_dump = pcie_dumpreg_do_dump,
 	.reg_read = pcie_reg_read,
+	.pm_trace = pcie_pm_trace,
 };
 
 

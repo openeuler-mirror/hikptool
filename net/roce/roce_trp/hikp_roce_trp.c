@@ -32,7 +32,7 @@ static int hikp_roce_trp_help(struct major_cmd_ctrl *self, const char *argv)
 	       "this is necessary param COMMON/TRP_RX/GEN_AC/PAYL");
 	printf("    %s, %-25s %s\n", "-b", "--bank=<bank>",
 	       "[option]set which bank to read. (default 0) "
-	       "COMMON : 0~3\n PAYL: 0~1\n GEN_AC : 0~1\n ");
+	       "COMMON : 0~3\n PAYL: 0~1\n GEN_AC : 0~3\n ");
 	printf("\n");
 
 	return 0;
@@ -112,6 +112,7 @@ static int hikp_roce_trp_get_data(struct hikp_cmd_ret **cmd_ret, const uint32_t 
 {
 	struct roce_trp_req_param req_data = { 0 };
 	struct hikp_cmd_header req_header = { 0 };
+	int ret;
 
 	req_data.block_id = *block_id;
 	req_data.bdf = g_roce_trp_param_t.target.bdf;
@@ -122,12 +123,14 @@ static int hikp_roce_trp_get_data(struct hikp_cmd_ret **cmd_ret, const uint32_t 
 	}
 	hikp_cmd_init(&req_header, ROCE_MOD, GET_ROCEE_TRP_CMD, g_roce_trp_param_t.sub_cmd);
 	*cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
-	if (*cmd_ret == NULL) {
-		printf("hikptool roce_trp cmd_ret malloc failed\n");
-		return -EIO;
+	ret = hikp_rsp_normal_check(*cmd_ret);
+	if (ret) {
+		printf("hikptool roce_trp get cmd data failed, ret: %d\n", ret);
+		free(*cmd_ret);
+		*cmd_ret = NULL;
 	}
 
-	return 0;
+	return ret;
 }
 
 static void hikp_roce_trp_reg_data_free(uint32_t **offset, uint32_t **data)

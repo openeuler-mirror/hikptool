@@ -25,7 +25,7 @@
 	}
 #define TRP_MAX_BANK_NUM 0x3
 #define PAYL_MAX_BANK_NUM 0x1
-#define GAC_MAX_BANK_NUM 0x1
+#define GAC_MAX_BANK_NUM 0x3
 #define PER_TRP_DATA_NUM 2
 
 struct roce_trp_req_param {

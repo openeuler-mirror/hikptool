@@ -37,6 +37,7 @@ struct pcie_comm_api {
 	int (*err_status_clear)(uint32_t port_id);
 	int (*reg_dump)(uint32_t port_id, uint32_t dump_level);
 	int (*reg_read)(uint32_t port_id, uint32_t moudle_id, uint32_t offset);
+	int (*pm_trace)(uint32_t port_id);
 };
 
 struct pcie_comm_api *pcie_get_comm_api(void);

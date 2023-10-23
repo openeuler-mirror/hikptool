@@ -558,8 +558,10 @@ static int hikp_nic_fd_get_blk(struct hikp_cmd_header *req_header,
 	int ret = 0;
 
 	cmd_ret = hikp_cmd_alloc(req_header, req_data, sizeof(*req_data));
-	if (cmd_ret == NULL)
-		return -EIO;
+	if (hikp_rsp_normal_check(cmd_ret)) {
+		ret = -EIO;
+		goto out;
+	}
 
 	rsp = (struct nic_fd_rsp *)cmd_ret->rsp_data;
 	if (rsp->rsp_head.cur_blk_size > buf_len) {

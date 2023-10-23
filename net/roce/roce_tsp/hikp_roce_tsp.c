@@ -122,6 +122,7 @@ static int hikp_roce_tsp_get_data(struct hikp_cmd_ret **cmd_ret,
 				  struct roce_tsp_req_param req_data, uint32_t sub_cmd_code)
 {
 	struct hikp_cmd_header req_header = { 0 };
+	int ret;
 
 	if (g_roce_tsp_param_t.sub_cmd_code == 0) {
 		printf("please enter module name: -m/--modlue\n");
@@ -129,12 +130,14 @@ static int hikp_roce_tsp_get_data(struct hikp_cmd_ret **cmd_ret,
 	}
 	hikp_cmd_init(&req_header, ROCE_MOD, GET_ROCEE_TSP_CMD, sub_cmd_code);
 	*cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
-	if (*cmd_ret == NULL) {
-		printf("hikptool roce_tsp cmd_ret malloc failed\n");
-		return -EIO;
+	ret = hikp_rsp_normal_check(*cmd_ret);
+	if (ret) {
+		printf("hikptool roce_tsp get cmd data failed, ret: %d\n", ret);
+		free(*cmd_ret);
+		*cmd_ret = NULL;
 	}
 
-	return 0;
+	return ret;
 }
 
 static void hikp_roce_tsp_print(uint32_t total_block_num,

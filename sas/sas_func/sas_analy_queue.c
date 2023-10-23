@@ -40,8 +40,9 @@ static int sas_get_res(const struct tool_sas_cmd *cmd, uint32_t *reg_save, uint3
 		hikp_cmd_init(&req_header, SAS_MOD, SAS_ANACQ, ANACQ_PRT);
 
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
-	if (cmd_ret == NULL) {
+	if (cmd_ret == NULL || cmd_ret->status != 0) {
 		printf("sas_analy excutes hikp_cmd_alloc err\n");
+		free(cmd_ret);
 		return -EINVAL;
 	}
 	*reg_num = cmd_ret->rsp_data_num;

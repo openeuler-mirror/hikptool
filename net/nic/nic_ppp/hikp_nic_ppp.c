@@ -482,8 +482,9 @@ static int hikp_nic_ppp_get_blk(struct hikp_cmd_header *req_header,
 	int ret = 0;
 
 	cmd_ret = hikp_cmd_alloc(req_header, req_data, sizeof(*req_data));
-	if (cmd_ret == NULL)
-		return -EIO;
+	ret = hikp_rsp_normal_check(cmd_ret);
+	if (ret)
+		goto out;
 
 	rsp = (struct nic_ppp_rsp *)cmd_ret->rsp_data;
 	if (rsp->rsp_head.cur_blk_size > buf_len) {

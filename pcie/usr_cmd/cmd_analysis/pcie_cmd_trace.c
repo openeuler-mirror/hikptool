@@ -37,6 +37,7 @@ static int pcie_trace_help(struct major_cmd_ctrl *self, const char *argv)
 	printf("    %s, %-25s %s\n", "-m", "--mode",
 	       "set ltssm trace mode val 1:recver_en 0:recver_dis\n");
 	printf("    %s, %-25s %s\n", "-f", "--information", "display link information\n");
+	printf("    %s, %-25s %s\n", "-pm", "--pm-state", "show pm status\n");
 	printf("\n");
 
 	return 0;
@@ -53,6 +54,13 @@ static int pcie_trace_clear(struct major_cmd_ctrl *self, const char *argv)
 static int pcie_trace_show(struct major_cmd_ctrl *self, const char *argv)
 {
 	g_trace_cmd.cmd_type = TRACE_SHOW;
+
+	return 0;
+}
+
+static int pcie_pm_show(struct major_cmd_ctrl *self, const char *argv)
+{
+	g_trace_cmd.cmd_type = TRACE_PM;
 
 	return 0;
 }
@@ -108,6 +116,8 @@ static int pcie_trace_excute_funs_call(int cmd_type)
 		return comm_api->ltssm_trace_mode_set(port_id, recover_en);
 	else if (cmd_type == TRACE_INFO)
 		return comm_api->ltssm_link_information_get(port_id);
+	else if (cmd_type == TRACE_PM)
+		return comm_api->pm_trace(port_id);
 	else
 		return -EINVAL;
 }
@@ -120,14 +130,16 @@ static void pcie_trace_execute(struct major_cmd_ctrl *self)
 		"pcie_trace_show success.",
 		"pcie_trace_clear success.",
 		"get mac link information success.",
-		"pcie_trace_mode_set success."
+		"pcie_trace_mode_set success.",
+		"pcie_pm_trace success."
 	};
 	const char *err_msg[] = {
 		"pcie_trace sub command type error.",
 		"pcie_trace_show error.",
 		"pcie_trace_clear error.",
 		"get mac link information error.",
-		"pcie_trace_mode_set error."
+		"pcie_trace_mode_set error.",
+		"pcie_pm_trace error"
 	};
 
 	ret = pcie_trace_excute_funs_call(g_trace_cmd.cmd_type);
@@ -153,6 +165,7 @@ static void cmd_pcie_trace_init(void)
 	cmd_option_register("-m", "--mode", true, pcie_trace_mode_set);
 	cmd_option_register("-f", "--information", false, pcie_link_information_get);
 	cmd_option_register("-i", "--interface", true, pcie_port_id_set);
+	cmd_option_register("-pm", "--pm-state", false, pcie_pm_show);
 }
 
 HIKP_CMD_DECLARE("pcie_trace", "pcie ltssm trace", cmd_pcie_trace_init);

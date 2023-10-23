@@ -96,13 +96,13 @@ static int hikp_nic_get_first_blk_info(uint32_t *total_blk_num,
 				       uint32_t *cur_blk_size, uint8_t **log_data)
 {
 	struct nic_log_rsp_data *log_rsp = NULL;
-	struct hikp_cmd_ret *cmd_ret;
+	struct hikp_cmd_ret *cmd_ret = NULL;
 	uint32_t log_size;
 	int ret;
 
 	ret = hikp_nic_get_blk_log(&cmd_ret, 0);
 	if (ret < 0)
-		return ret;
+		goto err_out;
 
 	log_rsp = (struct nic_log_rsp_data *)(cmd_ret->rsp_data);
 	log_size = (uint32_t)(log_rsp->total_blk_num * MAX_LOG_DATA_NUM * sizeof(uint32_t));
@@ -132,12 +132,12 @@ static int hikp_nic_get_log_info(uint32_t blk_id, uint32_t *cur_blk_size, uint8_
 				 uint32_t max_log_size, uint32_t *blk_num)
 {
 	struct nic_log_rsp_data *log_rsp = NULL;
-	struct hikp_cmd_ret *cmd_ret;
+	struct hikp_cmd_ret *cmd_ret = NULL;
 	int ret;
 
 	ret = hikp_nic_get_blk_log(&cmd_ret, blk_id);
 	if (ret)
-		return ret;
+		goto err_out;
 
 	log_rsp = (struct nic_log_rsp_data *)(cmd_ret->rsp_data);
 	*cur_blk_size = (uint32_t)log_rsp->cur_blk_size;

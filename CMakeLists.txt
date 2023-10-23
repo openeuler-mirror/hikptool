@@ -11,8 +11,8 @@
 
 project(hikptool C)
 
-set(CMAKE_C_FLAGS
-	"${CMAKE_C_FLAGS} -O2 -fPIC -fPIE -Wall -Wextra -fno-common -std=gnu11 -Wfloat-equal")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -fPIC -fPIE -Wall -Wextra -fno-common -std=gnu11")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wfloat-equal -fstack-protector-strong -D_FORTIFY_SOURCE=2")
 set(CMAKE_SKIP_RPATH TRUE)
 
 macro(get_header_dir_recurse HEADER_DIR_LIST)
@@ -46,5 +46,5 @@ target_link_directories(hikptool PRIVATE ${CMAKE_INSTALL_PREFIX}/lib)
 target_link_libraries(hikptool PRIVATE KPTDEV_SO)
 target_link_options(hikptool PRIVATE
 	-Wl,-z,relro,-z,now -Wl,-z,noexecstack -fPIE -pie
-	-g -lpthread -ldl -lm -lrt -T ${CMAKE_CURRENT_SOURCE_DIR}/hikp_register.ld)
+	-s -lpthread -ldl -lm -lrt -T ${CMAKE_CURRENT_SOURCE_DIR}/hikp_register.ld)
 install(TARGETS hikptool RUNTIME DESTINATION bin OPTIONAL)

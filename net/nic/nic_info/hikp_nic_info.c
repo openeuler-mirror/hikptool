@@ -64,12 +64,14 @@ static int hikp_nic_get_hw_info(struct hikp_cmd_ret **cmd_ret)
 static int hikp_nic_get_curr_die_info(void)
 {
 	struct nic_info_rsp_t *info_rsp = NULL;
-	struct hikp_cmd_ret *cmd_ret;
+	struct hikp_cmd_ret *cmd_ret = NULL;
 	int ret;
 
 	ret = hikp_nic_get_hw_info(&cmd_ret);
 	if (ret != 0) {
 		HIKP_ERROR_PRINT("Get chip info fail.\n");
+		free(cmd_ret);
+		cmd_ret = NULL;
 		return ret;
 	}
 	info_rsp = (struct nic_info_rsp_t *)(cmd_ret->rsp_data);

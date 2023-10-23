@@ -123,12 +123,12 @@ static int hikp_nic_get_first_blk_dfx(struct nic_dfx_rsp_head_t *rsp_head, uint3
 				      uint32_t *max_dfx_size, uint32_t *version)
 {
 	struct nic_dfx_rsp_t *dfx_rsp = NULL;
-	struct hikp_cmd_ret *cmd_ret;
+	struct hikp_cmd_ret *cmd_ret = NULL;
 	int ret;
 
 	ret = hikp_nic_dfx_get_blk(&cmd_ret, 0, g_dfx_param.sub_cmd_code);
 	if (ret < 0)
-		return ret;
+		goto err_out;
 
 	dfx_rsp = (struct nic_dfx_rsp_t *)(cmd_ret->rsp_data);
 	*version = cmd_ret->version;
@@ -168,12 +168,12 @@ static int hikp_nic_get_blk_dfx(struct nic_dfx_rsp_head_t *rsp_head, uint32_t bl
 				uint32_t *reg_data, uint32_t *max_dfx_size)
 {
 	struct nic_dfx_rsp_t *dfx_rsp = NULL;
-	struct hikp_cmd_ret *cmd_ret;
+	struct hikp_cmd_ret *cmd_ret = NULL;
 	int ret;
 
 	ret = hikp_nic_dfx_get_blk(&cmd_ret, blk_id, g_dfx_param.sub_cmd_code);
 	if (ret < 0)
-		return ret;
+		goto err_out;
 
 	dfx_rsp = (struct nic_dfx_rsp_t *)(cmd_ret->rsp_data);
 	*rsp_head = dfx_rsp->rsp_head;
@@ -181,16 +181,17 @@ static int hikp_nic_get_blk_dfx(struct nic_dfx_rsp_head_t *rsp_head, uint32_t bl
 		HIKP_ERROR_PRINT("blk%u reg_data copy size error, "
 				 "data size: 0x%x, max size: 0x%x\n",
 				 blk_id, rsp_head->cur_blk_size, *max_dfx_size);
-		free(cmd_ret);
-		cmd_ret = NULL;
-		return -EINVAL;
+		ret = -EINVAL;
+		goto err_out;
 	}
 	memcpy(reg_data, dfx_rsp->reg_data, rsp_head->cur_blk_size);
 	*max_dfx_size -= (uint32_t)rsp_head->cur_blk_size;
+
+err_out:
 	free(cmd_ret);
 	cmd_ret = NULL;
 
-	return 0;
+	return ret;
 }
 
 static int cmd_dfx_module_select(struct major_cmd_ctrl *self, const char *argv)

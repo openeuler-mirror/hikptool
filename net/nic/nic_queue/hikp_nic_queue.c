@@ -239,9 +239,10 @@ static int hikp_nic_queue_get_blk(struct hikp_cmd_header *req_header,
 	int ret = 0;
 
 	cmd_ret = hikp_cmd_alloc(req_header, req_data, sizeof(*req_data));
-	if (cmd_ret == NULL) {
+	ret = hikp_rsp_normal_check(cmd_ret);
+	if (ret) {
 		HIKP_ERROR_PRINT("failed to get block-%u context.\n", req_data->block_id);
-		return -EIO;
+		goto out;
 	}
 
 	rsp = (struct nic_queue_rsp *)cmd_ret->rsp_data;

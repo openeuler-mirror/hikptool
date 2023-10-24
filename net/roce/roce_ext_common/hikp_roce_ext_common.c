@@ -115,8 +115,8 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 	max_size = res_head->total_block_num * sizeof(uint32_t);
 
 	if (block_id == 0) {
-		reg->offset = (uint32_t *)malloc(max_size);
-		reg->data = (uint32_t *)malloc(max_size);
+		reg->offset = (uint32_t *)calloc(res_head->total_block_num, sizeof(uint32_t));
+		reg->data = (uint32_t *)calloc(res_head->total_block_num, sizeof(uint32_t));
 		if ((reg->offset == NULL) || (reg->data == NULL)) {
 			printf("hikptool roce_%s alloc log memmory 0x%x failed!\n",
 				cmd_name, max_size);

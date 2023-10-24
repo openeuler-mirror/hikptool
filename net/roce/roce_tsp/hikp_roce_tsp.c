@@ -184,6 +184,12 @@ static void hikp_roce_tsp_execute(struct major_cmd_ctrl *self)
 	}
 
 	roce_tsp_res = (struct roce_tsp_res_param *)cmd_ret->rsp_data;
+	if (roce_tsp_res->total_block_num > ROCE_HIKP_TSP_REG_NUM) {
+		printf("version might not match, adjust the reg num to %d.\n",
+		       ROCE_HIKP_TSP_REG_NUM);
+		roce_tsp_res->total_block_num = ROCE_HIKP_TSP_REG_NUM;
+	}
+
 	hikp_roce_tsp_print(roce_tsp_res->total_block_num,
 			    roce_tsp_res->reg_data.offset, roce_tsp_res->reg_data.data);
 

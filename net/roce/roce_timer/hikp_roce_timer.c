@@ -76,6 +76,12 @@ static int hikp_roce_timer_show_qpc(struct major_cmd_ctrl *self)
 		goto out;
 
 	timer_rsp = (struct roce_timer_rsp_data *)(cmd_ret->rsp_data);
+	if (timer_rsp->reg_num > ROCE_HIKP_TIMER_REG_NUM) {
+		printf("version might not match, adjust the reg num to %d.\n",
+		       ROCE_HIKP_TIMER_REG_NUM);
+		timer_rsp->reg_num = ROCE_HIKP_TIMER_REG_NUM;
+	}
+
 	printf("**************QPC TIMER INFO*************\n");
 	hikp_roce_timer_print(timer_rsp);
 out:
@@ -104,6 +110,12 @@ static int hikp_roce_timer_show_cqc(struct major_cmd_ctrl *self)
 		goto out;
 
 	timer_rsp = (struct roce_timer_rsp_data *)(cmd_ret->rsp_data);
+	if (timer_rsp->reg_num > ROCE_HIKP_TIMER_REG_NUM) {
+		printf("version might not match, adjust the reg num to %d.\n",
+		       ROCE_HIKP_TIMER_REG_NUM);
+		timer_rsp->reg_num = ROCE_HIKP_TIMER_REG_NUM;
+	}
+
 	printf("**************CQC TIMER INFO*************\n");
 	hikp_roce_timer_print(timer_rsp);
 out:

@@ -108,7 +108,14 @@ static void hikp_roce_qmm_execute_origin(struct major_cmd_ctrl *self)
 		printf("hikptool roce_qmm get data failed.\n");
 		goto exec_error;
 	}
+
 	roce_qmm_res = (struct roce_qmm_rsp_data *)cmd_ret->rsp_data;
+	if (roce_qmm_res->reg_num > ROCE_HIKP_QMM_REG_NUM) {
+		printf("version might not match, adjust the reg num to %d.\n",
+		       ROCE_HIKP_QMM_REG_NUM);
+		roce_qmm_res->reg_num = ROCE_HIKP_QMM_REG_NUM;
+	}
+
 	hikp_roce_qmm_print(roce_qmm_res);
 
 exec_error:

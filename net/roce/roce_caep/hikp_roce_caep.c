@@ -85,7 +85,14 @@ static void hikp_roce_caep_execute_origin(struct major_cmd_ctrl *self)
 		printf("hikptool roce_caep get data failed.\n");
 		goto exec_error;
 	}
+
 	roce_caep_res = (struct roce_caep_res_param *)cmd_ret->rsp_data;
+	if (roce_caep_res->total_block_num > ROCE_HIKP_CAEP_REG_NUM) {
+		printf("version might not match, adjust the reg num to %d.\n",
+		       ROCE_HIKP_CAEP_REG_NUM);
+		roce_caep_res->total_block_num = ROCE_HIKP_CAEP_REG_NUM;
+	}
+
 	hikp_roce_caep_print(roce_caep_res->total_block_num,
 			     roce_caep_res->reg_data.offset,
 			     roce_caep_res->reg_data.data);

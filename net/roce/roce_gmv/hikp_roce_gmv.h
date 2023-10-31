@@ -18,7 +18,7 @@
 
 #define ROCE_HIKP_GMV_REG_NUM 7
 #define ROCE_HIKP_GMV_REG_SWICTH 2
-#define ROCE_MAX_HIKPTOOL_GMV 128
+#define ROCE_MAX_HIKPTOOL_GMV 256
 struct cmd_roce_gmv_param {
 	struct tool_target target;
 	uint32_t gmv_index;

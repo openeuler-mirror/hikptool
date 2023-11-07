@@ -131,7 +131,7 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 	}
 
 	cur_size = res_head->cur_block_num * sizeof(uint32_t);
-	if (cur_size > max_size) {
+	if (!cur_size || cur_size > max_size) {
 		printf("hikptool roce_%s log data copy size error, data size: 0x%zx, max size: 0x%zx\n",
 		       cmd_name, cur_size, max_size);
 		ret = -EINVAL;

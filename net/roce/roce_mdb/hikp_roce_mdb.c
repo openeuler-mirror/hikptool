@@ -89,7 +89,6 @@ static void hikp_roce_mdb_execute_origin(struct major_cmd_ctrl *self)
 	struct roce_mdb_rsp_data *mdb_rsp = NULL;
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	uint32_t reg_num;
-	int ret;
 
 	self->err_no = hikp_roce_mdb_get_data(&cmd_ret, 0);
 	if (self->err_no) {

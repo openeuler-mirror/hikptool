@@ -15,11 +15,15 @@
 
 static void hikp_roce_ext_reg_data_free(struct reg_data *reg)
 {
-	if (reg->offset)
+	if (reg->offset) {
 		free(reg->offset);
+		reg->offset = NULL;
+	}
 
-	if (reg->data)
+	if (reg->data) {
 		free(reg->data);
+		reg->data = NULL;
+	}
 }
 
 static void hikp_roce_ext_cmd_ret_free(struct hikp_cmd_ret *cmd_ret)
@@ -118,7 +122,7 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 		reg->offset = (uint32_t *)calloc(res_head->total_block_num, sizeof(uint32_t));
 		reg->data = (uint32_t *)calloc(res_head->total_block_num, sizeof(uint32_t));
 		if ((reg->offset == NULL) || (reg->data == NULL)) {
-			printf("hikptool roce_%s alloc log memmory 0x%x failed!\n",
+			printf("hikptool roce_%s alloc log memmory 0x%zx failed!\n",
 				cmd_name, max_size);
 			ret = -ENOMEM;
 			hikp_roce_ext_reg_data_free(reg);
@@ -128,7 +132,7 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 
 	cur_size = res_head->cur_block_num * sizeof(uint32_t);
 	if (cur_size > max_size) {
-		printf("hikptool roce_%s log data copy size error, data size: 0x%x, max size: 0x%x\n",
+		printf("hikptool roce_%s log data copy size error, data size: 0x%zx, max size: 0x%zx\n",
 		       cmd_name, cur_size, max_size);
 		ret = -EINVAL;
 		hikp_roce_ext_reg_data_free(reg);

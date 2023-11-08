@@ -248,7 +248,7 @@ static int hikp_nic_queue_get_blk(struct hikp_cmd_header *req_header,
 	rsp = (struct nic_queue_rsp *)cmd_ret->rsp_data;
 	if (rsp->rsp_head.cur_blk_size > buf_len) {
 		HIKP_ERROR_PRINT("nic_queue block-%u copy size error, "
-				 "buffer size=%u, data size=%u.\n",
+				 "buffer size=%zu, data size=%u.\n",
 				 req_data->block_id, buf_len, rsp->rsp_head.cur_blk_size);
 		ret = -EINVAL;
 		goto out;
@@ -340,7 +340,6 @@ static bool hikp_nic_queue_check_feature_para_vaild(const struct queue_feature_c
 
 static void hikp_nic_queue_cmd_execute(struct major_cmd_ctrl *self)
 {
-	struct bdf_t *bdf = &g_queue_param.target.bdf;
 	const struct queue_feature_cmd *queue_cmd;
 	union nic_queue_feature_info *queue_data;
 	struct hikp_cmd_header req_header = {0};

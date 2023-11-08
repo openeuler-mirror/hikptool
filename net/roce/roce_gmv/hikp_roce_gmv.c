@@ -44,16 +44,16 @@ static int hikp_roce_gmv_target(struct major_cmd_ctrl *self, const char *argv)
 static int hikp_roce_gmv_idxget(struct major_cmd_ctrl *self, const char *argv)
 {
 	char *endptr = NULL;
-	int index;
+	uint64_t index;
 
-	index = strtol(argv, &endptr, 0);
+	index = strtoul(argv, &endptr, 0);
 	if ((endptr <= argv) || (*endptr != '\0') ||
-	    (index < 0) || (index >= ROCE_MAX_HIKPTOOL_GMV)) {
+	    (index >= ROCE_MAX_HIKPTOOL_GMV)) {
 		snprintf(self->err_str, sizeof(self->err_str), "Invalid gmv_index.");
 		self->err_no = -EINVAL;
 		return -EINVAL;
 	}
-	g_roce_gmv_param.gmv_index = index;
+	g_roce_gmv_param.gmv_index = (uint32_t)index;
 
 	return 0;
 }

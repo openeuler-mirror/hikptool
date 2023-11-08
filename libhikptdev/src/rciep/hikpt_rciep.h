@@ -42,6 +42,8 @@
 #define CPL_CHECK_GAP_US 1000
 #define WAIT_CPL_MAX_MS 8000
 
+#define REP_DATA_BLK_SIZE		sizeof(uint32_t)
+
 enum {
 	HIKP_RESOURCE_DIR,
 	HIKP_CONFIG_DIR,

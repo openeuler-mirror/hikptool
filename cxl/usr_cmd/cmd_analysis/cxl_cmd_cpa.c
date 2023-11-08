@@ -46,7 +46,7 @@ static int cxl_port_id_set(struct major_cmd_ctrl *self, const char *argv)
 
 	ret = string_toui(argv, &val);
 	if (ret) {
-		printf("cpa set port id err %d\n", ret);
+		printf("cxl cpa set port id err %d\n", ret);
 		return ret;
 	}
 	g_cxl_cpa_cmd.port_id = val;

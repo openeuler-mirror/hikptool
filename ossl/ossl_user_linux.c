@@ -47,7 +47,6 @@ int uda_realpath(const char *file_dir, char *format_dir)
 
 int uda_fcntl(const char *lock_file, uint32_t operation, int *fd)
 {
-	uint32_t f_opt = 0;
 	int fd_t = 0;
 	int ret;
 

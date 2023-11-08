@@ -45,16 +45,16 @@ static int hikp_roce_qmm_target(struct major_cmd_ctrl *self, const char *argv)
 static int hikp_roce_qmm_bank_get(struct major_cmd_ctrl *self, const char *argv)
 {
 	char *endptr = NULL;
-	int bank_num;
+	uint64_t bank_num;
 
-	bank_num = strtol(argv, &endptr, 0);
-	if ((endptr <= argv) || (*endptr != '\0') || bank_num > QMM_BANK_NUM || bank_num < 0) {
+	bank_num = strtoul(argv, &endptr, 0);
+	if ((endptr <= argv) || (*endptr != '\0') || bank_num > QMM_BANK_NUM) {
 		snprintf(self->err_str, sizeof(self->err_str), "Invalid bank number!\n");
 		self->err_no = -EINVAL;
 		return -EINVAL;
 	}
 
-	g_roce_qmm_param.bank_id = bank_num;
+	g_roce_qmm_param.bank_id = (uint32_t)bank_num;
 	return 0;
 }
 

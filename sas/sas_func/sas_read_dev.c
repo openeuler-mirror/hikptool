@@ -78,8 +78,6 @@ static void print_dev_link(const uint32_t *reg_save, uint32_t reg_num)
 
 static void sas_print_dev(const uint32_t *reg_save, uint32_t reg_num, uint32_t cmd_type)
 {
-	uint32_t i;
-
 	if (reg_num == 0) {
 		printf("SAS device is failed\n");
 		return;

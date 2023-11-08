@@ -337,6 +337,9 @@ bool tool_can_print(uint32_t interval, uint32_t burst, uint32_t *print_num, uint
 {
 	uint64_t cur_time;
 
+	if (!print_num || !last_time)
+		return false;
+
 	cur_time = (uint64_t)time(NULL);
 	if ((*last_time + interval) == cur_time)
 		*print_num = 0;

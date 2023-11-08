@@ -186,7 +186,6 @@ void command_parse_and_excute(const int argc, const char **argv)
 {
 	struct major_cmd_ctrl *major_cmd = get_major_cmd();
 	int lock_fd;
-	int check;
 	int ret;
 
 	major_cmd->err_no = check_command_length(argc, argv);

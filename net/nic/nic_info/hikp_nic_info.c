@@ -79,7 +79,8 @@ static int hikp_nic_get_curr_die_info(void)
 	free(cmd_ret);
 	cmd_ret = NULL;
 
-	ret = get_revision_id_by_bdf(&g_info_param.target.bdf, g_info_param.revision_id);
+	ret = get_revision_id_by_bdf(&g_info_param.target.bdf, g_info_param.revision_id,
+				     sizeof(g_info_param.revision_id));
 	if (ret != 0) {
 		HIKP_ERROR_PRINT("Getting revision fail.\n");
 		return ret;
@@ -87,7 +88,8 @@ static int hikp_nic_get_curr_die_info(void)
 	ret = get_numvfs_by_bdf(&g_info_param.target.bdf, &g_info_param.numvfs);
 	if (ret != 0)
 		HIKP_ERROR_PRINT("Getting numvfs fail, ret = %d.\n", ret);
-	ret = get_dev_name_by_bdf(&g_info_param.target.bdf, g_info_param.target.dev_name);
+	ret = get_dev_name_by_bdf(&g_info_param.target.bdf, g_info_param.target.dev_name,
+				  sizeof(g_info_param.target.dev_name));
 	if ((ret != 0) && (ret != -ENOENT)) {
 		HIKP_ERROR_PRINT("Getting dev name fail.\n");
 		return ret;
@@ -258,7 +260,8 @@ static void hikp_nic_info_print_cur_vf(const struct bdf_t *bdf)
 	printf("Current function is vf:\n");
 	printf("\t%-16s %04x:%02x:%02x.%u\n", "vf bdf id:",
 	       bdf->domain, bdf->bus_id, bdf->dev_id, bdf->fun_id);
-	ret = get_dev_name_by_bdf(&g_info_param.target.bdf, g_info_param.target.dev_name);
+	ret = get_dev_name_by_bdf(&g_info_param.target.bdf, g_info_param.target.dev_name,
+				  sizeof(g_info_param.target.dev_name));
 	if ((ret != 0) && (ret != -ENOENT)) {
 		HIKP_ERROR_PRINT("Getting dev name fail.\n");
 		return;

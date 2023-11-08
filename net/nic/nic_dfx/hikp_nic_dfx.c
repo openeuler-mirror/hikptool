@@ -318,7 +318,6 @@ static void hikp_nic_dfx_cmd_execute(struct major_cmd_ctrl *self)
 	uint32_t max_dfx_size;
 	uint32_t version;
 	uint32_t i;
-	int ret;
 
 	if (!(g_dfx_param.flag & MODULE_SET_FLAG)) {
 		self->err_no = -EINVAL;

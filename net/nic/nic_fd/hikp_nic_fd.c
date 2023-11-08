@@ -15,7 +15,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#include <inttypes.h>
 #include "hikp_nic_fd.h"
 
 struct key_info {
@@ -255,13 +255,13 @@ static void hikp_nic_print_tuple(const struct key_info *tuple_key,
 	case OUTER_SRC_MAC:
 	case INNER_DST_MAC:
 	case INNER_SRC_MAC:
-		printf("\t  %s[mask=0x%llx]: ", tuple_key->key_name, mask);
+		printf("\t  %s[mask=0x%" PRIx64 "]: ", tuple_key->key_name, mask);
 		printf("%02x:%02x:%02x:%02x:%02x:%02x\n", *(tcam_y + 5), *(tcam_y + 4),
 		       *(tcam_y + 3), *(tcam_y + 2), *(tcam_y + 1), *tcam_y);
 		break;
 	case OUTER_ETH_TYPE:
 	case INNER_ETH_TYPE:
-		printf("\t  %s[mask=0x%llx]: ", tuple_key->key_name, mask);
+		printf("\t  %s[mask=0x%" PRIx64 "]: ", tuple_key->key_name, mask);
 		printf("0x%x\n", *(uint16_t *)tcam_y);
 		break;
 	case OUTER_VLAN_TAG_FST:
@@ -276,7 +276,7 @@ static void hikp_nic_print_tuple(const struct key_info *tuple_key,
 	case OUTER_DST_PORT:
 	case INNER_SRC_PORT:
 	case INNER_DST_PORT:
-		printf("\t  %s[mask=0x%llx]: ", tuple_key->key_name, mask);
+		printf("\t  %s[mask=0x%" PRIx64 "]: ", tuple_key->key_name, mask);
 		printf("%u\n", *(uint16_t *)tcam_y);
 		break;
 	case OUTER_IP_TOS:
@@ -284,25 +284,25 @@ static void hikp_nic_print_tuple(const struct key_info *tuple_key,
 	case OUTER_IP_PROTO:
 	case INNER_IP_PROTO:
 	case OUTER_TUN_FLOW_ID:
-		printf("\t  %s[mask=0x%llx]: ", tuple_key->key_name, mask);
+		printf("\t  %s[mask=0x%" PRIx64 "]: ", tuple_key->key_name, mask);
 		printf("0x%x\n", *tcam_y);
 		break;
 	case OUTER_SRC_IP:
 	case OUTER_DST_IP:
 	case INNER_SRC_IP:
 	case INNER_DST_IP:
-		printf("\t  %s[mask=0x%llx]: ", tuple_key->key_name, mask);
+		printf("\t  %s[mask=0x%" PRIx64 "]: ", tuple_key->key_name, mask);
 		printf("%u.%u.%u.%u\n", *(tcam_y + 3), *(tcam_y + 2), *(tcam_y + 1), *tcam_y);
 		break;
 	case OUTER_L4_RSV:
 	case INNER_L4_RSV:
-		printf("\t  %s[mask=0x%llx]: ", tuple_key->key_name, mask);
+		printf("\t  %s[mask=0x%" PRIx64 "]: ", tuple_key->key_name, mask);
 		printf("%u\n", *(uint32_t *)tcam_y);
 		break;
 	case OUTER_TUN_VNI:
 		for (i = 0; i < HIKP_NIC_FD_TUN_VNI_LEN; i++)
 			tun_vni |= (((uint32_t)*(tcam_y + i)) << (i * HIKP_BITS_PER_BYTE));
-		printf("\t  %s[mask=0x%llx]: ", tuple_key->key_name, mask);
+		printf("\t  %s[mask=0x%" PRIx64 "]: ", tuple_key->key_name, mask);
 		printf("0x%x\n", tun_vni);
 		break;
 	default:
@@ -407,12 +407,12 @@ static void hikp_nic_fd_print_meta_data(struct nic_fd_rule_info *rule)
 	meta_bytes = HIKP_DIV_ROUND_UP(active_meta_width, HIKP_BITS_PER_BYTE);
 	meta_data_region = active_tcam_size - meta_bytes;
 	if (meta_bytes > sizeof(meta_data)) {
-		printf("meta data copy size error, data size: 0x%x, max size: 0x%x\n",
+		printf("meta data copy size error, data size: %u, max size: %zu\n",
 		       meta_bytes, sizeof(meta_data));
 		return;
 	}
 	memcpy(&meta_data, &key_y[meta_data_region], meta_bytes);
-	printf("\t  meta_data[meta_data=0x%llx]:\n", meta_data);
+	printf("\t  meta_data[meta_data=0x%" PRIx64 "]:\n", meta_data);
 	cur_pos = meta_bytes * HIKP_BITS_PER_BYTE;
 	end = cur_pos - 1;
 	for (i = MAX_META_DATA - 1; i >= 0; i--) {
@@ -470,7 +470,7 @@ static void hikp_nic_fd_print_ad_data(struct nic_fd_rule_info *rule)
 	uint64_t ad_data;
 
 	ad_data = (uint64_t)rule->ad_data_h << NIC_FD_AD_DATA_S | rule->ad_data_l;
-	printf("\n\tAction[ad data: 0x%llx]:\n", ad_data);
+	printf("\n\tAction[ad data: 0x%" PRIx64 "]:\n", ad_data);
 
 	hikp_nic_parse_ad_data(rule, &action);
 
@@ -544,7 +544,7 @@ static void hikp_nic_show_fd_counter(const void *data)
 	printf(" idx | hit_cnt\n");
 	for (i = 0; i < counter[stage_no].counter_size; i++) {
 		entry = &counter[stage_no].entry[i];
-		printf(" %3u | %llu\n", entry->idx, entry->value);
+		printf(" %3u | %" PRIu64 "\n", entry->idx, entry->value);
 	}
 }
 
@@ -554,7 +554,6 @@ static int hikp_nic_fd_get_blk(struct hikp_cmd_header *req_header,
 {
 	struct hikp_cmd_ret *cmd_ret;
 	struct nic_fd_rsp *rsp;
-	uint16_t idx;
 	int ret = 0;
 
 	cmd_ret = hikp_cmd_alloc(req_header, req_data, sizeof(*req_data));
@@ -792,10 +791,13 @@ static void hikp_nic_fd_data_free(union nic_fd_feature_info *fd_data)
 	const struct fd_feature_cmd *fd_cmd;
 
 	fd_cmd = &g_fd_feature_cmd[g_fd_param.feature_idx];
-	if (strcmp(fd_cmd->feature_name, NIC_FD_RULES_NAME) == 0)
+	if (strcmp(fd_cmd->feature_name, NIC_FD_RULES_NAME) == 0) {
 		free(fd_data->rules[stage_no].rule);
-	else if (strcmp(fd_cmd->feature_name, NIC_FD_COUNTER_NAME) == 0)
+		fd_data->rules[stage_no].rule = NULL;
+	} else if (strcmp(fd_cmd->feature_name, NIC_FD_COUNTER_NAME) == 0) {
 		free(fd_data->counter[stage_no].entry);
+		fd_data->counter[stage_no].entry = NULL;
+	}
 
 	free(fd_data);
 }
@@ -859,31 +861,27 @@ static int hikp_nic_fd_check_input_param(struct major_cmd_ctrl *self,
 
 	if (bdf->dev_id != 0) {
 		snprintf(self->err_str, sizeof(self->err_str), "VF does not support query!");
-		self->err_no = -EINVAL;
-		return self->err_no;
+		return -EINVAL;
 	}
 
 	if (fd_param->feature_idx == -1) {
 		hikp_nic_fd_cmd_help(self, NULL);
 		snprintf(self->err_str, sizeof(self->err_str), "-du/--dump parameter error!");
-		self->err_no = -EINVAL;
-		return self->err_no;
+		return -EINVAL;
 	}
 
 	fd_cmd = &g_fd_feature_cmd[g_fd_param.feature_idx];
 	if (fd_param->stage_no == -1 && fd_cmd->sub_cmd_code != NIC_FD_HW_INFO_DUMP) {
 		snprintf(self->err_str, sizeof(self->err_str),
 			 "please input '-st/--stage' parameter.");
-		self->err_no = -EINVAL;
-		return self->err_no;
+		return -EINVAL;
 	}
 
 	if (fd_cmd->sub_cmd_code == NIC_FD_HW_INFO_DUMP &&
 	    (fd_param->id != -1 || fd_param->stage_no != -1)) {
 		snprintf(self->err_str, sizeof(self->err_str),
 			 "no need '-id/--index' and '-st/--stage' parameter.");
-		self->err_no = -EINVAL;
-		return self->err_no;
+		return -EINVAL;
 	}
 
 	return 0;
@@ -899,8 +897,10 @@ static void hikp_nic_fd_cmd_execute(struct major_cmd_ctrl *self)
 	int ret;
 
 	ret = hikp_nic_fd_check_input_param(self, &g_fd_param);
-	if (ret != 0)
+	if (ret != 0) {
+		self->err_no = ret;
 		return;
+	}
 
 	ret = hikp_nic_get_fd_hw_info(bdf, &g_fd_hw_info);
 	if (ret != 0) {

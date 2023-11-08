@@ -19,6 +19,7 @@
 #define TRACE_STR_NUM 0x20
 #define TRACER_DEPTH 65
 #define PM_TRACE_STR_NUM 0x28
+#define GEN5_BIT_OFFEST 2
 
 struct pcie_ltssm_num_string {
 	int ltssm;

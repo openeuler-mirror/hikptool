@@ -150,7 +150,7 @@ static int hikp_roce_scc_get_total_data_num(struct roce_scc_head *res_head,
 	*offset = (uint32_t *)calloc(1, max_size);
 	*data = (uint32_t *)calloc(1, max_size);
 	if ((*offset == NULL) || (*data == NULL)) {
-		printf("hikptool roce_scc alloc log memmory 0x%x failed\n", max_size);
+		printf("hikptool roce_scc alloc log memmory 0x%zx failed\n", max_size);
 		ret = -ENOMEM;
 		goto get_data_error;
 	}
@@ -158,7 +158,7 @@ static int hikp_roce_scc_get_total_data_num(struct roce_scc_head *res_head,
 	cur_size = roce_scc_res->head.cur_block_num * sizeof(uint32_t);
 	if (cur_size > max_size) {
 		printf("hikptool roce_scc log data copy size error, "
-		       "data size: 0x%x, max size: 0x%x\n", cur_size, max_size);
+		       "data size: 0x%zx, max size: 0x%zx\n", cur_size, max_size);
 		ret = -EINVAL;
 		goto get_data_error;
 	}
@@ -194,7 +194,7 @@ static int hikp_roce_scc_get_next_data(struct roce_scc_head *res_head,
 	if (cur_size > data_size) {
 		hikp_roce_scc_cmd_ret_free(&cmd_ret);
 		printf("hikptool roce_scc next log data copy size error, "
-		       "data size: 0x%x, max size: 0x%x\n", cur_size, data_size);
+		       "data size: 0x%zx, max size: 0x%zx\n", cur_size, data_size);
 		return -EINVAL;
 	}
 	memcpy(*offset, roce_scc_res->reg_data.offset, cur_size);

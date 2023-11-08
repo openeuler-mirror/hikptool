@@ -149,7 +149,7 @@ static void hikp_roce_timer_execute(struct major_cmd_ctrl *self)
 	int (*func[])(struct major_cmd_ctrl *self) = {
 		hikp_roce_timer_show_cqc, hikp_roce_timer_show_qpc
 	};
-	char *function[] = {"show cqc", "show qpc"};
+	const char *function[] = {"show cqc", "show qpc"};
 	int i = 0;
 	int ret;
 

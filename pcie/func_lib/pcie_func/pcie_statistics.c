@@ -63,7 +63,7 @@ static int port_distribution_rsp_data_check(const struct hikp_cmd_ret *cmd_ret, 
 }
 
 static int pcie_portid_serdes_relation(const struct pcie_macro_info *macro_info,
-					uint32_t macro_num, uint32_t ndie_id)
+				       uint32_t macro_num, uint32_t ndie_id)
 {
 	uint32_t i, j;
 
@@ -90,7 +90,7 @@ int pcie_port_distribution_get(uint32_t chip_id)
 	struct hikp_cmd_header req_header;
 	struct hikp_cmd_ret *cmd_ret;
 	struct pcie_info_req_para req_data = { 0 };
-	uint32_t src_size, dst_size, pair_num;
+	uint32_t pair_num;
 	struct pcie_port_info *port_info;
 	uint32_t i;
 	int ret;

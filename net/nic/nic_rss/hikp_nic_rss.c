@@ -366,7 +366,7 @@ static int hikp_nic_rss_get_blk(struct hikp_cmd_header *req_header,
 	rsp = (struct nic_rss_rsp *)cmd_ret->rsp_data;
 	if (rsp->rsp_head.cur_blk_size > buf_len) {
 		HIKP_ERROR_PRINT("nic_rss block-%u copy size error, "
-				 "buffer size=%u, data size=%u.\n",
+				 "buffer size=%zu, data size=%u.\n",
 				 req_data->block_id, buf_len, rsp->rsp_head.cur_blk_size);
 		ret = -EINVAL;
 		goto out;
@@ -388,7 +388,6 @@ static int hikp_nic_query_rss_feature(struct hikp_cmd_header *req_header, const 
 	size_t buf_len = sizeof(*data);
 	uint32_t total_blk_size;
 	uint8_t total_blk_num;
-	uint8_t blk_num = 0;
 	uint8_t blk_id = 0;
 	int ret;
 

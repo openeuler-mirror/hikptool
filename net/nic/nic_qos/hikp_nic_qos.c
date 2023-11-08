@@ -98,12 +98,12 @@ static void hikp_nic_qos_show_dcb_info(const void *data)
 	printf("PFC configuration\n");
 	printf("  PFC enable:");
 	for (up = 0; up < HIKP_NIC_MAX_USER_PRIO_NUM; up++)
-		printf(" %d", HI_BIT(up) & pfc->pfc_en ? 1 : 0);
+		printf(" %u", HI_BIT(up) & pfc->pfc_en ? 1 : 0);
 
 	printf("\n");
 	printf("  TC enable:");
 	for (tc_no = 0; tc_no < HIKP_NIC_MAX_TC_NUM; tc_no++)
-		printf(" %d", HI_BIT(tc_no) & pfc->hw_tc_map ? 1 : 0);
+		printf(" %u", HI_BIT(tc_no) & pfc->hw_tc_map ? 1 : 0);
 
 	printf("\n");
 	printf("ETS configuration\n");
@@ -176,7 +176,7 @@ static int hikp_nic_qos_get_blk(struct hikp_cmd_header *req_header,
 	rsp = (struct nic_qos_rsp *)cmd_ret->rsp_data;
 	if (rsp->rsp_head.cur_blk_size > buf_len) {
 		HIKP_ERROR_PRINT("nic_qos block-%u copy size error, "
-				 "buffer size=%u, data size=%u.\n",
+				 "buffer size=%zu, data size=%u.\n",
 				 req_data->block_id, buf_len, rsp->rsp_head.cur_blk_size);
 		ret = -EINVAL;
 		goto out;
@@ -198,7 +198,6 @@ static int hikp_nic_query_qos_feature(struct hikp_cmd_header *req_header, const 
 	size_t buf_len = sizeof(*data);
 	uint32_t total_blk_size;
 	uint8_t total_blk_num;
-	uint8_t blk_num = 0;
 	uint8_t blk_id = 0;
 	int ret;
 
@@ -272,7 +271,7 @@ static void hikp_nic_qos_cmd_execute(struct major_cmd_ctrl *self)
 	}
 
 	memset(revision_id, 0, MAX_PCI_ID_LEN + 1);
-	ret = get_revision_id_by_bdf(bdf, revision_id);
+	ret = get_revision_id_by_bdf(bdf, revision_id, sizeof(g_qos_param.revision_id));
 	// show pfc threshold as default if get revision_id error
 	if (ret)
 		strncpy(g_qos_param.revision_id, HIKP_IEP_REVISION,

@@ -76,28 +76,8 @@ static void print_dev_link(const uint32_t *reg_save, uint32_t reg_num)
 	}
 }
 
-static void print_dev_info(const void *reg_save, uint32_t reg_num)
-{
-	volatile struct hikp_sas_itct *itct = (volatile struct hikp_sas_itct *)reg_save;
-
-	printf("The device information as below:\n");
-	printf("dev_type: %d\n", itct->dw0.dev_type);
-	printf("dev_valid: %d\n", itct->dw0.dev_valid);
-	printf("break_reply_en: %d\n", itct->dw0.break_reply_en);
-	printf("smp_timeout: %d\n", itct->dw0.smp_timeout);
-	printf("tlr_en: %d\n", itct->dw0.tlr_en);
-	printf("awt_continue: %d\n", itct->dw0.awt_continue);
-	printf("sas_addr: 0x%llx\n", itct->sas_addr);
-	printf("I_T_nexus_loss: %d\n", itct->dw2.I_T_nexus_loss);
-	printf("awt_initial_value: %d\n", itct->dw2.awt_initial_value);
-	printf("maximum_connect_time: %d\n", itct->dw2.maximum_connect_time);
-	printf("reject_to_open_limit: %d\n", itct->dw2.reject_to_open_limit);
-}
-
 static void sas_print_dev(const uint32_t *reg_save, uint32_t reg_num, uint32_t cmd_type)
 {
-	uint32_t i;
-
 	if (reg_num == 0) {
 		printf("SAS device is failed\n");
 		return;
@@ -105,9 +85,6 @@ static void sas_print_dev(const uint32_t *reg_save, uint32_t reg_num, uint32_t c
 	switch (cmd_type) {
 	case DEV_LINK:
 		print_dev_link(reg_save, reg_num);
-		break;
-	case DEV_INFO:
-		print_dev_info(reg_save, reg_num);
 		break;
 	default:
 		printf("cmd_type is error\n");

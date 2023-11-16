@@ -113,7 +113,7 @@ static int hikp_nic_get_first_blk_info(uint32_t *total_blk_num,
 	}
 	*log_data = (uint8_t *)calloc(1, log_size);
 	if (*log_data == NULL) {
-		HIKP_ERROR_PRINT("malloc log memory 0x%x failed.", log_size);
+		HIKP_ERROR_PRINT("calloc log memory 0x%x failed.", log_size);
 		ret = -ENOMEM;
 		goto err_out;
 	}

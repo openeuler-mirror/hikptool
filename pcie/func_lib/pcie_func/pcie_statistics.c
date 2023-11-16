@@ -25,6 +25,10 @@ static const char *g_global_width_name[GLOBAL_WIDTH_TABLE_SIZE] = {
 	"PCIE_WIDTH_X1", "PCIE_WIDTH_X2", "PCIE_WIDTH_X4", "PCIE_WIDTH_X8", "PCIE_WIDTH_X16"
 };
 
+static const char *g_global_ndie_name[] = {
+	"Ndie_A", "Ndie_B"
+};
+
 static int port_distribution_rsp_data_check(const struct hikp_cmd_ret *cmd_ret, uint32_t *port_num)
 {
 	size_t rsp_data_size, expect_data_size;
@@ -58,12 +62,35 @@ static int port_distribution_rsp_data_check(const struct hikp_cmd_ret *cmd_ret, 
 	return 0;
 }
 
+static int pcie_portid_serdes_relation(const struct pcie_macro_info *macro_info,
+				       uint32_t macro_num, uint32_t ndie_id)
+{
+	uint32_t i, j;
+
+	if (ndie_id >= HIKP_ARRAY_SIZE(g_global_ndie_name)) {
+		Info("PCIe Base", "ndie_id [%u]: %s\n", ndie_id, "UNKNOWN_NDIE");
+		return -1;
+	}
+
+	if (macro_num >= MAX_MACRO_ONEPORT) {
+		Info("PCIe Base", "macro_num [%u] exceeds the maximum array length\n", macro_num);
+		return -1;
+	}
+
+	Info("PCIe Base", "\tndie_id: %s\n", g_global_ndie_name[ndie_id]);
+	for (i = 0; i < macro_num; i++) {
+		for (j = macro_info[i].lane_s; j <= macro_info[i].lane_e; j++)
+			Info("PCIe Base", "\t\tmacro %d \t lane: %d\n", macro_info[i].id, j);
+	}
+	return 0;
+}
+
 int pcie_port_distribution_get(uint32_t chip_id)
 {
 	struct hikp_cmd_header req_header;
 	struct hikp_cmd_ret *cmd_ret;
 	struct pcie_info_req_para req_data = { 0 };
-	uint32_t src_size, dst_size, pair_num;
+	uint32_t pair_num;
 	struct pcie_port_info *port_info;
 	uint32_t i;
 	int ret;
@@ -86,6 +113,9 @@ int pcie_port_distribution_get(uint32_t chip_id)
 		}
 		Info("PCIe Base", "port_id[%u] %s\n", port_info->info_pair[i].port_id,
 			g_global_width_name[port_info->info_pair[i].port_width]);
+		pcie_portid_serdes_relation(port_info->info_pair[i].macro_info,
+					    port_info->info_pair[i].macro_num,
+					    port_info->info_pair[i].ndie_id);
 	}
 free_cmd_ret:
 	free(cmd_ret);

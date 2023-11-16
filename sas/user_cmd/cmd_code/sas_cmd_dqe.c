@@ -44,7 +44,6 @@ static int sas_dqe_info(struct major_cmd_ctrl *self, const char *argv)
 static int sas_set_queue_id(struct major_cmd_ctrl *self, const char *argv)
 {
 	int ret;
-	uint32_t val = 0;
 
 	ret = sas_set_que_id(self, argv);
 	if (ret || sas_get_que_id() >= SAS_QUEUE_NUM) {

@@ -26,7 +26,6 @@ static int sas_dev_help(struct major_cmd_ctrl *self, const char *argv)
 	printf("\n  Options:\n\n");
 	printf("    %s, %-25s %s\n", "-h", "--help", "display this help and exit\n");
 	printf("    %s, %-25s %s\n", "-l", "--link", "dispaly device type and speed\n");
-	printf("    %s, %-25s %s\n", "-i", "--info", "dispaly the device detail information\n");
 	printf("\n");
 
 	return 0;
@@ -35,19 +34,6 @@ static int sas_dev_help(struct major_cmd_ctrl *self, const char *argv)
 static int sas_dev_link(struct major_cmd_ctrl *self, const char *argv)
 {
 	return sas_set_cmd_type(DEV_LINK);
-}
-
-static int sas_dev_info(struct major_cmd_ctrl *self, const char *argv)
-{
-	int ret;
-
-	(void)sas_set_cmd_type(DEV_INFO);
-	ret = sas_set_dev_id(self, argv);
-	if (ret || sas_get_dev_id() >= MAX_DEVICE_NUM) {
-		printf("device id is too large(>=%d)\n", MAX_DEVICE_NUM);
-		return -EINVAL;
-	}
-	return ret;
 }
 
 static int sas_dev_excute_funs_call(uint32_t cmd_type)
@@ -63,11 +49,9 @@ static void sas_dev_execute(struct major_cmd_ctrl *self)
 	int ret, cmd;
 	const char *suc_msg[] = {
 		"sas_dev_link success.",
-		"sas_dev_info success.",
 	};
 	const char *err_msg[] = {
 		"sas_dev_link error.",
-		"sas_dev_info error.",
 		"sas_dev failed, unknown type",
 	};
 
@@ -95,7 +79,6 @@ static void cmd_sas_dev_init(void)
 	cmd_option_register("-d", "--dieid", true, sas_set_die_id);
 	cmd_option_register("-h", "--help", false, sas_dev_help);
 	cmd_option_register("-l", "--link", false, sas_dev_link);
-	cmd_option_register("-i", "--info", true, sas_dev_info);
 }
 
 HIKP_CMD_DECLARE("sas_dev", "sas device information ", cmd_sas_dev_init);

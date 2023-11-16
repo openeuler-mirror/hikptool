@@ -15,7 +15,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#include <inttypes.h>
 #include "hikp_nic_fec.h"
 
 static struct tool_target g_fec_target;
@@ -40,6 +40,7 @@ static int hikp_nic_fec_err_query(const struct bdf_t *bdf, struct nic_fec_err_in
 	rsp = (struct nic_fec_rsp *)cmd_ret->rsp_data;
 	*info = *(struct nic_fec_err_info *)rsp->data;
 	free(cmd_ret);
+	cmd_ret = NULL;
 
 	if (info->fec_mode >= NIC_FEC_MODE_BUTT) {
 		HIKP_ERROR_PRINT("unknown fec mode: %u\n", info->fec_mode);
@@ -71,7 +72,7 @@ static void hikp_nic_fec_err_show_basefec(const struct nic_fec_err_info *info)
 	for (total = 0, i = 0; i < lane_num; i++)
 		total += info->basefec.lane_corr_block_cnt[i];
 
-	printf(" corrected_blocks: %llu\n", total);
+	printf(" corrected_blocks: %" PRIu64 "\n", total);
 	for (i = 0; i < lane_num; i++)
 		printf("   Lane %u: %u\n", i, info->basefec.lane_corr_block_cnt[i]);
 
@@ -79,7 +80,7 @@ static void hikp_nic_fec_err_show_basefec(const struct nic_fec_err_info *info)
 	for (total = 0, i = 0; i < lane_num; i++)
 		total += info->basefec.lane_uncorr_block_cnt[i];
 
-	printf(" uncorrectable_blocks: %llu\n", total);
+	printf(" uncorrectable_blocks: %" PRIu64 "\n", total);
 	for (i = 0; i < lane_num; i++)
 		printf("   Lane %u: %u\n", i, info->basefec.lane_uncorr_block_cnt[i]);
 }

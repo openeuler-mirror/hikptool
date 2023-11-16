@@ -57,7 +57,7 @@ static void print_dqe_info(const void *reg_save, uint32_t reg_num)
 	printf("TLR_Ctrl: %u\n", dqe->dw0.TLR_Ctrl);
 	printf("Phy_ID: %u\n", dqe->dw0.Phy_ID);
 	printf("Force_Phy: %u\n", dqe->dw0.Force_Phy);
-	printf("PORT: 0x%llx\n", dqe->dw0.PORT);
+	printf("PORT: 0x%x\n", dqe->dw0.PORT);
 	printf("PRI: %u\n", dqe->dw0.PRI);
 	printf("CMD: %u\n", dqe->dw0.CMD);
 
@@ -68,7 +68,7 @@ static void print_dqe_info(const void *reg_save, uint32_t reg_num)
 	printf("Reset: %u\n", dqe->dw1.Reset);
 	printf("PIR_Present: %u\n", dqe->dw1.PIR_Present);
 	printf("Enable_Transport_Layer_Retry: %u\n", dqe->dw1.Enable_Transport_Layer_Retry);
-	printf("Verify_Data_Transfer_Length: 0x%llx\n", dqe->dw1.Verify_Data_Transfer_Length);
+	printf("Verify_Data_Transfer_Length: 0x%x\n", dqe->dw1.Verify_Data_Transfer_Length);
 	printf("Frame_Type: %u\n", dqe->dw1.Frame_Type);
 	printf("Device_ID: %u\n", dqe->dw1.Device_ID);
 

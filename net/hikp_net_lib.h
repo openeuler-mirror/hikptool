@@ -100,6 +100,9 @@ enum roce_cmd_type {
 	GET_ROCEE_TIMER_CMD,
 	GET_ROCEE_TRP_CMD,
 	GET_ROCEE_TSP_CMD,
+	GET_ROCEE_RST_CMD,
+	GET_ROCEE_GLOBAL_CFG_CMD,
+	GET_ROCEE_BOND_CMD,
 };
 
 enum ub_cmd_type {
@@ -127,12 +130,12 @@ enum nic_get_ncsi_sub_cmd {
 int hikp_net_creat_sock(void);
 int tool_check_and_get_valid_bdf_id(const char *name, struct tool_target *target);
 bool is_dev_valid_and_special(int sockfd, struct tool_target *target);
-int get_revision_id_by_bdf(const struct bdf_t *bdf, char *revision_id);
-int get_dev_name_by_bdf(const struct bdf_t *bdf, char *dev_name);
+int get_revision_id_by_bdf(const struct bdf_t *bdf, char *revision_id, size_t id_len);
+int get_dev_name_by_bdf(const struct bdf_t *bdf, char *dev_name, size_t name_len);
 int get_numvfs_by_bdf(const struct bdf_t *bdf, uint8_t *numvfs);
 int get_vf_dev_info_by_pf_dev_name(const char *pf_dev_name,
 				   struct tool_target *vf_target, uint8_t vf_id);
 int get_pf_dev_info_by_vf_dev_name(const char *vf_dev_name, struct tool_target *pf_target);
-void hikp_ether_format_addr(char *buf, uint16_t size, const uint8_t *mac_addr);
+void hikp_ether_format_addr(char *buf, uint16_t size, const uint8_t *mac_addr, uint8_t mac_len);
 
 #endif

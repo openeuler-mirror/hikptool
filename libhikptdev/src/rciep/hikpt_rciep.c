@@ -41,7 +41,7 @@ static int hikp_memcpy_io(void *dst, size_t dst_size, void const *src, size_t sr
 	if (dst_size < src_size)
 		return -EINVAL;
 
-	for (i = 0; i < src_size / sizeof(uint32_t); i++)
+	for (i = 0; i < src_size / REP_DATA_BLK_SIZE; i++)
 		((uint32_t *)dst)[i] = ((uint32_t *)src)[i];
 
 	return 0;
@@ -148,13 +148,13 @@ static int hikp_rep_init(void const *req_data, uint32_t req_size,
 		printf("The request data is NULL.\n");
 		return -EINVAL;
 	}
-	data_num = (req_size + (sizeof(uint32_t) - 1)) / sizeof(uint32_t);
+	data_num = (req_size + (REP_DATA_BLK_SIZE - 1)) / REP_DATA_BLK_SIZE;
 	if (data_num > HIKP_REQ_DATA_MAX) {
-		printf("request data num(%u) exceeds max size(%u).\n", data_num, HIKP_REQ_DATA_MAX);
+		printf("request data num(%zu) exceeds max size(%u).\n", data_num, HIKP_REQ_DATA_MAX);
 		return -EINVAL;
 	}
 	if (data_num != 0) {
-		*align_req_data = (uint32_t *)calloc(data_num, sizeof(uint32_t));
+		*align_req_data = (uint32_t *)calloc(data_num, REP_DATA_BLK_SIZE);
 		if (*align_req_data == NULL) {
 			printf("request memory malloc failed.\n");
 			return -ENOMEM;
@@ -175,12 +175,12 @@ static int hikp_req_first_round(uint32_t *req_data, uint32_t rep_num, uint32_t *
 	if (req_data == NULL)
 		return 0;
 
-	src_size = rep_num * sizeof(uint32_t);
+	src_size = rep_num * REP_DATA_BLK_SIZE;
 	dst_size = sizeof(g_hikp_req->field.data);
 	hikp_memclr_io();
 	ret = hikp_memcpy_io((uint32_t *)(g_hikp_req->field.data), dst_size, req_data, src_size);
 	if (ret != 0) {
-		printf("size error, dst_size:%u, src_size:%u.\n", dst_size, src_size);
+		printf("size error, dst_size:%zu, src_size:%zu.\n", dst_size, src_size);
 		return ret;
 	}
 	g_hikp_req->field.exe_round = 0;
@@ -209,7 +209,7 @@ static int hikp_multi_round_interact(struct hikp_cmd_ret **cmd_ret, uint32_t sta
 	}
 
 	p_cmd_ret = (struct hikp_cmd_ret *)malloc(sizeof(struct hikp_cmd_ret) +
-		    rsp_num * sizeof(uint32_t));
+		    rsp_num * REP_DATA_BLK_SIZE);
 	if (p_cmd_ret == NULL) {
 		printf("response memory malloc fail.\n");
 		return -ENOMEM;
@@ -235,8 +235,8 @@ static int hikp_multi_round_interact(struct hikp_cmd_ret **cmd_ret, uint32_t sta
 			}
 		}
 		src_size = (i == cycle - 1) ?
-			(rsp_num - (i * HIKP_RSP_DATA_MAX)) * sizeof(uint32_t) :
-			HIKP_RSP_DATA_MAX * sizeof(uint32_t);
+			(rsp_num - (i * HIKP_RSP_DATA_MAX)) * REP_DATA_BLK_SIZE :
+			HIKP_RSP_DATA_MAX * REP_DATA_BLK_SIZE;
 		dst_size = src_size;
 		(void)hikp_memcpy_io(&(p_cmd_ret->rsp_data)[i * HIKP_RSP_DATA_MAX],
 			dst_size, (uint32_t *)(g_hikp_rsp->field.data), src_size);
@@ -258,7 +258,7 @@ struct hikp_cmd_ret *hikp_cmd_alloc(struct hikp_cmd_header *req_header,
 {
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	uint32_t *p_req_data = NULL;
-	uint32_t rep_num, rsp_num;
+	uint32_t rep_num;
 	uint32_t cpl_status = HIKP_INIT_STAT;
 	int ret;
 
@@ -557,7 +557,7 @@ int hikp_dev_init(void)
 		goto out_unmap;
 	}
 
-	len = (sizeof(union hikp_space_req) - sizeof(struct iep_doorbell)) / sizeof(uint32_t);
+	len = (sizeof(union hikp_space_req) - sizeof(struct iep_doorbell)) / REP_DATA_BLK_SIZE;
 	for (i = 0; i < len; i++)
 		g_hikp_req->dw[i] = 0;
 

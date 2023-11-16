@@ -29,7 +29,6 @@ static void op_log_write(const char *log_data)
 {
 	size_t w_size;
 	FILE *fd;
-	int ret;
 
 	if (strlen(g_op_log) == 0)
 		return;
@@ -108,8 +107,6 @@ static int op_log_add_time_to_log(char *log_base, int *offset, uint32_t flag)
 	struct timeval tv;
 	struct tm ptm;
 	int len = 0;
-	long usec;
-	long sec;
 	int ret;
 
 	(void)gettimeofday(&tv, NULL);
@@ -118,12 +115,18 @@ static int op_log_add_time_to_log(char *log_base, int *offset, uint32_t flag)
 		g_tv = tv;
 		len = (int)strftime(log_base + *offset, (OP_LOG_FILE_W_MAXSIZE + 1 - *offset),
 				    OP_LOG_TIME_TEMP, &ptm);
+		if ((*offset + len) >= (OP_LOG_FILE_W_MAXSIZE + 1))
+			return -ENOMEM;
+
 		ret = snprintf(log_base + *offset + len,
 			       (OP_LOG_FILE_W_MAXSIZE + 1 - *offset - len), OP_LOG_SEC_TIME_TEMP,
 			       tv.tv_sec + tv.tv_usec / OP_LOG_SEC_AND_MICROSEC_TRANS);
-	} else if (flag == LOG_FLAG_ONLY_TIME) {
+	} else {
 		len = (int)strftime(log_base + *offset, (OP_LOG_FILE_W_MAXSIZE + 1 - *offset),
 				    OP_LOG_RESULT_TIME_TEMP, &ptm);
+		if ((*offset + len) >= (OP_LOG_FILE_W_MAXSIZE + 1))
+			return -ENOMEM;
+
 		ret = snprintf(log_base + *offset + len,
 			       (OP_LOG_FILE_W_MAXSIZE + 1 - *offset - len),
 			       OP_LOG_SEC_TIME_TEMP,
@@ -157,7 +160,6 @@ static int op_log_file_rollback(const char *op_log_backup, const char *log_dir)
 	char rollback_log[OP_LOG_FILE_W_MAXSIZE + 1] = {0};
 	int offset = 0;
 	int ret;
-	int len;
 
 	ret = file_rollback(g_op_log, op_log_backup, OP_LOG_FILE_MAX_SIZE);
 	if (ret) {
@@ -280,10 +282,14 @@ void op_log_record_input(const int argc, const char **argv)
 
 	arg = input_str;
 	for (i = 0; i < argc; i++) {
-		snprintf(arg, (sizeof(input_str) - (arg - input_str)), "%s ", argv[i]);
+		ret = snprintf(arg, (sizeof(input_str) - (arg - input_str)), "%s ", argv[i]);
+		if (ret < 0 || ret >= (sizeof(input_str) - (arg - input_str)))
+			return;
+
 		arg = arg + strlen(argv[i]) + 1;
 	}
 	input_str[strlen(input_str) - 1] = 0;
+
 	arr_size = HIKP_ARRAY_SIZE(log_info);
 	for (i = 0; i < arr_size; i++) {
 		ret = snprintf(g_input_buf + offset, (OP_LOG_FILE_W_MAXSIZE + 1 - offset),

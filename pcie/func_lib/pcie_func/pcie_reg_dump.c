@@ -405,7 +405,7 @@ static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
 
 	(void)remove((const char *)file_name);
 	/* Add write permission to the file */
-	fd_file = open(file_name, O_RDWR | O_SYNC | O_CREAT, 0640);
+	fd_file = open(file_name, O_RDWR | O_SYNC | O_CREAT, 0600);
 	if (fd_file < 0) {
 		Err("PCIe DUMPREG", "open %s failed.\n", file_name);
 		return -EPERM;
@@ -419,7 +419,7 @@ static int pcie_close_dumpreg_log_file(void)
 {
 	int ret;
 
-	ret = fchmod(g_pcie_dumpreg_fd, 0440);
+	ret = fchmod(g_pcie_dumpreg_fd, 0400);
 	close(g_pcie_dumpreg_fd);
 	/* Revoke write permission of file  */
 	g_pcie_dumpreg_fd = -1;

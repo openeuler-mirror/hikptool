@@ -77,13 +77,9 @@ static void cxl_dl_fsm_str_get(struct cxl_fsm_state_str *fsm_str_table,
 {
 	int i = 0;
 
-	while (fsm_str_table[i].fsm_state >= 0) {
-		if ((uint32_t)fsm_str_table[i].fsm_state != fsm_state) {
-			i++;
-			continue;
-		}
-		break;
-	}
+	while (fsm_str_table[i].fsm_state >= 0 &&
+	       (uint32_t)fsm_str_table[i].fsm_state != fsm_state)
+		i++;
 
 	*fsm_s = fsm_str_table[i].fsm_str;
 }
@@ -95,7 +91,7 @@ static void cxl_dl_fsm_state_print(const struct cxl_data_unit *data, uint32_t da
 	struct cxl_fsm_state_str rrsm_state[] = {
 		{0x0, "retry_remote_normal"},
 		{0x1, "retry_llrack"},
-		{-1, "unknow"}
+		{-1, "unknown"}
 	};
 	struct cxl_fsm_state_str lrsm_state[] = {
 		{0x1, "retry_local_normal"},
@@ -103,14 +99,14 @@ static void cxl_dl_fsm_state_print(const struct cxl_data_unit *data, uint32_t da
 		{0x4, "retry_phy_reinit"},
 		{0x8, "retry_local_idle"},
 		{0x10, "retry_abort"},
-		{-1, "unknow"}
+		{-1, "unknown"}
 	};
 	struct cxl_fsm_state_str init_fsm_state[] = {
 		{0x1, "inactive"},
 		{0x2, "retry"},
 		{0x4, "param"},
 		{0x8, "active"},
-		{-1, "unknow"}
+		{-1, "unknown"}
 	};
 
 	if (data_unit_len == 0) {

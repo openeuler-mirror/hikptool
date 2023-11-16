@@ -42,7 +42,6 @@ static int sas_dump_global(struct major_cmd_ctrl *self, const char *argv)
 static int sas_dump_phyx(struct major_cmd_ctrl *self, char const *argv)
 {
 	int ret;
-	uint32_t val = 0;
 
 	(void)sas_set_cmd_type(DUMP_PHYX);
 	ret = sas_set_phy_id(self, argv);

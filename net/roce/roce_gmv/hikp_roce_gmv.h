@@ -14,11 +14,11 @@
 #ifndef __HIKP_ROCE_GMV_H__
 #define __HIKP_ROCE_GMV_H__
 
-#include "hikp_net_lib.h"
+#include "hikp_roce_ext_common.h"
 
 #define ROCE_HIKP_GMV_REG_NUM 7
 #define ROCE_HIKP_GMV_REG_SWICTH 2
-#define ROCE_MAX_HIKPTOOL_GMV 128
+#define ROCE_MAX_HIKPTOOL_GMV 256
 struct cmd_roce_gmv_param {
 	struct tool_target target;
 	uint32_t gmv_index;

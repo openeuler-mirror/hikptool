@@ -95,7 +95,7 @@ static uint16_t hikp_nic_ppp_get_abs_func_id(const struct bdf_t *bdf, int relati
 static void hikp_nic_ppp_get_func_name(char *buf, uint8_t len, uint8_t id)
 {
 	if (id > 0)
-		snprintf(buf, len, "vf%d", id - 1);
+		snprintf(buf, len, "vf%u", id - 1);
 	else
 		snprintf(buf, len, "pf");
 }
@@ -145,7 +145,8 @@ static void hikp_nic_ppp_show_key_mem(struct nic_mac_tbl *tbl, bool is_key_mem)
 		uc_entry = &uc_tbl->entry[idx];
 		if (uc_entry->idx < g_ppp_hw_res.max_key_mem_size || !is_key_mem) {
 			hikp_ether_format_addr(mac_str,
-					       HIKP_NIC_ETH_ADDR_FMT_SIZE, uc_entry->mac_addr);
+					       HIKP_NIC_ETH_ADDR_FMT_SIZE, uc_entry->mac_addr,
+					       HIKP_NIC_ETH_MAC_ADDR_LEN);
 			printf("%04u  | %01u     | %s | ", uc_entry->idx, uc_entry->valid, mac_str);
 			printf("%04u    | %u     | %01u      | ",
 			       uc_entry->vlan_id, uc_entry->vmdq1, uc_entry->mac_en);
@@ -161,7 +162,8 @@ static void hikp_nic_ppp_show_key_mem(struct nic_mac_tbl *tbl, bool is_key_mem)
 		mc_entry = &mc_tbl->entry[idx];
 		if (mc_entry->idx < g_ppp_hw_res.max_key_mem_size || !is_key_mem) {
 			hikp_ether_format_addr(mac_str,
-					       HIKP_NIC_ETH_ADDR_FMT_SIZE, mc_entry->mac_addr);
+					       HIKP_NIC_ETH_ADDR_FMT_SIZE, mc_entry->mac_addr,
+					       HIKP_NIC_ETH_MAC_ADDR_LEN);
 			printf("%04u  | %s | ", mc_entry->idx, mac_str);
 			printf("%08x:%08x:%08x:%08x:%08x:%08x:%08x:%08x",
 			       mc_entry->function_bitmap[7], mc_entry->function_bitmap[6],
@@ -191,7 +193,7 @@ static void hikp_nic_ppp_show_func_uc_mac_addr(struct mac_vlan_uc_tbl *uc_tbl,
 		vf_id = hikp_get_field(uc_entry->e_vport, HIKP_NIC_VF_ID_MASK, HIKP_NIC_VF_ID_S);
 		if (bdf->fun_id == pf_id && vf_id == func_id) {
 			hikp_ether_format_addr(mac_str, HIKP_NIC_ETH_ADDR_FMT_SIZE,
-					       uc_entry->mac_addr);
+					       uc_entry->mac_addr, HIKP_NIC_ETH_MAC_ADDR_LEN);
 			printf("\t%s\n", mac_str);
 		}
 	}
@@ -205,7 +207,7 @@ static void hikp_nic_ppp_show_func_mc_mac_addr(struct mac_vlan_mc_tbl *mc_tbl,
 	uint16_t abs_func_id;
 	uint8_t offset;
 	uint8_t idx;
-	uint8_t i;
+	uint32_t i;
 
 	abs_func_id = hikp_nic_ppp_get_abs_func_id(bdf, func_id);
 	idx = abs_func_id / HIKP_NIC_PPP_FUNC_BITMAP_SIZE;
@@ -218,7 +220,7 @@ static void hikp_nic_ppp_show_func_mc_mac_addr(struct mac_vlan_mc_tbl *mc_tbl,
 
 		if (hikp_get_bit(mc_entry->function_bitmap[idx], offset) != 0) {
 			hikp_ether_format_addr(mac_str, HIKP_NIC_ETH_ADDR_FMT_SIZE,
-					       mc_entry->mac_addr);
+					       mc_entry->mac_addr, HIKP_NIC_ETH_MAC_ADDR_LEN);
 			printf("\t%s\n", mac_str);
 		}
 	}
@@ -401,7 +403,8 @@ static void hikp_nic_ppp_show_manager_tbl(const void *data)
 	       "| i_map | i_dir | e_type | pf_id | vf_id | q_id | drop\n");
 	for (i = 0; i < tbl->entry_size; i++) {
 		entry = &tbl->entry[i];
-		hikp_ether_format_addr(mac_str, HIKP_NIC_ETH_ADDR_FMT_SIZE, entry->mac_addr);
+		hikp_ether_format_addr(mac_str, HIKP_NIC_ETH_ADDR_FMT_SIZE, entry->mac_addr,
+				       HIKP_NIC_ETH_MAC_ADDR_LEN);
 		printf(" %02u   | %s | %u    ", entry->entry_no, mac_str, entry->mac_mask);
 		printf("| %04x  | %u    | %04u | %u    ",
 		       entry->ether_type, entry->ether_mask, entry->vlan_id, entry->vlan_mask);
@@ -489,7 +492,7 @@ static int hikp_nic_ppp_get_blk(struct hikp_cmd_header *req_header,
 	rsp = (struct nic_ppp_rsp *)cmd_ret->rsp_data;
 	if (rsp->rsp_head.cur_blk_size > buf_len) {
 		HIKP_ERROR_PRINT("nic_ppp block context copy size error, "
-				 "buffer size=%u, data size=%u.\n",
+				 "buffer size=%zu, data size=%u.\n",
 				 buf_len, rsp->rsp_head.cur_blk_size);
 		ret = -EINVAL;
 		goto out;
@@ -791,6 +794,7 @@ static int hikp_nic_ppp_alloc_mac_tbl_entry(struct nic_mac_tbl *mac_tbl,
 	if (mac_tbl->mc_tbl.entry == NULL) {
 		HIKP_ERROR_PRINT("Fail to alloc mc_entry memory.\n");
 		free(mac_tbl->uc_tbl.entry);
+		mac_tbl->uc_tbl.entry = NULL;
 		return -ENOMEM;
 	}
 
@@ -813,6 +817,7 @@ static int hikp_nic_ppp_alloc_vlan_tbl_entry(struct nic_vlan_tbl *vlan_tbl,
 	if (vlan_tbl->vf_vlan_tbl.entry == NULL) {
 		HIKP_ERROR_PRINT("Fail to alloc vf_vlan_tbl_entry memory.\n");
 		free(vlan_tbl->port_vlan_tbl.entry);
+		vlan_tbl->port_vlan_tbl.entry = NULL;
 		return -ENOMEM;
 	}
 
@@ -872,16 +877,22 @@ static void hikp_nic_ppp_data_free(union nic_ppp_feature_info *ppp_data)
 	if (strcmp(ppp_cmd->feature_name, NIC_PPP_MAC_TBL_NAME) == 0) {
 		mac_tbl = &ppp_data->mac_tbl;
 		free(mac_tbl->uc_tbl.entry);
+		mac_tbl->uc_tbl.entry = NULL;
 		free(mac_tbl->mc_tbl.entry);
+		mac_tbl->mc_tbl.entry = NULL;
 	} else if (strcmp(ppp_cmd->feature_name, NIC_PPP_VLAN_TBL_NAME) == 0) {
 		vlan_tbl = &ppp_data->vlan_tbl;
 		free(vlan_tbl->vf_vlan_tbl.entry);
+		vlan_tbl->vf_vlan_tbl.entry = NULL;
 		free(vlan_tbl->port_vlan_tbl.entry);
+		vlan_tbl->port_vlan_tbl.entry = NULL;
 	} else if (strcmp(ppp_cmd->feature_name, NIC_PPP_MNG_TBL_NAME) == 0) {
 		mng_tbl = &ppp_data->mng_tbl;
 		free(mng_tbl->entry);
+		mng_tbl->entry = NULL;
 	}
 	free(ppp_data);
+	ppp_data = NULL;
 }
 
 static int hikp_nic_ppp_check_optional_param(struct major_cmd_ctrl *self,

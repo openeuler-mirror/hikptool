@@ -14,7 +14,7 @@
 #ifndef __HIKP_ROCE_SCC_H__
 #define __HIKP_ROCE_SCC_H__
 
-#include "hikp_net_lib.h"
+#include "hikp_roce_ext_common.h"
 
 #define ROCE_HIKP_SCC_REG_NUM 29
 #define MAX_SCC_MODULE_NAME_LEN 20

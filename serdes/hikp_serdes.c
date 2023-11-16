@@ -322,7 +322,7 @@ static void hikp_serdes_info_cmd_execute(struct major_cmd_ctrl *self)
 	    SERDES_OUTPUT_MAX_SIZE) {
 		self->err_no = -EINVAL;
 		snprintf(self->err_str, sizeof(self->err_str),
-			"serdes_info rsp_data data copy size error, data size:0x%x max size:0x%x.",
+			"serdes_info rsp_data data copy size error, data size:0x%zx max size:0x%x.",
 			(cmd_ret->rsp_data_num * sizeof(uint32_t) - out_out_header_size),
 			SERDES_OUTPUT_MAX_SIZE);
 		goto err_out;
@@ -480,7 +480,7 @@ static void hikp_serdes_dump_cmd_execute(struct major_cmd_ctrl *self)
 	    SERDES_OUTPUT_MAX_SIZE) {
 		self->err_no = -EINVAL;
 		snprintf(self->err_str, sizeof(self->err_str),
-			"serdes_dump rsp_data data copy size error, data size:0x%x max size:0x%x.",
+			"serdes_dump rsp_data data copy size error, data size:0x%zx max size:0x%x.",
 			(cmd_ret->rsp_data_num * sizeof(uint32_t) - out_out_header_size),
 			SERDES_OUTPUT_MAX_SIZE);
 		goto err_out;

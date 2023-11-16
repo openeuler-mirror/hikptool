@@ -191,6 +191,7 @@ static int hikp_unic_ppp_alloc_guid_tbl_entry(const struct hikp_unic_ppp_hw_reso
 	if (guid_tbl->mc_tbl.entry == NULL) {
 		HIKP_ERROR_PRINT("fail to alloc mc_guid_entry_table memory.\n");
 		free(guid_tbl->uc_tbl.entry);
+		guid_tbl->uc_tbl.entry = NULL;
 		return -ENOMEM;
 	}
 
@@ -399,13 +400,17 @@ static void hikp_unic_ppp_data_free(union unic_ppp_feature_info *unic_ppp_data)
 	if (g_unic_ppp_param.feature_idx == UNIC_PPP_IP_FEATURE_IDX) {
 		ip_tbl = &unic_ppp_data->ip_tbl;
 		free(ip_tbl->entry);
+		ip_tbl->entry = NULL;
 	} else if (g_unic_ppp_param.feature_idx == UNIC_PPP_GUID_FEATURE_IDX) {
 		guid_tbl = &unic_ppp_data->guid_tbl;
 		free(guid_tbl->uc_tbl.entry);
+		guid_tbl->uc_tbl.entry = NULL;
 		free(guid_tbl->mc_tbl.entry);
+		guid_tbl->mc_tbl.entry = NULL;
 	}
 
 	free(unic_ppp_data);
+	unic_ppp_data = NULL;
 }
 
 static void hikp_unic_ppp_cmd_execute(struct major_cmd_ctrl *self)

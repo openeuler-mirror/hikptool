@@ -54,11 +54,6 @@ int sas_get_phy_id(void)
 	return g_sas_cmd.phy_id;
 }
 
-int sas_get_dev_id(void)
-{
-	return g_sas_cmd.dev_id;
-}
-
 int sas_get_que_id(void)
 {
 	return g_sas_cmd.que_id;
@@ -82,11 +77,6 @@ int sas_set_phy_id(struct major_cmd_ctrl *self, const char *argv)
 int sas_set_die_id(struct major_cmd_ctrl *self, const char *argv)
 {
 	return sas_set_id(self, argv, &g_sas_cmd.die_id);
-}
-
-int sas_set_dev_id(struct major_cmd_ctrl *self, const char *argv)
-{
-	return sas_set_id(self, argv, &g_sas_cmd.dev_id);
 }
 
 int sas_set_que_id(struct major_cmd_ctrl *self, const char *argv)

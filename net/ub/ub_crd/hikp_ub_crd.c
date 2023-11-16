@@ -64,7 +64,6 @@ static int hikp_ub_query_crd(void)
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	struct ub_crd_rsp *crd_rsp = NULL;
 	int offset;
-	int ret;
 
 	char const *init_crds[][2] = {
 		{"CFG_REMOTE_ICRD", "CFG_REMOTE_LCRD"},

@@ -14,7 +14,7 @@
 #ifndef __HIKP_ROCE_TIMER_H__
 #define __HIKP_ROCE_TIMER_H__
 
-#include "hikp_net_lib.h"
+#include "hikp_roce_ext_common.h"
 
 #define ROCE_HIKP_TIMER_REG_NUM 25
 #define ROCE_TIMER_CMD_CLEAR (1 << 0)

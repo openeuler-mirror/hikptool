@@ -87,7 +87,14 @@ static void hikp_roce_pkt_execute(struct major_cmd_ctrl *self)
 		self->err_no = ret;
 		return;
 	}
+
 	roce_pkt_res = (struct roce_pkt_res_param *)cmd_ret->rsp_data;
+	if (roce_pkt_res->total_block_num > ROCE_HIKP_PKT_REG_NUM) {
+		printf("version might not match, adjust the reg num to %d.\n",
+		       ROCE_HIKP_PKT_REG_NUM);
+		roce_pkt_res->total_block_num = ROCE_HIKP_PKT_REG_NUM;
+	}
+
 	hikp_roce_pkt_print(roce_pkt_res->total_block_num,
 			    roce_pkt_res->reg_data.offset, roce_pkt_res->reg_data.data);
 

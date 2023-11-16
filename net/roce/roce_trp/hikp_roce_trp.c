@@ -85,20 +85,17 @@ static int hikp_roce_trp_bank_get(struct major_cmd_ctrl *self, const char *argv)
 
 static int hikp_roce_trp_bank_check(void)
 {
-	uint32_t temp;
-
-	temp = g_roce_trp_param_t.bank_id;
 	switch (g_roce_trp_param_t.sub_cmd) {
 	case (COMMON):
-		if (temp > TRP_MAX_BANK_NUM || temp < 0)
+		if (g_roce_trp_param_t.bank_id > TRP_MAX_BANK_NUM)
 			return -EINVAL;
 		break;
 	case (PAYL):
-		if (temp > PAYL_MAX_BANK_NUM || temp < 0)
+		if (g_roce_trp_param_t.bank_id > PAYL_MAX_BANK_NUM)
 			return -EINVAL;
 		break;
 	case (GEN_AC):
-		if (temp > GAC_MAX_BANK_NUM || temp < 0)
+		if (g_roce_trp_param_t.bank_id > GAC_MAX_BANK_NUM)
 			return -EINVAL;
 		break;
 	default:
@@ -173,7 +170,8 @@ static int hikp_roce_trp_get_total_data_num(struct roce_trp_head *res_head,
 	*offset = (uint32_t *)calloc(1, max_size);
 	*data = (uint32_t *)calloc(1, max_size);
 	if ((*offset == NULL) || (*data == NULL)) {
-		printf("hikptool roce_trp alloc log memmory 0x%x failed\n", max_size);
+		printf("hikptool roce_trp alloc log memmory 0x%zx failed\n", max_size);
+		hikp_roce_trp_reg_data_free(offset, data);
 		ret = -ENOMEM;
 		goto get_data_error;
 	}
@@ -181,7 +179,8 @@ static int hikp_roce_trp_get_total_data_num(struct roce_trp_head *res_head,
 	cur_size = roce_trp_res->head.cur_block_num * sizeof(uint32_t);
 	if (cur_size > max_size) {
 		printf("hikptool roce_trp log data copy size error, "
-		       "data size: 0x%x, max size: 0x%x\n", cur_size, max_size);
+		       "data size: 0x%zx, max size: 0x%zx\n", cur_size, max_size);
+		hikp_roce_trp_reg_data_free(offset, data);
 		ret = -EINVAL;
 		goto get_data_error;
 	}
@@ -218,7 +217,7 @@ static int hikp_roce_trp_get_next_data(struct roce_trp_head *res_head,
 	if (cur_size > data_size) {
 		hikp_roce_trp_cmd_ret_free(&cmd_ret);
 		printf("hikptool roce_trp next log data copy size error, "
-		       "data size: 0x%x, max size: 0x%x\n", cur_size, data_size);
+		       "data size: 0x%zx, max size: 0x%zx\n", cur_size, data_size);
 		return -EINVAL;
 	}
 	memcpy(*offset, roce_trp_res->reg_data.offset, cur_size);
@@ -268,7 +267,6 @@ static void hikp_roce_trp_execute(struct major_cmd_ctrl *self)
 	if (self->err_no) {
 		snprintf(self->err_str, sizeof(self->err_str),
 			 "get the first roce_trp block dfx fail.");
-		hikp_roce_trp_reg_data_free(&offset, &data);
 		return;
 	}
 	total_block_num = res_head.total_block_num;

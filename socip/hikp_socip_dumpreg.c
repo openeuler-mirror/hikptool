@@ -108,7 +108,6 @@ static bool check_socip_dumpreg_param(void)
 static void dump_reg_info(const uint32_t *reg_data, uint32_t data_num)
 {
 #define ONE_LINE_PRINT_DATA_NUM 4
-	struct dump_reg_param_t *param = &g_dump_reg_param[0];
 	uint32_t i;
 
 	for (i = 0; i < data_num; i++) {

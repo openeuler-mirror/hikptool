@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Hisilicon Technologies Co., Ltd.
+ * Copyright (c) 2023 Hisilicon Technologies Co., Ltd.
  * Hikptool is licensed under Mulan PSL v2.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
@@ -11,32 +11,19 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROCE_PKT_H__
-#define __HIKP_ROCE_PKT_H__
+#ifndef __HIKP_ROCE_RST_H__
+#define __HIKP_ROCE_RST_H__
 
 #include "hikp_roce_ext_common.h"
 
-#define ROCE_HIKP_PKT_REG_NUM 29
-#define PKT_PER_REG_NUM 2
-
-struct cmd_roce_pkt_param_t {
-	uint8_t reset_flag;
+struct cmd_roce_rst_param {
 	struct tool_target target;
+	uint32_t sub_cmd;
 };
 
-struct roce_pkt_req_param {
+struct roce_rst_req_param {
 	struct bdf_t bdf;
-	uint8_t reset_flag;
+	uint32_t block_id;
 };
 
-struct roce_pkt_res {
-	uint32_t offset[ROCE_HIKP_PKT_REG_NUM];
-	uint32_t data[ROCE_HIKP_PKT_REG_NUM];
-};
-
-struct roce_pkt_res_param {
-	uint32_t total_block_num;
-	struct roce_pkt_res reg_data;
-};
-
-#endif /* __HIKP_ROCE_PKT_H__ */
+#endif /* __HIKP_ROCE_RST_H__ */

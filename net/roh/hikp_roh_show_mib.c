@@ -232,6 +232,7 @@ static void hikp_roh_show_mib_in_multi_rounds(struct major_cmd_ctrl *self)
 		return;
 	}
 
+	printf("**************ROH MAC MIB INFO*************\n");
 	for (int i = 0; i < total_round; i++) {
 		ret = hikp_roh_fill_pmu_cnt(i);
 		if (ret != 0) {
@@ -239,6 +240,7 @@ static void hikp_roh_show_mib_in_multi_rounds(struct major_cmd_ctrl *self)
 			return;
 		}
 	}
+	printf("*****************************************\n");
 }
 
 static void hikp_roh_show_mib_execute(struct major_cmd_ctrl *self)

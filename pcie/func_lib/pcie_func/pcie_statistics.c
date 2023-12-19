@@ -26,7 +26,7 @@ static const char *g_global_width_name[GLOBAL_WIDTH_TABLE_SIZE] = {
 };
 
 static const char *g_global_ndie_name[] = {
-	"Ndie_A", "Ndie_B"
+	"Ndie_A", "Ndie_B", "Ndie_C", "Ndie_D"
 };
 
 static int port_distribution_rsp_data_check(const struct hikp_cmd_ret *cmd_ret, uint32_t *port_num)

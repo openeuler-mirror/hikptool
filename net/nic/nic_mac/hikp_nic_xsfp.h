@@ -75,6 +75,11 @@
 #define QSFP_10GBASE_LR_MASK        HI_BIT(5)
 #define QSFP_10GBASE_LRM_MASK       HI_BIT(6)
 
+#define CMIS_WAVE_LEN_DIV           20
+#define CMIS_TOL_WAVE_LEN_DIV       200
+
+#define CMIS_VEND_REV_LEN           2
+
 enum print_type {
 	PRINT_ASCII = 0,
 	PRINT_HEX,
@@ -87,6 +92,11 @@ enum sff_id_val {
 	ID_QSFP = 0x0C,
 	ID_QSFP_PLUS = 0x0D,
 	ID_QSFP28 = 0x11,
+	ID_QSFP_DD = 0x18,
+	ID_SFP_DD = 0x1A,
+	ID_QSFP_P_CMIS = 0x1E,
+	ID_SFP_DD_CMIS = 0x1F,
+	ID_SFP_P_CMIS = 0x20,
 };
 
 struct sff_comp_info {
@@ -97,6 +107,18 @@ struct sff_comp_info {
 struct sff_ext_comp {
 	uint8_t val;
 	const char *module_cap;
+};
+
+struct sff_host_media_id {
+	uint8_t id;
+	const char *int_spec;
+	uint8_t lane_cnt;
+	const char *modulation;
+};
+
+struct sff_media_cable_id {
+	uint8_t id;
+	const char *app_name;
 };
 
 struct sfp_a0_page {
@@ -356,6 +378,143 @@ struct qsfp_page0_upper {
 struct qsfp_page0_info {
 	struct qsfp_page0_lower page_lower;
 	struct qsfp_page0_upper page_upper;
+};
+
+enum cmis_media_type {
+	UNDEFINED = 0,
+	OPT_MMF,
+	OPT_SMF,
+	PASSIVE_COPPER,
+	ACTIVE_CABLE,
+	BASE_T,
+	MEDIA_TYPE_RSVD,
+};
+
+#define CMIS_LOW_MEM_APP_DESC_NUM	8
+struct cmis_app_desc {
+	uint8_t host_id;                 /* host electrical interface id */
+	uint8_t media_id;                /* module media electrical interface id */
+	uint8_t media_lane_cnt : 4,
+		host_lane_cnt : 4;       /* host and media lane counts */
+	uint8_t host_assign;             /*  Host Lane Assignment Options */
+};
+
+struct cmis_page0_lower {
+	uint8_t identifier;              /* reg 0: Identifier */
+	uint8_t rev_compliance;          /* reg 1: CMIS revision */
+	/* reg 2: Module Management Characteristics */
+	uint8_t rsv0 : 2,
+		mci_max_speed : 2,
+		rsv1 : 2,
+		step_cfg_only : 1,
+		mem_model : 1;
+	/* reg 3: Global Status Information */
+	uint8_t intr_deasserted : 1,
+		module_state : 3,
+		rsv2 : 4;
+	uint8_t flags_sum[4];            /* reg 4-7: Lane-Level Flags Summary */
+	uint8_t module_flags[6];         /* reg 8-13: Module-Level Flags */
+	uint8_t module_temp[2];          /* reg 14-15: TempMonValue */
+	uint8_t module_vcc[2];           /* reg 16-17: VccMonVoltage */
+	uint8_t module_mon_val[8];       /* reg 18-25: Module-Level Mon Value */
+	/* reg 26: Module Global Controls */
+	uint8_t rsv3 : 3,
+		sw_reset : 1,
+		lowpwr_req_sw : 1,
+		squ_method_sel : 1,
+		lowpwr_allow_req_hw : 1,
+		bank_bc_enable : 1;
+	uint8_t rsv4[14];                /* reg 27-40:  */
+	uint8_t module_fault;            /* reg 41: Module Fault Information */
+	uint8_t rsv5[22];                /* reg 42-63: Reserved */
+	uint8_t custom[21];              /* reg 64-84: Custom */
+	uint8_t media_type;              /* reg 85: Media Type Encodings */
+	/* reg 86-117: Application Descriptor */
+	struct cmis_app_desc apps[CMIS_LOW_MEM_APP_DESC_NUM];
+	uint8_t pwd_area[8];             /* reg 118-125: Password Facilities */
+	uint8_t bank_sel;                /* reg 126: Bank Index of Page mapped to Upper Memory */
+	uint8_t page_sel;                /* reg 127: Page Index of Page mapped to Upper Memory */
+};
+
+struct cmis_page0_upper {
+	uint8_t identifier_cp;           /* reg 128: The Same Byte 00h:0 */
+	uint8_t vend_name[16];           /* reg 129-144: Vendor name (ASCII) */
+	uint8_t vend_oui[3];             /* reg 145-147: Vendor IEEE company ID */
+	uint8_t vend_pn[16];             /* reg 148-163: Part number provided by vendor (ASCII) */
+	/* reg 164-165: Revision level for part number provided by vendor (ASCII) */
+	uint8_t vend_rev[2];
+	uint8_t vend_sn[16];             /* reg 166-181: Vendor Serial Number (ASCII) */
+	uint8_t date_code[8];            /* reg 182-189: Manufacturing Date Code (ASCII) */
+	/* reg 190-199: Common Language Equipment Identification Code (ASCII) */
+	uint8_t clei_code[10];
+	uint8_t module_pwr_class;        /* reg 200: Module Power Class */
+	/* reg 201: Maximum power consumption in multiples of 0.25 W
+	 * rounded up to the next whole multiple of 0.25 W
+	 */
+	uint8_t max_power;
+	/* reg 202: Cable Assembly Link Length */
+	uint8_t cab_base_len : 6,
+		len_multiplier : 2;
+	uint8_t connector_type;          /* reg 203: Media Connector Type */
+	uint8_t copp_attenuation[6];     /* reg 204-209: Copper Cable Attenuation */
+	uint8_t media_lanes;             /* reg 210: Media Lane Information */
+	uint8_t cable_assembly_lane;     /* reg 211: Cable Assembly Lane Information */
+	uint8_t media_int_tech;          /* reg 212: Media Interface Technology */
+	uint8_t rsv0[8];                 /* reg 213-220: Reserved */
+	uint8_t rsv1;                    /* reg 221: Custom1 */
+	uint8_t page_check_sum;          /* reg 222: Page Checksum over bytes 128-221 */
+	uint8_t rsv[33];                 /* reg 223-255: Custom Info (non-volatile) */
+};
+
+struct cmis_page1_info {
+	uint8_t inac_fw_hw_ver[4];       /* reg 128-131: Inactive FW revision and HW revision */
+	uint8_t smf_len : 6,             /* reg 132: Base link length for SMF fiber in km */
+		smf_len_multip : 2;      /* Link length multiplier for SMF fiber */
+	uint8_t om5_len;                 /* reg 133: Link length supported for OM5 fiber */
+	uint8_t om4_len;                 /* reg 134: Link length supported for OM4 fiber */
+	uint8_t om3_len;         /* reg 135: Link length supported for EBW 50/125 µm fiber (OM3) */
+	uint8_t om2_len;         /* reg 136: Link length supported for 50/125 µm fiber (OM2) */
+	uint8_t rsv0;                    /* reg 137: Reserved */
+	uint8_t nominal_wave_len[2];     /* reg 138-139: NominalWavelength */
+	uint8_t wave_len_tolerance[2];   /* reg 140-141: WavelengthTolerance */
+	uint8_t pages_support;           /* reg 142: Supported Pages Advertising */
+	uint8_t duration_adv[2];         /* reg 143-144: Durations Advertising */
+	uint8_t module_char[10];         /* reg 145-154: Module Characteristics Advertising */
+	uint8_t contrl_support[2];       /* reg 155-156: Supported Controls Advertisement */
+	uint8_t flags_support[2];        /* reg 157-158: Supported Flags Advertisement */
+	/* reg 159: Supported Mon Advertisement */
+	uint8_t temp_mon_supp : 1,
+		vcc_mon_supp : 1,
+		aux1_mon_supp : 1,
+		aux2_mon_supp : 1,
+		aux3_mon_supp : 1,
+		custom_mon_supp : 1,
+		rsv1 : 2;
+	/* reg 160: Supported Power Mon Advertisement */
+	uint8_t txbias_mon_supp : 1,
+		tx_pwr_mon_supp : 1,
+		rx_pwr_mon_supp : 1,
+		txbias_curr_scal : 2,
+		rsv2 : 3;
+	/* reg 161-162: Supported Configuration and Signal Integrity Controls Advertisement */
+	uint8_t sig_intr_support[2];
+	uint8_t cdb_func_support[4];     /* reg 163-166: CDB Messaging Support Advertisement */
+	uint8_t add_dura_adv[3];         /* reg 167-169: Additional Durations Advertising */
+	uint8_t rsv3[7];                 /* reg 170-175: Reserved */
+	uint8_t media_lane_adv[15];      /* reg 176-190: Media Lane Assignment Advertising */
+	uint8_t custom[32];              /* reg 191-222: Custom */
+	uint8_t add_app_desc[28];    /* reg 223-250: Additional Application Descriptor Registers */
+	uint8_t rsv4[4];                 /* reg 251-254: Reserved */
+	uint8_t page_check_sum;          /* reg 255: Page Checksum */
+};
+
+/* Current support max 640 bytes data */
+struct cmis_page_info {
+	struct cmis_page0_lower page0_lower;
+	struct cmis_page0_upper page0_upper;
+	struct cmis_page1_info page1;
+	uint8_t page2_data[128];
+	uint8_t page3_data[128];
 };
 
 #define XSFP_TARGET_BIT     HI_BIT(0)

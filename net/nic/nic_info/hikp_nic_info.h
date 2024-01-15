@@ -70,4 +70,11 @@ struct nic_info_param {
 	bool have_interface;
 };
 
+enum nic_info_mac_type {
+	MAC_TYPE_ETH = 0,
+	MAC_TYPE_ROH,
+	MAC_TYPE_UB,
+	MAC_TYPE_MAX,
+};
+
 #endif

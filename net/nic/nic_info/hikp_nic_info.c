@@ -98,6 +98,13 @@ static int hikp_nic_get_curr_die_info(void)
 	return 0;
 }
 
+static const char *hikp_nic_info_get_mac_type(uint8_t type_val)
+{
+	const char *mac_type[MAC_TYPE_MAX] = {"ETH", "ROH", "UB"};
+
+	return (type_val >= MAC_TYPE_MAX) ? "UNKNOWN" : mac_type[type_val];
+}
+
 static void hikp_nic_info_print_cur_pf(const struct bdf_t *bdf)
 {
 	struct tool_target *pf_target = &g_info_param.target;
@@ -113,7 +120,7 @@ static void hikp_nic_info_print_cur_pf(const struct bdf_t *bdf)
 	       bdf->domain, bdf->bus_id, bdf->dev_id, bdf->fun_id);
 	printf("\t%-16s %u\n", "mac id:", g_info_param.info.pf_info[pf_id].mac_id);
 	printf("\t%-16s %s\n", "mac type:",
-	       g_info_param.info.pf_info[pf_id].mac_type ? "ROH" : "ETH");
+	       hikp_nic_info_get_mac_type(g_info_param.info.pf_info[pf_id].mac_type));
 	printf("\t%-16s %u\n", "func_num:", g_info_param.info.pf_info[pf_id].func_num);
 	printf("\t%-16s %u\n", "tqp_num:", g_info_param.info.pf_info[pf_id].tqp_num);
 	printf("\t%-16s 0x%x\n", "pf_cap_flag:", g_info_param.info.pf_info[pf_id].pf_cap_flag);
@@ -162,7 +169,7 @@ static void hikp_nic_info_print_cur_die(void)
 
 	printf("\n%-16s", "mac type:");
 	for (i = 0; i < g_info_param.info.pf_num; i++)
-		printf("%s\t", g_info_param.info.pf_info[i].mac_type ? "ROH" : "ETH");
+		printf("%s\t", hikp_nic_info_get_mac_type(g_info_param.info.pf_info[i].mac_type));
 
 	printf("\n%-16s", "func num:");
 	for (i = 0; i < g_info_param.info.pf_num; i++)

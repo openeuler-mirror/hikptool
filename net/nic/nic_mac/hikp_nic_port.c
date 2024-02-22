@@ -174,7 +174,7 @@ static void mac_show_speed(uint32_t speed, uint32_t lanes)
 		printf("speed: %s_%s\n", speed_str, lanes_str);
 }
 
-static void mac_cmd_disp_mac_info(const struct mac_cmd_mac_dfx *mac_dfx)
+static void mac_cmd_disp_eth_mac_info(const struct mac_cmd_mac_dfx *mac_dfx)
 {
 	printf("\n========================== MAC INFO ==========================\n");
 	mac_show_speed(mac_dfx->speed, mac_dfx->lanes);
@@ -192,7 +192,7 @@ static void mac_cmd_disp_mac_info(const struct mac_cmd_mac_dfx *mac_dfx)
 	printf("pcs_err = 0x%x\n", mac_dfx->pcs_err_cnt);
 }
 
-static void mac_cmd_show_mac(struct major_cmd_ctrl *self)
+static void mac_cmd_show_eth_mac(struct major_cmd_ctrl *self)
 {
 	struct mac_cmd_mac_dfx *mac_dfx = NULL;
 	struct hikp_cmd_ret *cmd_ret = NULL;
@@ -206,8 +206,65 @@ static void mac_cmd_show_mac(struct major_cmd_ctrl *self)
 	}
 
 	mac_dfx = (struct mac_cmd_mac_dfx *)(cmd_ret->rsp_data);
-	mac_cmd_disp_mac_info(mac_dfx);
+	mac_cmd_disp_eth_mac_info(mac_dfx);
 	free(cmd_ret);
+	cmd_ret = NULL;
+}
+
+static void mac_cmd_disp_roh_mac_info(const struct mac_cmd_roh_mac_dfx *mac_dfx)
+{
+	printf("\n========================== MAC INFO ==========================\n");
+	mac_show_speed(mac_dfx->speed, mac_dfx->lanes);
+	mac_print_enum("fec", mac_dfx->fec, g_fec_table, HIKP_ARRAY_SIZE(g_fec_table), "unknown");
+	mac_print_enum("sds_rate", mac_dfx->sds_rate, g_sds_rate_table,
+		       HIKP_ARRAY_SIZE(g_sds_rate_table), "unknown");
+	printf("tx_link_lanes: %u\n", mac_dfx->tx_link_lanes);
+	printf("rx_link_lanes: %u\n", mac_dfx->rx_link_lanes);
+	mac_print_link("pcs_link", mac_dfx->pcs_link);
+	mac_print_link("mac_link", mac_dfx->mac_link);
+	printf("tx_retry_cnt: %u\n", mac_dfx->tx_retry_cnt);
+}
+
+static void mac_cmd_show_roh_mac(struct major_cmd_ctrl *self)
+{
+	struct mac_cmd_roh_mac_dfx *mac_dfx = NULL;
+	struct hikp_cmd_ret *cmd_ret = NULL;
+	int ret;
+
+	ret = mac_cmd_get_dfx_cfg(QUERY_PORT_ROH_MAC_DFX, &cmd_ret);
+	if (ret) {
+		snprintf(self->err_str, sizeof(self->err_str), "mac get roh mac dfx failed.");
+		self->err_no = -ENOSPC;
+		return;
+	}
+
+	mac_dfx = (struct mac_cmd_roh_mac_dfx *)(cmd_ret->rsp_data);
+	mac_cmd_disp_roh_mac_info(mac_dfx);
+	free(cmd_ret);
+	cmd_ret = NULL;
+}
+
+static void mac_cmd_show_mac(struct major_cmd_ctrl *self)
+{
+	struct mac_cmd_port_hardware *hw = NULL;
+	struct hikp_cmd_ret *hw_cmd_ret = NULL;
+	int ret;
+
+	ret = mac_cmd_get_dfx_cfg(QUERY_PORT_HARDWARE, &hw_cmd_ret);
+	if (ret) {
+		snprintf(self->err_str, sizeof(self->err_str), "mac get hardware dfx failed.");
+		self->err_no = -ENOSPC;
+		return;
+	}
+
+	hw = (struct mac_cmd_port_hardware *)(hw_cmd_ret->rsp_data);
+	if (hw->cmd_mac_type == CMD_MAC_TYPE_ROH || hw->cmd_mac_type == CMD_MAC_TYPE_UB)
+		mac_cmd_show_roh_mac(self);
+	else
+		mac_cmd_show_eth_mac(self);
+
+	free(hw_cmd_ret);
+	hw_cmd_ret = NULL;
 }
 
 static void mac_cmd_disp_link_info(struct mac_cmd_link_dfx *link_dfx)

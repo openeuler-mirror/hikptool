@@ -107,6 +107,9 @@ struct mac_item {
 struct mac_cmd_port_hardware {
 	uint8_t port_type;
 	uint8_t media_type;
+	uint8_t cmd_mac_type : 4,
+		rsv0 : 4;
+	uint8_t rsv1;
 };
 
 struct mac_cmd_mac_dfx {
@@ -228,6 +231,28 @@ struct mac_cmd_cdr_dfx {
 struct mac_cmd_port_dfx_cap {
 	uint32_t cap_bit_map;
 	uint32_t rsvd[3];
+};
+
+enum cmd_mac_type {
+	CMD_MAC_TYPE_ETH = 0,
+	CMD_MAC_TYPE_ROH,
+	CMD_MAC_TYPE_UB,
+	CMD_MAC_TYPE_MAX,
+};
+
+struct mac_cmd_roh_mac_dfx {
+	uint8_t speed;
+	uint8_t fec;
+	uint8_t lanes;
+	uint8_t sds_rate;
+	uint8_t tx_link_lanes : 4,
+		rx_link_lanes : 4;
+	uint8_t pcs_link : 1,
+		mac_link : 1,
+		rsv0 : 6;
+	uint8_t rsv1[2];
+	uint32_t tx_retry_cnt;
+	uint32_t rsv2[4];
 };
 
 struct mac_cmd_dfx_callback {

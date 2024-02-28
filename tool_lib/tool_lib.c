@@ -281,9 +281,9 @@ static int get_rand_str(char *str, int length)
 		[TYPE_LOWERCASE] = {'a', 26},
 	};
 	uint32_t r[RANDOM_NUM];
+	uint32_t type;
 	int fd, size;
 	int i, j;
-	int type;
 
 	fd = open("/dev/urandom", O_RDONLY);
 	if (fd < 0) {
@@ -325,7 +325,7 @@ int generate_file_name(unsigned char *file_name,
 	ret = snprintf((char *)file_name, file_name_len, "%s_%d_%d_%d_%d_%d_%d_%s.log", prefix,
 		       timeinfo.tm_year + START_YEAR, timeinfo.tm_mon + 1, timeinfo.tm_mday,
 		       timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec, str_r);
-	if (ret < 0 || ret >= file_name_len) {
+	if (ret < 0 || (uint32_t)ret >= file_name_len) {
 		HIKP_ERROR_PRINT("generate file name failed, errno is %d\n", errno);
 		return -errno;
 	}

@@ -283,7 +283,7 @@ void op_log_record_input(const int argc, const char **argv)
 	arg = input_str;
 	for (i = 0; i < argc; i++) {
 		ret = snprintf(arg, (sizeof(input_str) - (arg - input_str)), "%s ", argv[i]);
-		if (ret < 0 || ret >= (sizeof(input_str) - (arg - input_str)))
+		if (ret < 0 || ret >= (int)(sizeof(input_str) - (arg - input_str)))
 			return;
 
 		arg = arg + strlen(argv[i]) + 1;

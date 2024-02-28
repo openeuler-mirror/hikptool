@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKPTDEV_PLUG_H
-#define __HIKPTDEV_PLUG_H
+#ifndef HIKPTDEV_PLUG_H
+#define HIKPTDEV_PLUG_H
 
 #include <stdint.h>
 
@@ -56,4 +56,4 @@ void hikp_dev_uninit(void);
 int hikp_rsp_normal_check(const struct hikp_cmd_ret *cmd_ret);
 int hikp_rsp_normal_check_with_version(const struct hikp_cmd_ret *cmd_ret, uint32_t version);
 
-#endif
+#endif /* HIKPTDEV_PLUG_H */

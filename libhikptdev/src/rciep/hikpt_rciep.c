@@ -366,8 +366,8 @@ static int hikp_iep_check(const char *tmp_vendor_dir,
 		return ret;
 
 	ret = hikp_iep_check_item(revision_dir, MAX_PCI_REVISION_LEN, HIKP_IEP_REVISION);
-	if (ret != 0)
-		printf("Revision id not match %s.\n", HIKP_IEP_REVISION);
+	if (ret != 0 && ret != -ENXIO)
+		return ret;
 
 	return 0;
 }

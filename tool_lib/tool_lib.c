@@ -247,7 +247,7 @@ int file_rollback(const char *cur_file, const char *backup_file, uint32_t file_m
 		if (file_size > file_max_size) {
 			ret = rename(cur_file, backup_file);
 			if (ret != 0) {
-				HIKP_ERROR_PRINT("rename file(%s) fail, errno is %d\n",
+				HIKP_ERROR_PRINT("rename file(%s) failed, errno is %d\n",
 						 cur_file, errno);
 				return -errno;
 			}
@@ -259,7 +259,7 @@ int file_rollback(const char *cur_file, const char *backup_file, uint32_t file_m
 
 	fd = fopen(cur_file, "a+");
 	if (fd == NULL) {
-		HIKP_ERROR_PRINT("open %s fail, errno is %d\n", cur_file, errno);
+		HIKP_ERROR_PRINT("open %s failed, errno is %d\n", cur_file, errno);
 		return -errno;
 	}
 	(void)chmod(cur_file, 0640);
@@ -294,7 +294,7 @@ static int get_rand_str(char *str, int length)
 		for (j = 0; j < RANDOM_NUM; j++) {
 			size = read(fd, &r[j], sizeof(uint32_t));
 			if (size < 0) {
-				HIKP_ERROR_PRINT("read fd fail, errno is %d\n", errno);
+				HIKP_ERROR_PRINT("read fd failed, errno is %d\n", errno);
 				close(fd);
 				return -errno;
 			}

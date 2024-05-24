@@ -144,6 +144,8 @@ struct pcie_dumpreg_info g_reg_table_pcs[] = {
 };
 
 struct pcie_dumpreg_info g_reg_table_iob_tx[] = {
+	{0, "IOB_TX_ECAM_CONTROL0"},
+	{0, "IOB_TX_ECAM_CONTROL1"},
 	{0, "IOB_TX_ECAM_BASE_ADDR_L"},
 	{0, "IOB_TX_ECAM_BASE_ADDR_H"},
 	{0, "IOB_TX_CXL_BASE_BUS_0"},

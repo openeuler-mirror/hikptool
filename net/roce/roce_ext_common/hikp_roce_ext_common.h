@@ -47,9 +47,21 @@ struct reg_data {
 	uint32_t *data;
 };
 
+struct roce_ext_reg_name {
+	const char **reg_name;
+	uint8_t arr_len;
+};
+
+struct roce_ext_res_output {
+	struct roce_ext_head res_head;
+	struct reg_data reg;
+	struct roce_ext_reg_name reg_name;
+};
+
 void hikp_roce_ext_execute(struct major_cmd_ctrl *self,
 			   enum roce_cmd_type cmd_type,
 			   int (*get_data)(struct hikp_cmd_ret **cmd_ret,
-					   uint32_t block_id));
+					   uint32_t block_id,
+					   struct roce_ext_reg_name *reg_name));
 
 #endif /* __HIKP_ROCE_EXT_COMMON_H__ */

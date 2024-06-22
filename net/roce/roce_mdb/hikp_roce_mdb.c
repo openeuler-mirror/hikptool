@@ -74,6 +74,16 @@ static const char *g_mdb_reg_name[] = {
 	"MDB_STA_5",
 };
 
+static const char *g_mdb_ext_reg_name[] = {
+	"ROCEE_EQDB_EXEC_CNT",
+	"MDB_STA_6",
+	"MDB_DFX_CNT_0",
+	"MDB_DFX_CNT_1",
+	"MDB_DFX_CNT_2",
+	"MDB_DFX_CNT_3",
+	"MDB_DFX_CNT_4",
+};
+
 static void hikp_roce_mdb_print(uint32_t reg_num, struct roce_mdb_rsp_data *mdb_rsp)
 {
 	uint8_t arr_len = HIKP_ARRAY_SIZE(g_mdb_reg_name);
@@ -89,12 +99,18 @@ static void hikp_roce_mdb_print(uint32_t reg_num, struct roce_mdb_rsp_data *mdb_
 }
 
 static int hikp_roce_mdb_get_data(struct hikp_cmd_ret **cmd_ret,
-				  uint32_t block_id)
+				  uint32_t block_id,
+				  struct roce_ext_reg_name *reg_name)
 {
 	struct roce_mdb_req_param_ext req_data_ext;
 	struct hikp_cmd_header req_header = { 0 };
 	uint32_t req_size;
 	int ret;
+
+	if (reg_name) {
+		reg_name->reg_name = g_mdb_ext_reg_name;
+		reg_name->arr_len = HIKP_ARRAY_SIZE(g_mdb_ext_reg_name);
+	}
 
 	req_data_ext.origin_param.bdf = g_roce_mdb_param.target.bdf;
 	req_data_ext.block_id = block_id;
@@ -119,7 +135,7 @@ static void hikp_roce_mdb_execute_origin(struct major_cmd_ctrl *self)
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	uint32_t reg_num;
 
-	self->err_no = hikp_roce_mdb_get_data(&cmd_ret, 0);
+	self->err_no = hikp_roce_mdb_get_data(&cmd_ret, 0, NULL);
 	if (self->err_no) {
 		printf("hikptool roce_mdb get data failed\n");
 		goto exec_error;

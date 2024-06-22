@@ -44,12 +44,62 @@ static int hikp_roce_timer_clear_set(struct major_cmd_ctrl *self, const char *ar
 	return 0;
 }
 
-static void hikp_roce_timer_print(struct roce_timer_rsp_data *timer_rsp)
+/* DON'T change the order of these arrays or add entries between! */
+static const char *g_timer_qpc_reg_name[] = {
+	"QPC_AXI_ERR",
+	"QPC_SEARCH_CNT",
+	"QPC_DB_SEND_CNT",
+	"FIFO_FILL0",
+	"FIFO_FILL1",
+	"FIFO_FILL2",
+	"FIFO_OVER_FLOW",
+	"QPC_START_CNT",
+	"QPC_DB_SEND_NUM_CNT",
+	"ROCEE_TIMER_QPC_ECC_ERR",
+	"ROCEE_TIMER_QPC_ECC_ERR_INFO",
+	"START_TYPE_ERR_CNT",
+};
+
+static const char *g_timer_cqc_reg_name[] = {
+	"TIMER_MEM_INIT_DONE",
+	"CQC_AXI_ERR",
+	"CQC_SEARCH_CNT",
+	"CQC_DB_SEND_CNT",
+	"CQC_FIFO_FILL0",
+	"CQC_FIFO_FILL1",
+	"CQC_FIFO_FILL2",
+	"CQC_START_CNT",
+	"CQC_DB_SEND_NUM_CNT",
+	"FLR_DONE_STATE",
+	"ZERO_ADDR_ACC",
+	"ROCEE_TIMER_CQC_ECC_ERR",
+	"ROCEE_TIMER_CQC_ECC_ERR_INFO",
+	"TIMER_STA_0",
+	"CQC_LOSE_DB_CNT",
+	"TIMER_TDP_DONE_CNT",
+	"CQC_PAGE_OVER_CNT",
+};
+
+static void hikp_roce_timer_print(struct roce_timer_rsp_data *timer_rsp,
+				  enum roce_timer_cmd_type cmd_type)
 {
+	const char **reg_name;
+	uint8_t arr_len;
 	int index = 0;
 
+	if (cmd_type == TIMER_SHOW_QPC) {
+		reg_name = g_timer_qpc_reg_name;
+		arr_len = HIKP_ARRAY_SIZE(g_timer_qpc_reg_name);
+	} else {
+		reg_name = g_timer_cqc_reg_name;
+		arr_len = HIKP_ARRAY_SIZE(g_timer_cqc_reg_name);
+	}
+
+	printf("%-40s[addr_offset] : reg_data\n", "reg_name");
 	while (index < timer_rsp->reg_num) {
-		printf("0x%08X : 0x%08X\n", timer_rsp->timer_content[index][0],
+		printf("%-40s[0x%08X] : 0x%08X\n",
+		       index < arr_len ? reg_name[index] : "",
+		       timer_rsp->timer_content[index][0],
 		       timer_rsp->timer_content[index][1]);
 		index++;
 	}
@@ -83,7 +133,7 @@ static int hikp_roce_timer_show_qpc(struct major_cmd_ctrl *self)
 	}
 
 	printf("**************QPC TIMER INFO*************\n");
-	hikp_roce_timer_print(timer_rsp);
+	hikp_roce_timer_print(timer_rsp, TIMER_SHOW_QPC);
 out:
 	free(cmd_ret);
 	cmd_ret = NULL;
@@ -117,7 +167,7 @@ static int hikp_roce_timer_show_cqc(struct major_cmd_ctrl *self)
 	}
 
 	printf("**************CQC TIMER INFO*************\n");
-	hikp_roce_timer_print(timer_rsp);
+	hikp_roce_timer_print(timer_rsp, TIMER_SHOW_CQC);
 out:
 	free(cmd_ret);
 	cmd_ret = NULL;

@@ -208,14 +208,128 @@ static int hikp_roce_scc_get_next_data(struct roce_scc_head *res_head,
 	return 0;
 }
 
+/* DON'T change the order of these arrays or add entries between! */
+static const char *g_scc_common_reg_name[] = {
+	"SCC_MODE_SEL",
+	"SCC_OUTSTANDING_CTRL",
+	"SCC_FW_BASE_ADDR",
+	"SCC_MEM_START_INIT",
+	"SCC_MEM_INIT_DONE",
+	"SCC_FW_REQ_CNT",
+	"SCC_FW_RSP_CNT",
+	"SCC_FW_CNT_CTRL",
+	"SCC_GLB_OUTSTANDING",
+	"SCC_AXI_OUTSTANDING",
+	"SCC_FW_REQRSP_CNT0",
+	"SCC_FW_REQRSP_CNT1",
+	"SCC_OUTSTANDING_ID",
+	"SCC_OUTSTANDING_STS",
+	"SCC_CACHEMISS_LOAD_CNT",
+	"SCC_CACHEMISS_STORE_CNT",
+	"FW_PROCESS_TIME",
+	"SCC_INT_EN",
+	"SCC_INT_SRC",
+	"SCC_ECC_1BIT_CNT",
+	"SCC_ECC_1BIT_INFO",
+	"SCC_ECC_MBIT_INFO",
+	"ECC_ERR_INJ_SEL",
+	"CTX_RDWR_ERR_INFO",
+	"SCC_FW_REQRSP_CNT2",
+	"SCC_LOAD_CAL_CFG_0",
+	"SCC_LOAD_CAL_CFG_1",
+	"SCC_LOAD_CAL_CFG_2",
+	"SCC_LOAD_CAL_CFG_3",
+	"SCC_LOAD_CAL_CFG_4",
+	"SCC_LOAD_CAL_CFG_5",
+	"SCC_LOAD_CAL_CFG_6",
+	"SCC_LOAD_CAL_CFG_7",
+	"SCC_MAX_PROCESS_TIME",
+	"SCC_TIMEOUT_SET",
+	"SCC_TIMEOUT_CNT",
+	"SCC_TIME_STA_EN",
+	"SCC_INPUT_REQ_CNT",
+	"SCC_OUTPUT_RSP_CNT",
+	"SCC_INOUT_CNT_CFG",
+};
+
+static const char *g_scc_dcqcn_reg_name[] = {
+	"SCC_TEMP_CFG0",
+	"SCC_TEMP_CFG1",
+	"SCC_TEMP_CFG2",
+	"SCC_TEMP_CFG3",
+	"ROCEE_CNP_PKT_RX_CNT",
+	"ROCEE_CNP_PKT_TX_CNT",
+	"ROCEE_ECN_DB_CNT0",
+	"ROCEE_ECN_DB_CNT1",
+	"ROCEE_ECN_DB_CNT2",
+	"ROCEE_ECN_DB_CNT3",
+};
+
+static const char *g_scc_dip_reg_name[] = {
+	"SCC_TEMP_CFG0",
+	"SCC_TEMP_CFG1",
+	"SCC_TEMP_CFG2",
+	"SCC_TEMP_CFG3",
+};
+
+static const char *g_scc_hc3_reg_name[] = {
+	"SCC_TEMP_CFG0",
+	"SCC_TEMP_CFG1",
+	"SCC_TEMP_CFG2",
+	"SCC_TEMP_CFG3",
+};
+
+static const char *g_scc_ldcp_reg_name[] = {
+	"SCC_TEMP_CFG0",
+	"SCC_TEMP_CFG1",
+	"SCC_TEMP_CFG2",
+	"SCC_TEMP_CFG3",
+};
+
+static const char *g_scc_cfg_reg_name[] = {
+	"ROCEE_TM_CFG",
+};
+
+static const struct reg_name_info {
+	enum roce_scc_type sub_cmd;
+	const char **reg_name;
+	uint8_t arr_len;
+} g_scc_reg_name_info_table[] = {
+	{COMMON, g_scc_common_reg_name, HIKP_ARRAY_SIZE(g_scc_common_reg_name)},
+	{DCQCN, g_scc_dcqcn_reg_name, HIKP_ARRAY_SIZE(g_scc_dcqcn_reg_name)},
+	{DIP, g_scc_dip_reg_name, HIKP_ARRAY_SIZE(g_scc_dip_reg_name)},
+	{HC3, g_scc_hc3_reg_name, HIKP_ARRAY_SIZE(g_scc_hc3_reg_name)},
+	{LDCP, g_scc_ldcp_reg_name, HIKP_ARRAY_SIZE(g_scc_ldcp_reg_name)},
+	{CFG, g_scc_cfg_reg_name, HIKP_ARRAY_SIZE(g_scc_cfg_reg_name)},
+};
+
 static void hikp_roce_scc_print(uint8_t total_block_num,
 				const uint32_t *offset, const uint32_t *data)
 {
+	const char **reg_name;
+	uint8_t arr_len;
 	uint32_t i;
 
+	for (i = 0; i < HIKP_ARRAY_SIZE(g_scc_reg_name_info_table); i++) {
+		if (g_scc_reg_name_info_table[i].sub_cmd != g_roce_scc_param_t.sub_cmd)
+			continue;
+		arr_len = g_scc_reg_name_info_table[i].arr_len;
+		reg_name = g_scc_reg_name_info_table[i].reg_name;
+		break;
+	}
+
+	if (i == HIKP_ARRAY_SIZE(g_scc_reg_name_info_table)) {
+		printf("can't find reg name table for roce_scc sub_cmd %u.\n",
+		       g_roce_scc_param_t.sub_cmd);
+		return;
+	}
+
 	printf("**************SCC INFO*************\n");
+	printf("%-40s[addr_offset] : reg_data\n", "reg_name");
 	for (i = 0; i < total_block_num; i++)
-		printf("[0x%08X] : 0x%08X\n", offset[i], data[i]);
+		printf("%-40s[0x%08X] : 0x%08X\n",
+		       i < arr_len ? reg_name[i] : "",
+		       offset[i], data[i]);
 	printf("***********************************\n");
 }
 

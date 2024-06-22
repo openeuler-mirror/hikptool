@@ -231,14 +231,152 @@ static int hikp_roce_trp_get_next_data(struct roce_trp_head *res_head,
 	return 0;
 }
 
+/* DON'T change the order of these arrays or add entries between! */
+static const char *g_trp_common_reg_name[] = {
+	"GEN_AC_QP_FIFO_FULL",
+	"GEN_AC_QP_FIFO_EMPTY",
+	"GEN_AC_QP_INNER_STA_0",
+	"GEN_AC_QP_INNER_STA_1",
+	"GEN_AC_QP_ALM",
+	"GEN_AC_QP_TSP_CQE_CNT",
+	"TRP_GET_PBL_FULL",
+	"TRP_GET_PBL_EMPTY",
+	"TRP_GET_PBL_INNER_ALM",
+	"TRP_GET_PBL_INNER_STA",
+	"TRP_GET_MPT_FSM",
+	"TRP_GET_MPT_EMPTY",
+	"TRP_GET_MPT_INNER_ALM",
+	"TRP_GET_MPT_INNER_STA",
+	"TRP_GET_SGE_FSM",
+	"TRP_GET_SGE_EMPTY",
+	"TRP_GET_SGE_INNER_ALM",
+	"TRP_GET_SGE_INNER_STA",
+	"TRP_GET_BA_EMPTY",
+	"TRP_GET_BA_INNER_ALM",
+	"TRP_GET_BA_INNER_STA",
+	"TRP_DMAECMD_EMPTY_0",
+	"TRP_DMAECMD_EMPTY_1",
+	"TRP_DMAECMD_FULL",
+	"TRP_GET_IRRL_FSM",
+	"TRP_GET_IRRL_FULL",
+	"TRP_GET_IRRL_EMPTY",
+	"TRP_GET_IRRL_INNER_ALM",
+	"TRP_GET_IRRL_INNER_STA",
+	"TRP_GET_QPC_FSM",
+	"TRP_GET_QPC_INNER_ALM",
+	"TRP_GET_QPC_INNER_STA",
+	"ROCEE_TRP_ECC_ERR_INFO",
+	"ROCEE_TRP_ECC1B",
+	"ROCEE_TRP_ECC2B",
+	"ROCEE_TRP_FUN_RST_DFX",
+	"TRP_GET_MPT_ERR_FLG",
+	"TRP_GET_IRRL_ERR_FLG",
+	"TRP_GET_QPC_ERR_FLG",
+	"ROCEE_ECN_DB_CNT",
+	"GEN_AC_QP_TSP_AE_CNT",
+	"GEN_AC_QP_MDB_CQE_CNT",
+	"GEN_AC_QP_LPRC_CQE_CNT",
+	"TRP_CNP_CNT",
+	"TRP_SGE_ERR_DROP_LEN",
+	"TRP_SGE_AXI_CNT",
+};
+
+static const char *g_trp_trp_rx_reg_name[] = {
+	"TRP_RX_CHECK_EN",
+	"TRP_RX_WR_PAYL_AXI_ERR",
+	"ROCEE_TRP_RX_STA",
+	"RX_FIFO_FULL",
+	"RX_FIFO_EMPTY_0",
+	"RX_FIFO_EMPTY_1",
+	"HEAD_BUFF_ECC",
+	"HEAD_BUFF_ECC_ADDR",
+	"TRP_RX_FIFO_EMPTY_0",
+	"TRP_RX_FIFO_EMPTY_1",
+	"TRP_RX_FIFO_EMPTY_2",
+	"TRP_RX_FIFO_EMPTY_3",
+};
+
+static const char *g_trp_gen_ac_reg_name[] = {
+	"GEN_AC_CQ_FIFO_FULL",
+	"GEN_AC_CQ_FIFO_EMPTY",
+	"GEN_AC_CQ_INNER_STA",
+	"GEN_AC_CQ_ALM",
+	"GEN_AC_CQ_CQE_CNT_0",
+	"GEN_AC_CQ_CQE_CNT_1",
+	"GEN_AC_CQ_CQE_CNT_2",
+	"GEN_AC_CQ_CQE_CNT_3",
+	"ROCEE_GENAC_ECC_ERR_INFO",
+	"ROCEE_GENAC_ECC1B",
+	"ROCEE_GENAC_ECC2B",
+	"GEN_AC_DMAECMD_STA",
+	"GEN_AC_DMAECMD_ALM",
+	"SWQE_LINK_STA",
+	"SWQE_LINK_ALM",
+	"GEN_AC_CQ_MAIN_STA_0",
+	"GEN_AC_CQ_MAIN_ALM",
+	"GEN_AC_CQ_MAIN_STA_1",
+	"POE_DFX_0",
+	"POE_DFX_1",
+	"POE_DFX_2",
+};
+
+static const char *g_trp_payl_reg_name[] = {
+	"ROCEE_EXT_ATOMIC_DFX_0",
+	"ROCEE_EXT_ATOMIC_DFX_1",
+	"ROCEE_EXT_ATOMIC_DFX_2",
+	"ROCEE_EXT_ATOMIC_DFX_3",
+	"ATOMIC_DFX_0",
+	"ATOMIC_DFX_1",
+	"ATOMIC_DFX_2",
+	"WR_PAYL_DFX_1",
+	"PAYL_BUFF_DFX_0",
+	"PAYL_BUFF_DFX_1",
+	"PAYL_BUFF_DFX_2",
+	"PAYL_BUFF_DFX_3",
+	"PAYL_BUFF_DFX_4",
+	"WR_PAYL_DFX_RC",
+	"WR_PAYL_DFX_RO",
+	"WR_PAYL_1_OST_NUM",
+};
+
+static const struct reg_name_info {
+	enum roce_trp_type sub_cmd;
+	const char **reg_name;
+	uint8_t arr_len;
+} g_trp_reg_name_info_table[] = {
+	{COMMON, g_trp_common_reg_name, HIKP_ARRAY_SIZE(g_trp_common_reg_name)},
+	{TRP_RX, g_trp_trp_rx_reg_name, HIKP_ARRAY_SIZE(g_trp_trp_rx_reg_name)},
+	{GEN_AC, g_trp_gen_ac_reg_name, HIKP_ARRAY_SIZE(g_trp_gen_ac_reg_name)},
+	{PAYL, g_trp_payl_reg_name, HIKP_ARRAY_SIZE(g_trp_payl_reg_name)},
+};
+
 static void hikp_roce_trp_print(uint8_t total_block_num,
 				const uint32_t *offset, const uint32_t *data)
 {
+	const char **reg_name;
+	uint8_t arr_len;
 	uint32_t i;
 
+	for (i = 0; i < HIKP_ARRAY_SIZE(g_trp_reg_name_info_table); i++) {
+		if (g_trp_reg_name_info_table[i].sub_cmd != g_roce_trp_param_t.sub_cmd)
+			continue;
+		arr_len = g_trp_reg_name_info_table[i].arr_len;
+		reg_name = g_trp_reg_name_info_table[i].reg_name;
+		break;
+	}
+
+	if (i == HIKP_ARRAY_SIZE(g_trp_reg_name_info_table)) {
+		printf("can't find reg name table for roce_trp sub_cmd %u.\n",
+		       g_roce_trp_param_t.sub_cmd);
+		return;
+	}
+
 	printf("**************TRP INFO*************\n");
+	printf("%-40s[addr_offset] : reg_data\n", "reg_name");
 	for (i = 0; i < total_block_num; i++)
-		printf("[0x%08X] : 0x%08X\n", offset[i], data[i]);
+		printf("%-40s[0x%08X] : 0x%08X\n",
+		       i < arr_len ? reg_name[i] : "",
+		       offset[i], data[i]);
 	printf("***********************************\n");
 }
 

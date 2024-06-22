@@ -62,14 +62,38 @@ static int hikp_roce_pkt_get_data(struct hikp_cmd_ret **cmd_ret, struct roce_pkt
 	return ret;
 }
 
+/* DON'T change the order of this array or add entries between! */
+static const char *g_pkt_reg_name[] = {
+	"ROCEE_RC_PKT_RX_CNT",
+	"ROCEE_UD_PKT_RX_CNT",
+	"ROCEE_XRC_PKT_RX_CNT",
+	"ROCEE_PKT_RX_CNT",
+	"ROCEE_ERR_PKT_RX_CNT",
+	"ROCEE_CNP_PKT_RX_CNT",
+	"TRP_RX_ERR_FLAG",
+	"RX_BUFF_CNT",
+	"ROCEE_RC_PKT_TX_CNT",
+	"ROCEE_UD_PKT_TX_CNT",
+	"ROCEE_XRC_PKT_TX_CNT",
+	"ROCEE_PKT_TX_CNT",
+	"ROCEE_ERR_PKT_TX_CNT",
+	"ROCEE_CNP_PKT_TX_CNT",
+	"TRP_GET_MPT_ERR_PKT_CNT",
+	"TRP_GET_IRRL_ERR_PKT_CNT",
+};
+
 static void hikp_roce_pkt_print(uint32_t total_block_num,
 				const uint32_t *offset, const uint32_t *data)
 {
+	uint8_t arr_len = HIKP_ARRAY_SIZE(g_pkt_reg_name);
 	uint32_t i;
 
 	printf("**************PKT INFO*************\n");
+	printf("%-40s[addr_offset] : reg_data\n", "reg_name");
 	for (i = 0; i < total_block_num; i++)
-		printf("[0x%08X] : 0x%08X\n", offset[i], data[i]);
+		printf("%-40s[0x%08X] : 0x%08X\n",
+		       i < arr_len ? g_pkt_reg_name[i] : "",
+		       offset[i], data[i]);
 	printf("***********************************\n");
 }
 

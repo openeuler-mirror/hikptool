@@ -146,6 +146,12 @@ static int hikp_roce_scc_get_total_data_num(struct roce_scc_head *res_head,
 	}
 
 	roce_scc_res = (struct roce_scc_res_param *)cmd_ret->rsp_data;
+	if (!roce_scc_res->head.total_block_num) {
+		printf("hikptool roce_scc total_block_num error!\n");
+		ret = -EINVAL;
+		goto get_data_error;
+	}
+
 	max_size = roce_scc_res->head.total_block_num * sizeof(uint32_t);
 	*offset = (uint32_t *)calloc(1, max_size);
 	*data = (uint32_t *)calloc(1, max_size);

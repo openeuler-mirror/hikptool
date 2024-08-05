@@ -122,6 +122,12 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 
 	if (block_id == 0) {
 		res_head->total_block_num = roce_ext_res->head.total_block_num;
+		if (!res_head->total_block_num) {
+			printf("hikptool roce_%s total_block_num error!\n",
+				cmd_name);
+			ret = -EINVAL;
+			goto get_data_error;
+		}
 		reg->offset = (uint32_t *)calloc(res_head->total_block_num, sizeof(uint32_t));
 		reg->data = (uint32_t *)calloc(res_head->total_block_num, sizeof(uint32_t));
 		if ((reg->offset == NULL) || (reg->data == NULL)) {

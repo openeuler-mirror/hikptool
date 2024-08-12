@@ -80,6 +80,329 @@ static const struct dfx_type_parse g_dfx_type_parse[] = {
 	{TYPE_64_TX_PF_NORMAL_STATS, WIDTH_64_BIT, "64 bit TX pf statistics"},
 };
 
+static const struct dfx_reg_name dfx_ppp_type_32_common_drop_stats1[] = {
+	{ "DROP_FROM_PRT_PKT_CNT"},
+	{ "DROP_FROM_HOST_PKT_CNT"},
+	{ "DROP_TX_VLAN_PROC_CNT"},
+	{ "DROP_MNG_CNT"},
+	{ "DROP_FD_CNT"},
+	{ "DROP_NO_DST_CNT"},
+	{ "DROP_MC_MBID_FULL_CNT"},
+	{ "DROP_SC_FILTERED"},
+};
+
+static const struct dfx_reg_name dfx_ppp_type_32_common_drop_stats2[] = {
+	{ "PPP_MC_DROP_PKT_CNT"},
+	{ "DROP_PT_CNT"},
+	{ "DROP_MAC_ANTI_SPOOF_CNT"},
+	{ "DROP_IG_VFV_CNT"},
+	{ "DROP_IG_PRTV_CNT"},
+	{ "DROP_CNM_PFC_PAUSE_CNT"},
+	{ "DROP_TORUS_TC_CNT"},
+	{ "DROP_TORUS_LPBK_CNT"},
+	{ "FWD_BONDING_PRT_EG_VLAN_DROP_CNT"},
+	{ "UMV_UPLINK_EG_VLAN_DROP_CNT"},
+	{ "BONDING_UPLINK_VLAN_FILTER_FAIL_CNT"},
+	{ "PROMIS_PRUNE_DROP_CNT"},
+	{ "UMV_UC_SRC_PRUNE_DROP_CNT"},
+	{ "PPP_GRO_DROP_CNT"},
+};
+
+static const struct dfx_reg_name dfx_ppp_type_32_rx_normal_stats[] = {
+	{ "PPP_GRO_KEY_CNT" },
+	{ "PPP_GRO_INFO_CNT" },
+	{ "PPP_GRO_OUT_CNT" },
+	{ "PPP_GRO_KEY_MATCH_DATA_CNT" },
+	{ "PPP_GRO_KEY_MATCH_TCAM_CNT" },
+	{ "PPP_GRO_INFO_MATCH_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ppp_type_64_rx_normal_stats1[] = {
+	{ "GET_RX_PKT_CNT" },
+	{ "SEND_UC_PRT2HOST_PKT_CNT" },
+	{ "SEND_UC_PRT2PRT_PKT_CNT" },
+	{ "SEND_MC_FROM_PRT_CNT" },
+	{ "SSU_MC_RD_CNT" },
+	{ "SSU_MC_DROP_CNT" },
+	{ "SSU_MC_RD_PKT_CNT" },
+	{ "PPP_MC_2HOST_PKT_CNT" },
+	{ "NR_PKT_CNT" },
+	{ "RR_PKT_CNT" },
+	{ "MNG_TBL_HIT_CNT" },
+	{ "FD_TBL_HIT_CNT" },
+	{ "FD_LKUP_CNT" },
+	{ "UM_TBL_UC_HIT_CNT" },
+	{ "UM_TBL_MC_HIT_CNT" },
+	{ "UM_TBL_MC_HIT_PKT_CNT" },
+	{ "UM_TBL_VMDQ1_HIT_CNT" },
+	{ "MTA_TBL_HIT_CNT" },
+	{ "MTA_TBL_HIT_PKT_CNT" },
+	{ "FWD_BONDING_HIT_CNT" },
+	{ "GET_BMC_PKT_CNT" },
+	{ "SEND_UC_PRT2BMC_PKT_CNT" },
+	{ "SEND_UC_HOST2BMC_PKT_CNT" },
+	{ "PROMIS_TBL_HIT_CNT" },
+	{ "PROMIS_TBL_HIT_PKT_CNT" },
+	{ "GET_TUNL_PKT_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ppp_type_64_rx_normal_stats2[] = {
+	{ "SEND_UC_BMC2PRT_PKT_CNT" },
+	{ "RX_DEFAULT_HOST_HIT_CNT" },
+	{ "LAN_PAIR_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ppp_type_64_tx_normal_stats1[] = {
+	{ "GET_TX_PKT_CNT" },
+	{ "SEND_UC_HOST2HOST_PKT_CNT" },
+	{ "SEND_UC_HOST2PRT_PKT_CNT" },
+	{ "SEND_MC_FROM_HOST_CNT" },
+	{ "PPP_MC_2PRT_PKT_CNT" },
+	{ "NTSNOS_PKT_CNT" },
+	{ "NTUP_PKT_CNT" },
+	{ "NTLCL_PKT_CNT" },
+	{ "NTTGT_PKT_CNT" },
+	{ "RTNS_PKT_CNT" },
+	{ "RTLPBK_PKT_CNT" },
+	{ "BC_HIT_CNT" },
+	{ "SEND_UC_HOST2BMC_PKT_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ppp_type_64_tx_normal_stats2[] = {
+	{ "PPP_MC_2BMC_PKT_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ppp_type_64_tx_drop_stats[] = {
+	{ "PPP_TX_TAG_DROP_CNT_0" },
+	{ "PPP_TX_TAG_DROP_CNT_1" },
+	{ "PPP_TX_TAG_DROP_CNT_2" },
+	{ "PPP_TX_TAG_DROP_CNT_3" },
+};
+
+static const struct dfx_reg_name dfx_ppp_type_32_running_stats[] = {
+	{ "PPP_HFS_STS" },
+	{ "PPP_MC_RSLT_STS" },
+	{ "PPP_RSLT_DESCR_STS" },
+	{ "PPP_UMV_STS_0" },
+	{ "PPP_UMV_STS_1" },
+	{ "PPP_VFV_STS" },
+};
+
+static const struct dfx_type_name_parse g_dfx_ppp_name_parse[] = {
+	{ TYPE_32_COMM_DROP_STATS,
+		dfx_ppp_type_32_common_drop_stats1,	HIKP_ARRAY_SIZE(dfx_ppp_type_32_common_drop_stats1)},
+	{ TYPE_32_COMM_DROP_STATS,
+		dfx_ppp_type_32_common_drop_stats2,	HIKP_ARRAY_SIZE(dfx_ppp_type_32_common_drop_stats2)},
+	{ TYPE_32_RX_NORMAL_STATS,
+		dfx_ppp_type_32_rx_normal_stats,	HIKP_ARRAY_SIZE(dfx_ppp_type_32_rx_normal_stats)},
+	{ TYPE_64_RX_NORMAL_STATS,
+		dfx_ppp_type_64_rx_normal_stats1,	HIKP_ARRAY_SIZE(dfx_ppp_type_64_rx_normal_stats1)},
+	{ TYPE_64_RX_NORMAL_STATS,
+		dfx_ppp_type_64_rx_normal_stats2,	HIKP_ARRAY_SIZE(dfx_ppp_type_64_rx_normal_stats2)},
+	{ TYPE_64_TX_NORMAL_STATS,
+		dfx_ppp_type_64_tx_normal_stats1,	HIKP_ARRAY_SIZE(dfx_ppp_type_64_tx_normal_stats1)},
+	{ TYPE_64_TX_NORMAL_STATS,
+		dfx_ppp_type_64_tx_normal_stats2,	HIKP_ARRAY_SIZE(dfx_ppp_type_64_tx_normal_stats2)},
+	{ TYPE_64_TX_DROP_STATS,
+		dfx_ppp_type_64_tx_drop_stats,		HIKP_ARRAY_SIZE(dfx_ppp_type_64_tx_drop_stats)},
+	{ TYPE_32_RUNNING_STATUS,
+		dfx_ppp_type_32_running_stats,		HIKP_ARRAY_SIZE(dfx_ppp_type_32_running_stats)},
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_rx_drop_stats[] = {
+	{ "RX_OQ_DROP_PKT_CNT" },
+	{ "RX_OQ_GLB_DROP_PKT_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_rx_normal_stats[] = {
+	{ "NCSI_RX_PACKET_IN_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_tx_drop_stats[] = {
+	{ "TX_OQ_DROP_PKT_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_tx_normal_stats[] = {
+	{ "NCSI_TX_PACKET_OUT_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_rx_port_drop_stats1[] = {
+	{ "RX_FULL_DROP_NUM" },
+	{ "RX_PART_DROP_NUM" },
+	{ "ROCE_RX_BYPASS_5NS_DROP_NUM" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_rx_port_drop_stats2[] = {
+	{ "RX_OQ_GLB_DROP_PKT_CNT_PORT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_tx_port_drop_stats1[] = {
+	{ "TX_FULL_DROP_NUM" },
+	{ "TX_PART_DROP_NUM" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_tx_port_drop_stats2[] = {
+	{ "TX_OQ_GLB_DROP_PKT_CNT_PORT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_running_stats[] = {
+	{ "SSU_BP_STATUS_0" },
+	{ "SSU_BP_STATUS_1" },
+	{ "SSU_BP_STATUS_2" },
+	{ "SSU_BP_STATUS_3" },
+	{ "SSU_BP_STATUS_4" },
+	{ "SSU_BP_STATUS_5" },
+	{ "SSU_MAC_TX_PFC_IND" },
+	{ "MAC_SSU_RX_PFC_IND" },
+	{ "ROH_SSU_PFC" },
+	{ "SSU_ETS_PORT_STATUS" },
+	{ "SSU_ETS_TCG_STATUS" },
+	{ "BTMP_AGEING_ST" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_port_running_stats[] = {
+	{ "PKT_TC_0_CURR_BUF_CNT" },
+	{ "PKT_TC_1_CURR_BUF_CNT" },
+	{ "PKT_TC_2_CURR_BUF_CNT" },
+	{ "PKT_TC_3_CURR_BUF_CNT" },
+	{ "PKT_TC_4_CURR_BUF_CNT" },
+	{ "PKT_TC_5_CURR_BUF_CNT" },
+	{ "PKT_TC_6_CURR_BUF_CNT" },
+	{ "PKT_TC_7_CURR_BUF_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_comm_stats[] = {
+	{ "LO_PRI_UNICAST_CUR_CNT" },
+	{ "HI_PRI_MULTICAST_CUR_CNT" },
+	{ "LO_PRI_MULTICAST_CUR_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_comm_drop_stats[] = {
+	{ "FULL_DROP_NUM" },
+	{ "PART_DROP_NUM" },
+	{ "PPP_KEY_DROP_NUM" },
+	{ "PPP_RLT_DROP_NUM" },
+	{ "MB_UNCOPY_NUM" },
+	{ "LO_PRI_UNICAST_RLT_DROP_NUM" },
+	{ "HI_PRI_MULTICAST_RLT_DROP_NUM" },
+	{ "LO_PRI_MULTICAST_RLT_DROP_NUM" },
+	{ "NIC_L2_ERR_DROP_PKT_CNT" },
+	{ "ROC_L2_ERR_DROP_PKT_CNT" },
+	{ "BANK_UNBALANCE_DROP_CNT" },
+	{ "SSU_MB_RD_RLT_DROP_CNT" },
+	{ "NCSI_FULL_DROP_NUM" },
+	{ "NCSI_PART_DROP_NUM" },
+	{ "NCSI_OQ_GLB_DROP_PKT_CNT_PORT" },
+	{ "LO_MB_DROP_FOR_CNT_MEM_EMPTY" },
+	{ "HI_MB_DROP_FOR_CNT_MEM_EMPTY" },
+	{ "SSU_OVERSIZE_DROP_NUM" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_32_comm_err_stats[] = {
+	{ "SSU_ECC_1BIT_ERR_CNT" },
+	{ "SSU_ECC_MULTI_BIT_ERR_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_64_rx_port_drop_stats[] = {
+	{ "RX_PACKET_IN_ERR_CNT" },
+	{ "RX_PACKET_OUT_ERR_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_64_tx_port_drop_stats[] = {
+	{ "TX_PACKET_IN_ERR_CNT" },
+	{ "TX_PACKET_OUT_ERR_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_64_rx_port_normal_stats[] = {
+	{ "RX_PKT_IN_CNT" },
+	{ "RX_PACKET_OUT_CNT" },
+	{ "RX_PKT_TC_0_IN_CNT" },
+	{ "RX_PKT_TC_1_IN_CNT" },
+	{ "RX_PKT_TC_2_IN_CNT" },
+	{ "RX_PKT_TC_3_IN_CNT" },
+	{ "RX_PKT_TC_4_IN_CNT" },
+	{ "RX_PKT_TC_5_IN_CNT" },
+	{ "RX_PKT_TC_6_IN_CNT" },
+	{ "RX_PKT_TC_7_IN_CNT" },
+	{ "RX_PACKET_TC_0_OUT_CNT" },
+	{ "RX_PACKET_TC_1_OUT_CNT" },
+	{ "RX_PACKET_TC_2_OUT_CNT" },
+	{ "RX_PACKET_TC_3_OUT_CNT" },
+	{ "RX_PACKET_TC_4_OUT_CNT" },
+	{ "RX_PACKET_TC_5_OUT_CNT" },
+	{ "RX_PACKET_TC_6_OUT_CNT" },
+	{ "RX_PACKET_TC_7_OUT_CNT" },
+	{ "ROC_RX_PACKET_IN_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_64_tx_port_normal_stats[] = {
+	{ "TX_PKT_IN_CNT" },
+	{ "TX_PKT_OUT_CNT" },
+	{ "TX_PKT_TC_0_IN_CNT" },
+	{ "TX_PKT_TC_1_IN_CNT" },
+	{ "TX_PKT_TC_2_IN_CNT" },
+	{ "TX_PKT_TC_3_IN_CNT" },
+	{ "TX_PKT_TC_4_IN_CNT" },
+	{ "TX_PKT_TC_5_IN_CNT" },
+	{ "TX_PKT_TC_6_IN_CNT" },
+	{ "TX_PKT_TC_7_IN_CNT" },
+	{ "TX_PACKET_TC_0_OUT_CNT" },
+	{ "TX_PACKET_TC_1_OUT_CNT" },
+	{ "TX_PACKET_TC_2_OUT_CNT" },
+	{ "TX_PACKET_TC_3_OUT_CNT" },
+	{ "TX_PACKET_TC_4_OUT_CNT" },
+	{ "TX_PACKET_TC_5_OUT_CNT" },
+	{ "TX_PACKET_TC_6_OUT_CNT" },
+	{ "TX_PACKET_TC_7_OUT_CNT" },
+	{ "ROC_TX_PACKET_OUT_CNT" },
+};
+
+static const struct dfx_reg_name dfx_ssu_type_64_tx_comm_stats[] = {
+	{ "SSU_PPP_MAC_KEY_NUM" },
+	{ "SSU_PPP_HOST_KEY_NUM" },
+	{ "PPP_SSU_MAC_RLT_NUM" },
+	{ "PPP_SSU_HOST_RLT_NUM" },
+};
+
+static const struct dfx_type_name_parse g_dfx_ssu_name_parse[] = {
+	{ TYPE_32_RX_DROP_STATS,
+		dfx_ssu_type_32_rx_drop_stats,		HIKP_ARRAY_SIZE(dfx_ssu_type_32_rx_drop_stats)},
+	{ TYPE_32_RX_NORMAL_STATS,
+		dfx_ssu_type_32_rx_normal_stats,	HIKP_ARRAY_SIZE(dfx_ssu_type_32_rx_normal_stats)},
+	{ TYPE_32_TX_DROP_STATS,
+		dfx_ssu_type_32_tx_drop_stats,		HIKP_ARRAY_SIZE(dfx_ssu_type_32_tx_drop_stats)},
+	{ TYPE_32_TX_NORMAL_STATS,
+		dfx_ssu_type_32_tx_normal_stats,	HIKP_ARRAY_SIZE(dfx_ssu_type_32_tx_normal_stats)},
+	{ TYPE_32_RX_PORT_DROP_STATS,
+		dfx_ssu_type_32_rx_port_drop_stats1,	HIKP_ARRAY_SIZE(dfx_ssu_type_32_rx_port_drop_stats1)},
+	{ TYPE_32_RX_PORT_DROP_STATS,
+		dfx_ssu_type_32_rx_port_drop_stats2,	HIKP_ARRAY_SIZE(dfx_ssu_type_32_rx_port_drop_stats2)},
+	{ TYPE_32_TX_PORT_DROP_STATS,
+		dfx_ssu_type_32_tx_port_drop_stats1,	HIKP_ARRAY_SIZE(dfx_ssu_type_32_tx_port_drop_stats1)},
+	{ TYPE_32_TX_PORT_DROP_STATS,
+		dfx_ssu_type_32_tx_port_drop_stats2,	HIKP_ARRAY_SIZE(dfx_ssu_type_32_tx_port_drop_stats2)},
+	{ TYPE_32_RUNNING_STATUS,
+		dfx_ssu_type_32_running_stats,		HIKP_ARRAY_SIZE(dfx_ssu_type_32_running_stats)},
+	{ TYPE_32_PORT_RUNNING_STATUS,
+		dfx_ssu_type_32_port_running_stats,	HIKP_ARRAY_SIZE(dfx_ssu_type_32_port_running_stats)},
+	{ TYPE_32_COMM_STATS,
+		dfx_ssu_type_32_comm_stats,		HIKP_ARRAY_SIZE(dfx_ssu_type_32_comm_stats)},
+	{ TYPE_32_COMM_DROP_STATS,
+		dfx_ssu_type_32_comm_drop_stats,	HIKP_ARRAY_SIZE(dfx_ssu_type_32_comm_drop_stats)},
+	{ TYPE_32_COMM_ERROR_STATS,
+		dfx_ssu_type_32_comm_err_stats,		HIKP_ARRAY_SIZE(dfx_ssu_type_32_comm_err_stats)},
+	{ TYPE_64_RX_PORT_DROP_STATS,
+		dfx_ssu_type_64_rx_port_drop_stats,	HIKP_ARRAY_SIZE(dfx_ssu_type_64_rx_port_drop_stats)},
+	{ TYPE_64_TX_PORT_DROP_STATS,
+		dfx_ssu_type_64_tx_port_drop_stats,	HIKP_ARRAY_SIZE(dfx_ssu_type_64_tx_port_drop_stats)},
+	{ TYPE_64_RX_PORT_NORMAL_STATS,
+		dfx_ssu_type_64_rx_port_normal_stats,	HIKP_ARRAY_SIZE(dfx_ssu_type_64_rx_port_normal_stats)},
+	{ TYPE_64_TX_PORT_NORMAL_STATS,
+		dfx_ssu_type_64_tx_port_normal_stats,	HIKP_ARRAY_SIZE(dfx_ssu_type_64_tx_port_normal_stats)},
+	{ TYPE_64_COMM_STATS,
+		dfx_ssu_type_64_tx_comm_stats,		HIKP_ARRAY_SIZE(dfx_ssu_type_64_tx_comm_stats)},
+};
+
 static void dfx_help_info(const struct major_cmd_ctrl *self)
 {
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
@@ -218,35 +541,96 @@ static int cmd_dfx_module_select(struct major_cmd_ctrl *self, const char *argv)
 	return -EINVAL;
 }
 
-static void hikp_nic_dfx_print_b32(uint32_t num, uint32_t *reg_data)
+static const struct dfx_reg_name *hikp_nic_get_ssu_list(uint8_t type_id, uint32_t reg_num)
 {
+	uint32_t i;
+
+	for (i = 0; i < HIKP_ARRAY_SIZE(g_dfx_ssu_name_parse); i++) {
+		if (g_dfx_ssu_name_parse[i].type_id != type_id)
+			continue;
+		if (reg_num != g_dfx_ssu_name_parse[i].reg_num)
+			continue;
+
+		return g_dfx_ssu_name_parse[i].reg_list;
+	}
+	return NULL;
+}
+
+static const struct dfx_reg_name *hikp_nic_get_ppp_list(uint8_t type_id, uint32_t reg_num)
+{
+	uint32_t i;
+
+	for (i = 0; i < HIKP_ARRAY_SIZE(g_dfx_ppp_name_parse); i++) {
+		if (g_dfx_ppp_name_parse[i].type_id != type_id)
+			continue;
+		if (reg_num != g_dfx_ppp_name_parse[i].reg_num)
+			continue;
+
+		return g_dfx_ppp_name_parse[i].reg_list;
+	}
+	return NULL;
+}
+
+static const struct dfx_reg_name *hikp_nic_dfx_get_reg_list(uint8_t type_id,
+							    uint32_t sub_cmd_code,
+							    uint32_t reg_num)
+{
+	if (sub_cmd_code == SSU_DFX_REG_DUMP)
+		return hikp_nic_get_ssu_list(type_id, reg_num);
+	else if (sub_cmd_code == PPP_DFX_REG_DUMP)
+		return hikp_nic_get_ppp_list(type_id, reg_num);
+	return NULL;
+}
+
+static void hikp_nic_dfx_print_b32(struct nic_dfx_type_head *type_head, uint32_t *reg_data)
+{
+	uint32_t num = (uint32_t)type_head->reg_num;
 	uint32_t word_num = num * WORD_NUM_PER_REG;
+	const struct dfx_reg_name *reg_list;
+	uint32_t sub_cmd_code;
 	uint16_t offset;
 	uint32_t value;
 	uint32_t index;
 	uint32_t i;
 
+	sub_cmd_code = g_dfx_module_parse[g_dfx_param.module_idx].sub_cmd_code;
+	reg_list = hikp_nic_dfx_get_reg_list(type_head->type_id, sub_cmd_code, num);
 	for (i = 0, index = 1; i < word_num; i = i + WORD_NUM_PER_REG, index++) {
 		offset = (uint16_t)HI_GET_BITFIELD(reg_data[i], 0, DFX_REG_ADDR_MASK);
 		value = reg_data[i + 1];
-		printf("%03u: 0x%04x\t0x%08x\n", index, offset, value);
+		if (reg_list != NULL) {
+			printf("%-30s\t0x%04x\t0x%08x\n", reg_list->name, offset, value);
+			reg_list++;
+		} else {
+			printf("%-30s\t0x%04x\t0x%08x\n", "", offset, value);
+		}
 	}
 }
 
-static void hikp_nic_dfx_print_b64(uint32_t num, uint32_t *reg_data)
+static void hikp_nic_dfx_print_b64(struct nic_dfx_type_head *type_head, uint32_t *reg_data)
 {
+	uint32_t num = (uint32_t)type_head->reg_num;
 	uint32_t word_num = num * WORD_NUM_PER_REG;
+	const struct dfx_reg_name *reg_list;
+	uint32_t sub_cmd_code;
 	uint16_t offset;
 	uint64_t value;
 	uint32_t index;
 	uint32_t i;
 
+	sub_cmd_code = g_dfx_module_parse[g_dfx_param.module_idx].sub_cmd_code;
+	reg_list = hikp_nic_dfx_get_reg_list(type_head->type_id, sub_cmd_code, num);
 	for (i = 0, index = 1; i < word_num; i = i + WORD_NUM_PER_REG, index++) {
 		offset = (uint16_t)HI_GET_BITFIELD(reg_data[i], 0, DFX_REG_ADDR_MASK);
 		value = (uint64_t)reg_data[i + 1] |
 			(HI_GET_BITFIELD((uint64_t)reg_data[i], DFX_REG_VALUE_OFF,
 			DFX_REG_VALUE_MASK) << BIT_NUM_OF_WORD);
-		printf("%03u: 0x%04x\t0x%016lx\n", index, offset, value);
+		if (reg_list != NULL) {
+			printf("%-30s\t0x%04x\t0x%016lx\n", reg_list->name, offset, value);
+			reg_list++;
+		} else {
+			printf("%-30s\t0x%04x\t0x%08x\n", "", offset, value);
+		}
 	}
 }
 
@@ -287,6 +671,7 @@ static void hikp_nic_dfx_print(const struct nic_dfx_rsp_head_t *rsp_head, uint32
 	uint32_t *ptr = reg_data;
 	uint32_t max_size;
 	uint32_t num_u32;
+	bool show_title;
 	uint8_t i;
 
 	max_size = dfx_get_max_reg_bffer_size(rsp_head);
@@ -310,12 +695,15 @@ static void hikp_nic_dfx_print(const struct nic_dfx_rsp_head_t *rsp_head, uint32
 			HIKP_ERROR_PRINT("No.%u type is incorrect reg type\n", i + 1u);
 			break;
 		}
+		show_title = type_head->type_id != last_type_id;
 		hikp_nic_dfx_print_type_head(type_head->type_id, &last_type_id);
 		ptr++;
+		if (show_title)
+			printf("%-30s\t%s\t%s\n", "name", "offset", "value");
 		if (type_head->bit_width == WIDTH_32_BIT) {
-			hikp_nic_dfx_print_b32((uint32_t)type_head->reg_num, ptr);
+			hikp_nic_dfx_print_b32(type_head, ptr);
 		} else if (type_head->bit_width == WIDTH_64_BIT) {
-			hikp_nic_dfx_print_b64((uint32_t)type_head->reg_num, ptr);
+			hikp_nic_dfx_print_b64(type_head, ptr);
 		} else {
 			HIKP_ERROR_PRINT("type%u's bit width error.\n", type_head->type_id);
 			break;

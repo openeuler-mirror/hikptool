@@ -138,4 +138,15 @@ struct nic_dfx_rsp_t {
 	uint32_t reg_data[MAX_DFX_DATA_NUM];
 };
 
+#define MAX_REG_NAME_LEN 64
+struct dfx_reg_name {
+	const char name[MAX_REG_NAME_LEN];
+};
+
+struct dfx_type_name_parse {
+	uint8_t type_id;
+	const struct dfx_reg_name *reg_list;
+	uint32_t reg_num;
+};
+
 #endif /* HIKP_NIC_DFX_H */

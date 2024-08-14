@@ -21,6 +21,9 @@
 #include "hikp_net_lib.h"
 #include "hikp_nic_dfx.h"
 
+#define dfx_get_max_reg_bffer_size(rsp_head) \
+	(uint32_t)((rsp_head)->total_blk_num * MAX_DFX_DATA_NUM * sizeof(uint32_t))
+
 struct nic_dfx_param g_dfx_param = { 0 };
 
 static const struct dfx_module_cmd g_dfx_module_parse[] = {
@@ -138,7 +141,7 @@ static int hikp_nic_get_first_blk_dfx(struct nic_dfx_rsp_head_t *rsp_head, uint3
 		rsp_head->total_type_num = 0;
 		goto err_out;
 	}
-	*max_dfx_size = (uint32_t)(rsp_head->total_blk_num * MAX_DFX_DATA_NUM * sizeof(uint32_t));
+	*max_dfx_size = dfx_get_max_reg_bffer_size(rsp_head);
 	*reg_data = (uint32_t *)calloc(1, *max_dfx_size);
 	if (*reg_data == NULL) {
 		HIKP_ERROR_PRINT("malloc log memory 0x%x failed.\n", *max_dfx_size);
@@ -284,8 +287,23 @@ static void hikp_nic_dfx_print(const struct nic_dfx_rsp_head_t *rsp_head, uint32
 	struct nic_dfx_type_head *type_head;
 	uint8_t last_type_id = 0;
 	uint32_t *ptr = reg_data;
+	uint32_t max_size;
+	uint32_t num_u32;
 	uint8_t i;
 
+	max_size = dfx_get_max_reg_bffer_size(rsp_head);
+	for (i = 0; i < rsp_head->total_type_num; i++) {
+		type_head = (struct nic_dfx_type_head *)ptr;
+		num_u32 = type_head->reg_num * WORD_NUM_PER_REG + 1; /* including type_head */
+		if (max_size < num_u32 * sizeof(uint32_t)) {
+			HIKP_ERROR_PRINT("register real size exceeds the max size\n");
+			return;
+		}
+		ptr += num_u32;
+		max_size -= num_u32 * sizeof(uint32_t);
+	}
+
+	ptr = reg_data;
 	printf("****************** module %s reg dump start ********************\n",
 		g_dfx_module_parse[g_dfx_param.module_idx].module_name);
 	for (i = 0; i < rsp_head->total_type_num; i++) {

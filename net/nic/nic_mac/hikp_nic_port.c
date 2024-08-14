@@ -498,8 +498,15 @@ static void mac_cmd_print_cdr_dfx(struct mac_cmd_cdr_dfx *cdr_dfx, struct mac_po
 
 static void mac_cmd_disp_cdr_info(struct mac_cmd_cdr_dfx *cdr_dfx)
 {
+	uint8_t cdr_max_num = HIKP_ARRAY_SIZE(cdr_dfx->wire_cdr.dfx);
+
 	if (!cdr_dfx->cdr_num)
 		return;
+
+	if (cdr_dfx->cdr_num > cdr_max_num) {
+		printf("the cdr_num(%u) exceeds %u\n", cdr_dfx->cdr_num, cdr_max_num);
+		return;
+	}
 
 	printf("\n======================== PORT CDR INFO =======================\n");
 	printf("direct\t|addr     |lane    |type     |mode     |status   \n");

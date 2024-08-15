@@ -174,10 +174,12 @@ static int hikp_nic_qos_get_blk(struct hikp_cmd_header *req_header,
 	}
 
 	rsp = (struct nic_qos_rsp *)cmd_ret->rsp_data;
-	if (rsp->rsp_head.cur_blk_size > buf_len) {
+	if (rsp->rsp_head.cur_blk_size > buf_len ||
+	    rsp->rsp_head.cur_blk_size > sizeof(rsp->rsp_data)) {
 		HIKP_ERROR_PRINT("nic_qos block-%u copy size error, "
-				 "buffer size=%zu, data size=%u.\n",
-				 req_data->block_id, buf_len, rsp->rsp_head.cur_blk_size);
+				 "dst buffer size=%zu, src buffer size=%zu, "
+				 "data size=%u.\n", req_data->block_id, buf_len,
+				 sizeof(rsp->rsp_data), rsp->rsp_head.cur_blk_size);
 		ret = -EINVAL;
 		goto out;
 	}

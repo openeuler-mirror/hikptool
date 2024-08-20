@@ -25,7 +25,7 @@
 
 static int hikp_read_net_pci_info(const char *file_path, char *content, size_t len)
 {
-	char path[PATH_MAX + 1] = { 0 };
+	char path[PATH_MAX] = { 0 }; /* PATH_MAX includes the \0 so +1 is not required */
 	int ret;
 	int fd;
 
@@ -35,8 +35,11 @@ static int hikp_read_net_pci_info(const char *file_path, char *content, size_t l
 	if (len > MAX_PCI_ID_LEN + 1 || len < 1)
 		return -EINVAL;
 
-	if (strlen(file_path) > PATH_MAX || realpath(file_path, path) == NULL)
+	if (strlen(file_path) > PATH_MAX)
 		return -ENOENT;
+
+	if (!realpath(file_path, path))
+		return -errno;
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0)

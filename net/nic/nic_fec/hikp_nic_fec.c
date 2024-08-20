@@ -22,19 +22,20 @@ static struct tool_target g_fec_target;
 
 static int hikp_nic_fec_err_query(const struct bdf_t *bdf, struct nic_fec_err_info *info)
 {
-	struct nic_fec_req_para req = { 0 };
 	struct hikp_cmd_header header = { 0 };
+	struct nic_fec_req_para req = { 0 };
 	struct hikp_cmd_ret *cmd_ret;
 	struct nic_fec_rsp *rsp;
+	int ret;
 
 	req.bdf = *bdf;
 	hikp_cmd_init(&header, NIC_MOD, GET_FEC_INFO_CMD, NIC_FEC_ERR_INFO_DUMP);
 	cmd_ret = hikp_cmd_alloc(&header, &req, sizeof(req));
 	if (cmd_ret == NULL || cmd_ret->status != 0) {
-		HIKP_ERROR_PRINT("fail to get fec info, retcode: %u\n",
-				 cmd_ret ? cmd_ret->status : EIO);
+		ret = cmd_ret ? -cmd_ret->status : -EIO;
+		HIKP_ERROR_PRINT("fail to get fec info, retcode: %d\n", ret);
 		free(cmd_ret);
-		return -EIO;
+		return ret;
 	}
 
 	rsp = (struct nic_fec_rsp *)cmd_ret->rsp_data;
@@ -111,7 +112,7 @@ static void hikp_nic_fec_err_show(const struct nic_fec_err_info *info)
 static void hikp_nic_fec_cmd_execute(struct major_cmd_ctrl *self)
 {
 	struct bdf_t *bdf = &g_fec_target.bdf;
-	struct nic_fec_err_info info;
+	struct nic_fec_err_info info = { 0 };
 	int ret;
 
 	ret = hikp_nic_fec_err_query(bdf, &info);

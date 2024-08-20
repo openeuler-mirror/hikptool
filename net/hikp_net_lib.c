@@ -238,13 +238,17 @@ int get_revision_id_by_bdf(const struct bdf_t *bdf, char *revision_id, size_t id
 
 static int hikp_get_dir_name_of_device(const char *path, size_t len, char *dir_name)
 {
+	char file_path[PATH_MAX] = { 0 }; /* PATH_MAX includes the \0 so +1 is not required */
 	struct dirent *ptr;
 	DIR *dir = NULL;
 
-	if (len > PCI_MAX_DIR_NAME_LEN)
+	if (len > PCI_MAX_DIR_NAME_LEN || strlen(path) > PATH_MAX)
 		return -EINVAL;
 
-	dir = opendir(path);
+	if (!realpath(path, file_path))
+		return -errno;
+
+	dir = opendir(file_path);
 	if (dir == NULL) {
 		HIKP_ERROR_PRINT("read path %s fail.\n", path);
 		return -EINVAL;

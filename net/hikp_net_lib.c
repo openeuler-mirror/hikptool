@@ -366,7 +366,12 @@ int get_numvfs_by_bdf(const struct bdf_t *bdf, uint8_t *numvfs)
 	if (ret != 0)
 		return ret;
 
+	errno = 0;
 	ret = (int)strtol(numvf, NULL, 0);
+	if (errno) {
+		HIKP_ERROR_PRINT("get numvfs by bdf failed, ret=%d\n", -errno);
+		return -errno;
+	}
 	if ((ret > UCHAR_MAX) || (ret < 0)) {
 		HIKP_ERROR_PRINT("get numvfs by bdf fail.\n");
 		return -EINVAL;

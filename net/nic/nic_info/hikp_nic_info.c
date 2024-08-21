@@ -113,6 +113,11 @@ static void hikp_nic_info_print_cur_pf(const struct bdf_t *bdf)
 	uint8_t i;
 	int ret;
 
+	if (pf_id >= HIKP_MAX_PF_NUM) {
+		HIKP_ERROR_PRINT("pf_id(%u) is invalid.\n", pf_id);
+		return;
+	}
+
 	printf("Current function: pf%u\n", pf_id);
 	printf("\t%-16s %s\n", "pf mode:",
 	       g_info_param.info.pf_info[pf_id].pf_mode ? "X86" : "ARM");
@@ -147,6 +152,11 @@ static void hikp_nic_info_print_cur_pf(const struct bdf_t *bdf)
 static void hikp_nic_info_print_cur_die(void)
 {
 	uint8_t i;
+
+	if (g_info_param.info.pf_num > HIKP_MAX_PF_NUM) {
+		HIKP_ERROR_PRINT("pf_num(%u) is invalid.\n", g_info_param.info.pf_num);
+		return;
+	}
 
 	printf("Current die(chip%u-die%u) info:\n",
 	       g_info_param.info.chip_id, g_info_param.info.die_id);
@@ -185,6 +195,12 @@ static void hikp_nic_info_print_cur_die(void)
 static bool is_bus_id_accessed(void)
 {
 	uint8_t i;
+
+	if (g_info_param.accessed_die_num >= MAX_DIE_NUM) {
+		HIKP_ERROR_PRINT("accessed_die_num(%u) is invalid.\n",
+				 g_info_param.accessed_die_num);
+		return false;
+	}
 
 	for (i = 0; i < g_info_param.accessed_die_num; i++) {
 		if (g_info_param.accessed_bus_id[i] == g_info_param.target.bdf.bus_id)

@@ -47,13 +47,14 @@ static int hikp_read_net_pci_info(const char *file_path, char *content, size_t l
 
 	ret = pread(fd, content, len - 1, 0);
 	if (ret < 0) {
-		close(fd);
-		return -EIO;
+		ret = -errno;
+	} else {
+		content[ret] = '\0'; // The invoker ensures that the bounds are not crossed.
+		ret = 0;
 	}
-	content[len - 1] = '\0'; // The invoker ensures that the bounds are not crossed.
-	close(fd);
 
-	return 0;
+	close(fd);
+	return ret;
 }
 
 int hikp_net_creat_sock(void)

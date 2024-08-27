@@ -46,4 +46,5 @@ struct socip_dump_reg_req_data_t {
 	uint8_t controller_id;
 };
 
+void dump_reg_info(const uint32_t *reg_data, uint32_t data_num);
 #endif /* HIKP_SOCIP_H */

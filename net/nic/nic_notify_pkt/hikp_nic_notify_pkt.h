@@ -49,4 +49,6 @@ struct nic_notify_pkt_info {
 #define HIKP_NOTIFY_PKT_CFG_PKT_NUM_M		GENMASK(5, 2)
 #define HIKP_NOTIFY_PKT_CFG_PKT_NUM_S		2
 
+int hikp_nic_notify_pkt_get_target(struct major_cmd_ctrl *self, const char *argv);
+void hikp_nic_notify_pkt_cmd_execute(struct major_cmd_ctrl *self);
 #endif /* HIKP_NIC_NOTIFY_PKT_H */

@@ -630,6 +630,24 @@ static int mac_cmd_port_show_help(struct major_cmd_ctrl *self, const char *argv)
 	return 0;
 }
 
+int hikp_info_collect_nic_port(void *data)
+{
+	struct nic_port_collect_param *param = (struct nic_port_collect_param *)data;
+	struct major_cmd_ctrl *major_cmd = get_major_cmd();
+	int ret;
+
+	memset(&g_port_info, 0, sizeof(g_port_info));
+
+	ret = mac_cmd_get_port_target(major_cmd, param->net_dev_name);
+	if (ret)
+		return ret;
+
+	printf("hikptool nic_port -i %s\n", param->net_dev_name);
+	mac_cmd_port_execute(major_cmd);
+
+	return ret;
+}
+
 static void cmd_mac_get_port_init(void)
 {
 	struct major_cmd_ctrl *major_cmd = get_major_cmd();

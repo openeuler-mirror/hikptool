@@ -91,4 +91,7 @@ struct rss_feature_cmd {
 	void (*show)(const void *data);
 };
 
+int hikp_nic_cmd_get_rss_target(struct major_cmd_ctrl *self, const char *argv);
+void hikp_nic_rss_cmd_execute(struct major_cmd_ctrl *self);
+void hikp_nic_rss_cmd_set_feature_idx(int feature_idx);
 #endif /* HIKP_NIC_RSS_H */

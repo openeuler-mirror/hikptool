@@ -16,6 +16,46 @@
 #include <errno.h>
 #include <time.h>
 
+uint32_t get_chip_type(void)
+{
+	char part_num_str[MIDR_BUFFER_SIZE] = {0};
+	char midr_buffer[MIDR_BUFFER_SIZE] = {0};
+	uint32_t chip_type = CHIP_UNKNOW;
+	uint64_t midr_el1;
+	uint32_t part_num;
+	FILE *file;
+
+	file = fopen(MIDR_EL1_PATH, "r");
+	if (file == NULL) {
+		HIKP_ERROR_PRINT("Open file: %s failed\n", MIDR_EL1_PATH);
+		return chip_type;
+	}
+
+	if (fgets(midr_buffer, MIDR_BUFFER_SIZE, file) == NULL) {
+		HIKP_ERROR_PRINT("Read file: %s failed\n", MIDR_EL1_PATH);
+		fclose(file);
+		return chip_type;
+	}
+
+	fclose(file);
+	midr_el1 = strtoul(midr_buffer, NULL, MIDR_HEX_TYPE);
+	part_num = (midr_el1 & 0xffff) >> PART_NUM_OFFSET;
+	(void)snprintf(part_num_str, MIDR_BUFFER_SIZE, "%x", part_num);
+
+	if (strcmp(part_num_str, "d02") == 0)
+		chip_type = CHIP_HIP09;
+	else if (strcmp(part_num_str, "d03") == 0)
+		chip_type = CHIP_HIP10;
+	else if (strcmp(part_num_str, "d45") == 0)
+		chip_type = CHIP_HIP10C;
+	else if (strcmp(part_num_str, "d22") == 0)
+		chip_type = CHIP_HIP11;
+	else
+		chip_type = CHIP_UNKNOW;
+
+	return chip_type;
+}
+
 int string_toui(const char *nptr, uint32_t *value)
 {
 	char *endptr = NULL;

@@ -16,6 +16,22 @@
 
 static struct cmd_roce_qmm_param_t g_roce_qmm_param = { 0 };
 
+int hikp_roce_set_qmm_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_qmm_param.target);
+}
+
+void hikp_roce_set_qmm_ext_flag(bool ext_flag)
+{
+	g_roce_qmm_param.ext_flag = ext_flag;
+}
+
+void hikp_roce_set_qmm_bankid(uint32_t bank_id)
+{
+	g_roce_qmm_param.bank_id = bank_id;
+}
+
 static int hikp_roce_qmm_help(struct major_cmd_ctrl *self, const char *argv)
 {
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
@@ -249,7 +265,7 @@ exec_error:
 	hikp_cmd_free(&cmd_ret);
 }
 
-static void hikp_roce_qmm_execute(struct major_cmd_ctrl *self)
+void hikp_roce_qmm_execute(struct major_cmd_ctrl *self)
 {
 	static const struct cmd_type_info {
 		enum roce_qmm_cmd_type sub_cmd;

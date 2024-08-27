@@ -23,6 +23,7 @@
 #include "hikp_nic_log.h"
 
 static struct log_param g_log_param = { 0 };
+static char g_log_path[OP_LOG_FILE_PATH_MAXLEN] = {0};
 
 static int hikp_nic_cmd_log_help(struct major_cmd_ctrl *self, const char *argv)
 {
@@ -49,7 +50,6 @@ static int hikp_nic_cmd_log_target(struct major_cmd_ctrl *self, const char *argv
 
 static int hikp_nic_write_data_to_file(uint8_t *data, uint32_t len)
 {
-	uint8_t file_path[OP_LOG_FILE_PATH_MAXLEN] = { 0 };
 	uint8_t file_name[MAX_LOG_NAME_LEN] = { 0 };
 	size_t write_cnt;
 	FILE *fp = NULL;
@@ -59,23 +59,23 @@ static int hikp_nic_write_data_to_file(uint8_t *data, uint32_t len)
 	if (ret < 0)
 		return ret;
 
-	ret = snprintf((char *)file_path, sizeof(file_path), HIKP_LOG_DIR_PATH"%s", file_name);
+	ret = snprintf(g_log_path, sizeof(g_log_path), HIKP_LOG_DIR_PATH"%s", file_name);
 	if (ret < 0) {
 		HIKP_ERROR_PRINT("creat log file path fail.\n");
 		return -EIO;
 	}
-	(void)remove((const char *)file_path);
-	fp = fopen((char *)file_path, "w+");
+	(void)remove((const char *)g_log_path);
+	fp = fopen(g_log_path, "w+");
 	if (fp == NULL) {
-		HIKP_ERROR_PRINT("open %s failed, errno is %d\n", file_path, errno);
+		HIKP_ERROR_PRINT("open %s failed, errno is %d\n", g_log_path, errno);
 		return -errno;
 	}
 	write_cnt = fwrite(data, 1, len, fp);
 	if (write_cnt != len)
-		HIKP_ERROR_PRINT("write %s failed, write cnt %lu.\n", file_path, write_cnt);
+		HIKP_ERROR_PRINT("write %s failed, write cnt %lu.\n", g_log_path, write_cnt);
 
-	printf("dump m7 log completed, log file: %s.\n", file_path);
-	(void)chmod((char *)file_path, 0440);
+	printf("dump m7 log completed, log file: %s.\n", g_log_path);
+	(void)chmod(g_log_path, 0440);
 	(void)fclose(fp);
 	return 0;
 }
@@ -197,6 +197,29 @@ static int hikp_nic_dump_m7_log(struct major_cmd_ctrl *self)
 static void hikp_nic_log_cmd_execute(struct major_cmd_ctrl *self)
 {
 	self->err_no = hikp_nic_dump_m7_log(self);
+}
+
+const char *hikp_info_collect_get_log_path(void)
+{
+	return (const char *)g_log_path;
+}
+
+int hikp_info_collect_nic_log(void *data)
+{
+	struct nic_log_collect_param *param = (struct nic_log_collect_param *)data;
+	struct major_cmd_ctrl *major_cmd = get_major_cmd();
+	int ret;
+
+	memset(&g_log_param, 0, sizeof(g_log_param));
+
+	ret = hikp_nic_cmd_log_target(major_cmd, param->net_dev_name);
+	if (ret)
+		return ret;
+
+	printf("hikptool nic_log -i %s\n", param->net_dev_name);
+	hikp_nic_log_cmd_execute(major_cmd);
+
+	return ret;
 }
 
 static void cmd_nic_log_init(void)

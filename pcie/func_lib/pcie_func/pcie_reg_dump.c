@@ -17,13 +17,13 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include "tool_lib.h"
 #include "hikptdev_plug.h"
 #include "os_common.h"
 #include "pcie_common.h"
 #include "pcie_reg_dump.h"
 
 int g_pcie_dumpreg_fd;
+char dumpreg_log_file[MAX_LOG_NAME_LEN + 1] = {0};
 
 struct pcie_dumpreg_info g_reg_table_tl[] = {
 	{0, "TL_ASPM_IDLE_CNT"},
@@ -412,6 +412,9 @@ static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
 	if (ret)
 		return -EINVAL;
 
+	memset(dumpreg_log_file, 0, sizeof(dumpreg_log_file));
+	(void)strncpy((char *)dumpreg_log_file, file_name, MAX_LOG_NAME_LEN + 1);
+
 	(void)remove((const char *)file_name);
 	/* Add write permission to the file */
 	fd_file = open(file_name, O_RDWR | O_SYNC | O_CREAT, 0600);
@@ -558,7 +561,7 @@ int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level)
 	struct pcie_dump_req_para req_data = { 0 };
 	int ret = 0;
 
-	Info("pcie reg dump start.\n");
+	Info("hikptool pcie_dumpreg -i %u -l %u -d\n", port_id, dump_level);
 
 	req_data.port_id = port_id;
 	req_data.level = dump_level;

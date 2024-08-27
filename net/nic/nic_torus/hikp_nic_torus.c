@@ -130,7 +130,7 @@ static void hikp_nic_torus_show(const struct nic_torus_info *info)
 	printf("#################### END ##########################\n");
 }
 
-static void hikp_nic_torus_cmd_execute(struct major_cmd_ctrl *self)
+void hikp_nic_torus_cmd_execute(struct major_cmd_ctrl *self)
 {
 	struct bdf_t *bdf = &g_torus_target.bdf;
 	struct nic_torus_info info = { 0 };
@@ -158,7 +158,7 @@ static int hikp_nic_torus_cmd_help(struct major_cmd_ctrl *self, const char *argv
 	return 0;
 }
 
-static int hikp_nic_torus_get_target(struct major_cmd_ctrl *self, const char *argv)
+int hikp_nic_torus_get_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &g_torus_target);
 	if (self->err_no != 0) {

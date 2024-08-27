@@ -113,7 +113,7 @@ struct cmd_serdes_param {
 	uint8_t sds_num;
 	uint8_t val;
 	uint8_t sub_cmd;
-	uint8_t rsvd1;
+	uint8_t cmd_type;
 	uint8_t rsvd2;
 };
 
@@ -209,5 +209,7 @@ struct hilink_brief_info {
 	uint32_t rx_data_rate_mhz;
 	uint32_t rsvd_1;
 };
+
+int hikp_serdes_get_reponse(struct cmd_serdes_param *cmd);
 
 #endif /* HIKP_SERDES_H */

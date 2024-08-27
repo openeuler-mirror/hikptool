@@ -15,6 +15,12 @@
 
 static struct cmd_roce_timer_params g_roce_timer_param = { 0 };
 
+int hikp_roce_set_timer_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_timer_param.target);
+}
+
 static int hikp_roce_timer_help(struct major_cmd_ctrl *self, const char *argv)
 {
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
@@ -192,7 +198,7 @@ static int hikp_roce_timer_clear(struct major_cmd_ctrl *self)
 	return 0;
 }
 
-static void hikp_roce_timer_execute(struct major_cmd_ctrl *self)
+void hikp_roce_timer_execute(struct major_cmd_ctrl *self)
 {
 	int (*func[])(struct major_cmd_ctrl *self) = {
 		hikp_roce_timer_show_cqc, hikp_roce_timer_show_qpc

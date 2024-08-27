@@ -80,7 +80,7 @@ static void hikp_nic_port_fault_show(struct nic_port_fault_status *info)
 	printf("#################### END #######################\n");
 }
 
-static void hikp_nic_port_fault_cmd_execute(struct major_cmd_ctrl *self)
+void hikp_nic_port_fault_cmd_execute(struct major_cmd_ctrl *self)
 {
 	struct bdf_t *bdf = &g_port_fault_target.bdf;
 	struct nic_port_fault_status info = { 0 };
@@ -108,7 +108,7 @@ static int hikp_nic_port_fault_cmd_help(struct major_cmd_ctrl *self, const char 
 	return 0;
 }
 
-static int hikp_nic_port_fault_get_target(struct major_cmd_ctrl *self, const char *argv)
+int hikp_nic_port_fault_get_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &g_port_fault_target);
 	if (self->err_no != 0) {

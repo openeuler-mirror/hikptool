@@ -15,6 +15,7 @@
 #define PCIE_STATISTICS_H
 
 #include "pcie_common_api.h"
+#include "hikptdev_plug.h"
 
 #define GLOBAL_WIDTH_TABLE_SIZE 5
 #define MAX_MACRO_ONEPORT 3
@@ -126,5 +127,6 @@ struct pcie_info_req_para {
 int pcie_port_distribution_get(uint32_t chip_id);
 int pcie_error_state_get(uint32_t port_id);
 int pcie_error_state_clear(uint32_t port_id);
+int port_distribution_rsp_data_check(const struct hikp_cmd_ret *cmd_ret, uint32_t *port_num);
 
 #endif /* PCIE_STATISTICS_H */

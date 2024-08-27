@@ -38,4 +38,11 @@ struct log_param {
 	struct tool_target target;
 };
 
+struct nic_log_collect_param {
+	const char *net_dev_name;
+};
+
+const char *hikp_info_collect_get_log_path(void);
+int hikp_info_collect_nic_log(void *data);
+
 #endif /* HIKP_NIC_LOG_H */

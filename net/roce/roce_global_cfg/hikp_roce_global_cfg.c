@@ -15,6 +15,12 @@
 
 static struct cmd_roce_global_cfg_param g_roce_global_cfg_param = { 0 };
 
+int hikp_roce_set_global_cfg_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_global_cfg_param.target);
+}
+
 static int hikp_roce_global_cfg_help(struct major_cmd_ctrl *self,
 				     const char *argv)
 {
@@ -63,7 +69,7 @@ static int hikp_roce_global_cfg_get_data(struct hikp_cmd_ret **cmd_ret,
 	return ret;
 }
 
-static void hikp_roce_global_cfg_execute(struct major_cmd_ctrl *self)
+void hikp_roce_global_cfg_execute(struct major_cmd_ctrl *self)
 {
 	enum roce_global_cfg_cmd_type sub_cmds[] = {
 		ROCE_GLB_GENAC,

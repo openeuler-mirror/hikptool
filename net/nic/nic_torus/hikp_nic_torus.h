@@ -73,4 +73,6 @@ struct nic_torus_info {
 	uint32_t ets_tcg0_mapping;
 };
 
+int hikp_nic_torus_get_target(struct major_cmd_ctrl *self, const char *argv);
+void hikp_nic_torus_cmd_execute(struct major_cmd_ctrl *self);
 #endif /* HIKP_NIC_TORUS_H */

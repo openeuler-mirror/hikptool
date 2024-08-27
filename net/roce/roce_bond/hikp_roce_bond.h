@@ -26,4 +26,7 @@ struct roce_bond_req_param {
 	uint32_t block_id;
 };
 
+int hikp_roce_set_bond_bdf(char *nic_name);
+void hikp_roce_bond_execute(struct major_cmd_ctrl *self);
+
 #endif /* HIKP_ROCE_BOND_H */

@@ -40,4 +40,7 @@ struct roce_timer_rsp_data {
 	uint32_t timer_content[ROCE_HIKP_TIMER_REG_NUM][2];
 };
 
+int hikp_roce_set_timer_bdf(char *nic_name);
+void hikp_roce_timer_execute(struct major_cmd_ctrl *self);
+
 #endif /* HIKP_ROCE_TIMER_H */

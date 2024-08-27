@@ -54,4 +54,10 @@ struct nic_ncsi_cmd_info {
 	bool port_flag;
 };
 
+struct nic_ncsi_collect_param {
+	const char *net_dev_name;
+};
+
+int hikp_info_collect_nic_ncsi(void *data);
+
 #endif  /* HIKP_NIC_NCSI_H */

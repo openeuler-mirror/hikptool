@@ -57,6 +57,13 @@ static const struct ppp_feature_cmd g_ppp_feature_cmd[] = {
 	 hikp_nic_query_ppp_by_blkid,   hikp_nic_ppp_show_vlan_offload},
 };
 
+void hikp_nic_ppp_set_cmd_param(int feature_idx)
+{
+	g_ppp_param.func_id = -1;
+	g_ppp_param.is_uc = -1;
+	g_ppp_param.feature_idx = feature_idx;
+}
+
 static int hikp_nic_ppp_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 {
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <device>");
@@ -1098,7 +1105,7 @@ static int hikp_nic_check_hw_res(struct hikp_nic_ppp_hw_resources *hw_res)
 	return 0;
 }
 
-static void hikp_nic_ppp_cmd_execute(struct major_cmd_ctrl *self)
+void hikp_nic_ppp_cmd_execute(struct major_cmd_ctrl *self)
 {
 	struct bdf_t *bdf = &g_ppp_param.target.bdf;
 	const struct ppp_feature_cmd *ppp_cmd;
@@ -1157,7 +1164,7 @@ out:
 	hikp_nic_ppp_data_free(ppp_data);
 }
 
-static int hikp_nic_cmd_get_ppp_target(struct major_cmd_ctrl *self, const char *argv)
+int hikp_nic_cmd_get_ppp_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &(g_ppp_param.target));
 	if (self->err_no != 0) {

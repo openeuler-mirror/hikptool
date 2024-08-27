@@ -224,4 +224,8 @@ struct fd_feature_cmd {
 	void (*show)(const void *data);
 };
 
+int hikp_nic_cmd_get_fd_target(struct major_cmd_ctrl *self, const char *argv);
+void hikp_nic_fd_cmd_execute(struct major_cmd_ctrl *self);
+void hikp_nic_set_fd_idx(int feature_idx, int stage_no);
+
 #endif /* HIKP_NIC_FD_H */

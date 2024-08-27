@@ -29,7 +29,7 @@ static const char *g_global_ndie_name[] = {
 	"Ndie_A", "Ndie_B", "Ndie_C", "Ndie_D"
 };
 
-static int port_distribution_rsp_data_check(const struct hikp_cmd_ret *cmd_ret, uint32_t *port_num)
+int port_distribution_rsp_data_check(const struct hikp_cmd_ret *cmd_ret, uint32_t *port_num)
 {
 	size_t rsp_data_size, expect_data_size;
 	struct pcie_port_info *port_info = NULL;

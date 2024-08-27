@@ -15,10 +15,26 @@
 
 static struct cmd_roce_tsp_param_t g_roce_tsp_param_t = { 0 };
 static struct roce_tsp_module g_roce_tsp_module[] = {
-	TSP_HANDLE(COMMON),
+	{ "COMMON", TSP_COMMON },
 	TSP_HANDLE(TDP),
 	TSP_HANDLE(TGP_TMP),
 };
+
+int hikp_roce_set_tsp_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_tsp_param_t.target);
+}
+
+void hikp_roce_set_tsp_bankid(uint32_t bank_id)
+{
+	g_roce_tsp_param_t.bank_id = bank_id;
+}
+
+void hikp_roce_set_tsp_submodule(uint32_t module)
+{
+	g_roce_tsp_param_t.sub_cmd_code = module;
+}
 
 static int hikp_roce_tsp_help(struct major_cmd_ctrl *self, const char *argv)
 {
@@ -85,7 +101,7 @@ static int hikp_roce_tsp_bank_get(struct major_cmd_ctrl *self, const char *argv)
 static int hikp_roce_tsp_bank_check(void)
 {
 	switch (g_roce_tsp_param_t.sub_cmd_code) {
-	case (COMMON):
+	case (TSP_COMMON):
 		if (g_roce_tsp_param_t.bank_id > MAX_TSP_BANK_NUM)
 			return -EINVAL;
 		break;
@@ -194,9 +210,11 @@ static const struct reg_name_info {
 	const char **reg_name;
 	uint8_t arr_len;
 } g_tsp_reg_name_info_table[] = {
-	{COMMON, g_tsp_common_reg_name, HIKP_ARRAY_SIZE(g_tsp_common_reg_name)},
+	{TSP_COMMON, g_tsp_common_reg_name,
+	 HIKP_ARRAY_SIZE(g_tsp_common_reg_name)},
 	{TDP, g_tsp_tdp_reg_name, HIKP_ARRAY_SIZE(g_tsp_tdp_reg_name)},
-	{TGP_TMP, g_tsp_tgp_tmp_reg_name, HIKP_ARRAY_SIZE(g_tsp_tgp_tmp_reg_name)},
+	{TGP_TMP, g_tsp_tgp_tmp_reg_name,
+	 HIKP_ARRAY_SIZE(g_tsp_tgp_tmp_reg_name)},
 };
 
 static void hikp_roce_tsp_print(uint32_t total_block_num,
@@ -229,7 +247,7 @@ static void hikp_roce_tsp_print(uint32_t total_block_num,
 	printf("***********************************\n");
 }
 
-static void hikp_roce_tsp_execute(struct major_cmd_ctrl *self)
+void hikp_roce_tsp_execute(struct major_cmd_ctrl *self)
 {
 	struct roce_tsp_res_param *roce_tsp_res;
 	struct roce_tsp_req_param req_data;

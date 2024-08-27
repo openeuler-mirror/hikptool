@@ -100,6 +100,24 @@ static int nic_ncsi_cmd_show_help(struct major_cmd_ctrl *self, const char *argv)
 	return 0;
 }
 
+int hikp_info_collect_nic_ncsi(void *data)
+{
+	struct nic_ncsi_collect_param *param = (struct nic_ncsi_collect_param *)data;
+	struct major_cmd_ctrl *major_cmd = get_major_cmd();
+	int ret;
+
+	memset(&g_ncsi_cmd_info, 0, sizeof(g_ncsi_cmd_info));
+
+	ret = nic_ncsi_cmd_get_port_info(major_cmd, param->net_dev_name);
+	if (ret)
+		return ret;
+
+	printf("hikptool nic_ncsi -i %s\n", param->net_dev_name);
+	nic_ncsi_cmd_execute(major_cmd);
+
+	return ret;
+}
+
 static void cmd_nic_get_ncsi_init(void)
 {
 	struct major_cmd_ctrl *major_cmd = get_major_cmd();

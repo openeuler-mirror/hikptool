@@ -109,6 +109,13 @@ static const struct fd_feature_cmd g_fd_feature_cmd[] = {
 	 hikp_nic_query_fd_counter, hikp_nic_show_fd_counter},
 };
 
+void hikp_nic_set_fd_idx(int feature_idx, int stage_no)
+{
+	g_fd_param.id = -1;
+	g_fd_param.feature_idx = feature_idx;
+	g_fd_param.stage_no = stage_no;
+}
+
 static int hikp_nic_fd_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 {
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <device>");
@@ -923,7 +930,7 @@ static int hikp_nic_fd_check_input_param(struct major_cmd_ctrl *self,
 	return 0;
 }
 
-static void hikp_nic_fd_cmd_execute(struct major_cmd_ctrl *self)
+void hikp_nic_fd_cmd_execute(struct major_cmd_ctrl *self)
 {
 	struct bdf_t *bdf = &g_fd_param.target.bdf;
 	const struct fd_feature_cmd *fd_cmd;
@@ -983,7 +990,7 @@ out:
 	hikp_nic_fd_data_free(fd_data);
 }
 
-static int hikp_nic_cmd_get_fd_target(struct major_cmd_ctrl *self, const char *argv)
+int hikp_nic_cmd_get_fd_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &(g_fd_param.target));
 	if (self->err_no != 0) {

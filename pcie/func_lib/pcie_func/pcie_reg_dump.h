@@ -15,10 +15,12 @@
 #define PCIE_REG_DUMP_H
 
 #include "pcie_common_api.h"
+#include "tool_lib.h"
 
 #define PCIE_REG_NAME_LEN 60
 #define MAX_STR_LEN 80
 #define PCIE_DUMPREG_LOGFILE_NAME "pcie_dumpreg"
+#define LOG_FILE_PATH_MAX_LEN	512
 
 #define HIKP_PCIE_PCS_LANE_TBL_ENTRY(name) \
 	{0, STR(CONTACT(name, _00))}, {0, STR(CONTACT(name, _01))}, \
@@ -54,6 +56,8 @@ struct pcie_dumpreg_table {
 	struct pcie_dumpreg_info *dump_info;
 };
 
+extern char dumpreg_log_file[MAX_LOG_NAME_LEN + 1];
 int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level);
+
 
 #endif /* PCIE_REG_DUMP_H */

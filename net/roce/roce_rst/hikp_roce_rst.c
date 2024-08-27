@@ -15,6 +15,12 @@
 
 static struct cmd_roce_rst_param g_roce_rst_param = { 0 };
 
+int hikp_roce_set_rst_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_rst_param.target);
+}
+
 static int hikp_roce_rst_help(struct major_cmd_ctrl *self, const char *argv)
 {
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
@@ -60,7 +66,7 @@ static int hikp_roce_rst_get_data(struct hikp_cmd_ret **cmd_ret,
 	return ret;
 }
 
-static void hikp_roce_rst_execute(struct major_cmd_ctrl *self)
+void hikp_roce_rst_execute(struct major_cmd_ctrl *self)
 {
 	hikp_roce_ext_execute(self, GET_ROCEE_RST_CMD, hikp_roce_rst_get_data);
 }

@@ -37,4 +37,7 @@ enum roce_global_cfg_cmd_type {
 	ROCE_GLB_NICL,
 };
 
+int hikp_roce_set_global_cfg_bdf(char *nic_name);
+void hikp_roce_global_cfg_execute(struct major_cmd_ctrl *self);
+
 #endif /* HIKP_ROCE_GLOBAL_CFG_H */

@@ -58,12 +58,16 @@ struct roce_scc_module {
 };
 
 enum roce_scc_type {
-	COMMON = 1,
+	SCC_COMMON = 1,
 	DCQCN,
 	DIP,
 	HC3,
 	LDCP,
 	CFG,
 };
+
+int hikp_roce_set_scc_bdf(char *nic_name);
+void hikp_roce_set_scc_submodule(uint32_t module);
+void hikp_roce_scc_execute(struct major_cmd_ctrl *self);
 
 #endif /* HIKP_ROCE_SCC_H */

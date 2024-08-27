@@ -69,7 +69,7 @@ union pm_state_reg {
 	uint64_t val;
 };
 
-static int pcie_get_ltssm_trace(uint32_t port_id, uint64_t *ltssm_status, uint32_t *ltssm_num)
+int pcie_get_ltssm_trace(uint32_t port_id, uint64_t *ltssm_status, uint32_t *ltssm_num)
 {
 	struct hikp_cmd_header req_header;
 	struct hikp_cmd_ret *cmd_ret = NULL;

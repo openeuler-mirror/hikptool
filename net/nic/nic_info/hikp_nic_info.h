@@ -77,4 +77,6 @@ enum nic_info_mac_type {
 	MAC_TYPE_MAX,
 };
 
+void hikp_nic_info_cmd_execute(struct major_cmd_ctrl *self);
+int hikp_nic_cmd_get_info_target(struct major_cmd_ctrl *self, const char *argv);
 #endif /* HIKP_NIC_INFO_H */

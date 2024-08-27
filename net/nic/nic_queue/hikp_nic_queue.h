@@ -152,4 +152,8 @@ struct queue_feature_cmd {
 	uint32_t sub_cmd_code;
 	void (*show)(const void *data);
 };
+
+int hikp_nic_cmd_get_queue_target(struct major_cmd_ctrl *self, const char *argv);
+void hikp_nic_queue_cmd_execute(struct major_cmd_ctrl *self);
+void hikp_nic_queue_cmd_set_param(int feature_idx, int qid, enum nic_queue_dir dir);
 #endif /* HIKP_NIC_QUEUE_H */

@@ -67,7 +67,12 @@ enum roce_trp_type {
 	TRP_RX = 1,
 	GEN_AC,
 	PAYL,
-	COMMON,
+	TRP_COMMON,
 };
+
+void hikp_roce_set_trp_submodule(uint32_t module);
+void hikp_roce_set_trp_bankid(uint32_t bank_id);
+int hikp_roce_set_trp_bdf(char *nic_name);
+void hikp_roce_trp_execute(struct major_cmd_ctrl *self);
 
 #endif /* HIKP_ROCE_TRP_H */

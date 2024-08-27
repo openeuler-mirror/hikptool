@@ -132,6 +132,11 @@ static const struct rss_feature_cmd g_rss_feature_cmd[] = {
 	{"tc_mode", RSS_TC_MODE_DUMP, hikp_nic_rss_show_tc_mode},
 };
 
+void hikp_nic_rss_cmd_set_feature_idx(int feature_idx)
+{
+	g_rss_param.feature_idx = feature_idx;
+}
+
 static int hikp_nic_rss_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 {
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <device>");
@@ -417,7 +422,7 @@ static int hikp_nic_query_rss_feature(struct hikp_cmd_header *req_header, const 
 	return ret;
 }
 
-static void hikp_nic_rss_cmd_execute(struct major_cmd_ctrl *self)
+void hikp_nic_rss_cmd_execute(struct major_cmd_ctrl *self)
 {
 	union nic_rss_feature_info rss_data = {0};
 	const struct rss_feature_cmd *rss_cmd;
@@ -446,7 +451,7 @@ static void hikp_nic_rss_cmd_execute(struct major_cmd_ctrl *self)
 	printf("#################### END #######################\n");
 }
 
-static int hikp_nic_cmd_get_rss_target(struct major_cmd_ctrl *self, const char *argv)
+int hikp_nic_cmd_get_rss_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &(g_rss_param.target));
 	if (self->err_no != 0) {

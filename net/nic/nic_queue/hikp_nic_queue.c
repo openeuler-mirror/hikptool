@@ -32,6 +32,14 @@ static const struct queue_feature_cmd g_queue_feature_cmd[] = {
 	{"func_map",   QUEUE_FUNC_MAP,   hikp_nic_queue_show_func_map},
 };
 
+void hikp_nic_queue_cmd_set_param(int feature_idx, int qid, enum nic_queue_dir dir)
+{
+	g_queue_param.is_display_all = true;
+	g_queue_param.qid = qid;
+	g_queue_param.dir = dir;
+	g_queue_param.feature_idx = feature_idx;
+}
+
 static int hikp_nic_queue_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 {
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <device>");
@@ -340,7 +348,7 @@ static bool hikp_nic_queue_check_feature_para_vaild(const struct queue_feature_c
 	return valid;
 }
 
-static void hikp_nic_queue_cmd_execute(struct major_cmd_ctrl *self)
+void hikp_nic_queue_cmd_execute(struct major_cmd_ctrl *self)
 {
 	const struct queue_feature_cmd *queue_cmd;
 	union nic_queue_feature_info *queue_data;
@@ -387,7 +395,7 @@ out:
 	free(queue_data);
 }
 
-static int hikp_nic_cmd_get_queue_target(struct major_cmd_ctrl *self, const char *argv)
+int hikp_nic_cmd_get_queue_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &(g_queue_param.target));
 	if (self->err_no != 0) {

@@ -734,6 +734,29 @@ static int hikp_xsfp_dump_raw_data(struct major_cmd_ctrl *self, const char *argv
 	return 0;
 }
 
+int hikp_info_collect_nic_xsfp(void *data)
+{
+	struct nic_xsfp_collect_param *param = (struct nic_xsfp_collect_param *)data;
+	struct major_cmd_ctrl *major_cmd = get_major_cmd();
+	int ret;
+
+	memset(&g_xsfp_dump, 0, sizeof(g_xsfp_dump));
+
+	ret = hikp_xsfp_get_target(major_cmd, param->net_dev_name);
+	if (ret)
+		return ret;
+
+	printf("hikptool nic_xsfp -i %s\n", param->net_dev_name);
+	hikp_xsfp_get_info(major_cmd);
+
+	printf("hikptool nic_xsfp -i %s -d\n", param->net_dev_name);
+	/* No need to judge the return value */
+	(void)hikp_xsfp_dump_raw_data(major_cmd, NULL);
+	hikp_xsfp_get_info(major_cmd);
+
+	return ret;
+}
+
 static void cmd_get_xsfp_info(void)
 {
 	struct major_cmd_ctrl *major_cmd = get_major_cmd();

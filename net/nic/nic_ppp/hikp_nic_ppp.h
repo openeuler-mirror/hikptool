@@ -246,4 +246,7 @@ struct ppp_feature_cmd {
 	void (*show)(const void *data);
 };
 
+void hikp_nic_ppp_set_cmd_param(int feature_idx);
+int hikp_nic_cmd_get_ppp_target(struct major_cmd_ctrl *self, const char *argv);
+void hikp_nic_ppp_cmd_execute(struct major_cmd_ctrl *self);
 #endif /* HIKP_NIC_PPP_H */

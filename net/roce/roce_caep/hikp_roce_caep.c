@@ -15,6 +15,17 @@
 
 static struct cmd_roce_caep_param_t g_roce_caep_param_t = { 0 };
 
+int hikp_roce_set_caep_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_caep_param_t.target);
+}
+
+void hikp_roce_set_caep_mode(uint32_t mode)
+{
+	g_roce_caep_param_t.sub_cmd = mode;
+}
+
 static int hikp_roce_caep_help(struct major_cmd_ctrl *self, const char *argv)
 {
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
@@ -102,7 +113,7 @@ exec_error:
 	hikp_cmd_free(&cmd_ret);
 }
 
-static void hikp_roce_caep_execute(struct major_cmd_ctrl *self)
+void hikp_roce_caep_execute(struct major_cmd_ctrl *self)
 {
 	if (g_roce_caep_param_t.sub_cmd == CAEP_ORIGIN)
 		hikp_roce_caep_execute_origin(self);

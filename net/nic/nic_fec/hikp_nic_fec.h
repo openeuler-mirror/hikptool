@@ -69,4 +69,6 @@ struct nic_fec_err_info {
 	};
 };
 
+int hikp_nic_fec_get_target(struct major_cmd_ctrl *self, const char *argv);
+void hikp_nic_fec_cmd_execute(struct major_cmd_ctrl *self);
 #endif /* HIKP_NIC_FEC_H */

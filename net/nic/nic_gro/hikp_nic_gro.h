@@ -43,4 +43,6 @@ struct nic_gro_info {
 	uint32_t max_coal_bd_num;
 };
 
+int hikp_nic_gro_get_target(struct major_cmd_ctrl *self, const char *argv);
+void hikp_nic_gro_cmd_execute(struct major_cmd_ctrl *self);
 #endif /* HIKP_NIC_GRO_H */

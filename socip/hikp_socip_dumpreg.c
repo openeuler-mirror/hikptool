@@ -105,7 +105,7 @@ static bool check_socip_dumpreg_param(void)
 	return ret;
 }
 
-static void dump_reg_info(const uint32_t *reg_data, uint32_t data_num)
+void dump_reg_info(const uint32_t *reg_data, uint32_t data_num)
 {
 #define ONE_LINE_PRINT_DATA_NUM 4
 	uint32_t i;

@@ -149,4 +149,7 @@ struct dfx_type_name_parse {
 	uint32_t reg_num;
 };
 
+int hikp_nic_cmd_dfx_target(struct major_cmd_ctrl *self, const char *argv);
+void hikp_nic_dfx_cmd_execute(struct major_cmd_ctrl *self);
+void hikp_nic_dfx_set_cmd_para(int idx);
 #endif /* HIKP_NIC_DFX_H */

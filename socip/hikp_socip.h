@@ -10,8 +10,8 @@
  *
  * See the Mulan PSL v2 for more details.
  */
-#ifndef __HIKP_SOCIP_H__
-#define __HIKP_SOCIP_H__
+#ifndef HIKP_SOCIP_H
+#define HIKP_SOCIP_H
 
 #include <stdint.h>
 
@@ -46,4 +46,4 @@ struct socip_dump_reg_req_data_t {
 	uint8_t controller_id;
 };
 
-#endif /* __HIKP_SOCIP_H__ */
+#endif /* HIKP_SOCIP_H */

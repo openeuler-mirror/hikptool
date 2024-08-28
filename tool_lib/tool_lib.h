@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __TOOL_LIB_H__
-#define __TOOL_LIB_H__
+#ifndef TOOL_LIB_H
+#define TOOL_LIB_H
 
 #include "ossl_user_linux.h"
 
@@ -105,4 +105,4 @@ int generate_file_name(unsigned char *file_name, uint32_t file_name_len,
 		       const unsigned char *prefix);
 bool tool_can_print(uint32_t interval, uint32_t burst, uint32_t *print_num, uint64_t *last_time);
 
-#endif
+#endif /* TOOL_LIB_H */

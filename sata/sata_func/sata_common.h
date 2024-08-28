@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __SATA_COMMON_H_
-#define __SATA_COMMON_H_
+#ifndef SATA_COMMON_H
+#define SATA_COMMON_H
 
 #define SATA_MAX_PORT_NUM 1
 #define RESP_MAX_NUM 60
@@ -28,4 +28,4 @@ enum sata_dump_cmd_type {
 	DUMP_PORTX,
 };
 
-#endif
+#endif /* SATA_COMMON_H */

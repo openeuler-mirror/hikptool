@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __SATA_TOOLS_INCLUDE_H_
-#define __SATA_TOOLS_INCLUDE_H_
+#ifndef SATA_TOOLS_INCLUDE_H
+#define SATA_TOOLS_INCLUDE_H
 
 #include "hikptdev_plug.h"
 #include "tool_lib.h"
@@ -26,4 +26,4 @@ struct tool_sata_cmd {
 	uint32_t die_id;
 };
 
-#endif
+#endif /* SATA_TOOLS_INCLUDE_H */

@@ -549,4 +549,4 @@ struct hikp_xsfp_ctrl {
 	uint32_t dump_param;
 };
 
-#endif
+#endif /* HIKP_NIC_XSFP_H */

@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROCE_GLOBAL_CFG_H__
-#define __HIKP_ROCE_GLOBAL_CFG_H__
+#ifndef HIKP_ROCE_GLOBAL_CFG_H
+#define HIKP_ROCE_GLOBAL_CFG_H
 
 #include "hikp_roce_ext_common.h"
 
@@ -37,4 +37,4 @@ enum roce_global_cfg_cmd_type {
 	ROCE_GLB_NICL,
 };
 
-#endif /* __HIKP_ROCE_GLOBAL_CFG_H__ */
+#endif /* HIKP_ROCE_GLOBAL_CFG_H */

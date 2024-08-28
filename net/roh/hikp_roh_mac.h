@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROH_MAC_H__
-#define __HIKP_ROH_MAC_H__
+#ifndef HIKP_ROH_MAC_H
+#define HIKP_ROH_MAC_H
 
 #include "tool_lib.h"
 #include "hikp_net_lib.h"
@@ -104,4 +104,4 @@ struct roh_mac_credit_data {
 	uint32_t cut_reg_value[MAX_CRD_SIZE];
 };
 
-#endif /* __HIKP_ROH_MAC_H__ */
+#endif /* HIKP_ROH_MAC_H */

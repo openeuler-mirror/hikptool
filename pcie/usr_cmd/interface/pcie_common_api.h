@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __PCIE_COMMON_API_H_
-#define __PCIE_COMMON_API_H_
+#ifndef PCIE_COMMON_API_H
+#define PCIE_COMMON_API_H
 
 #include <stdint.h>
 #include <stdio.h>
@@ -42,4 +42,4 @@ struct pcie_comm_api {
 
 struct pcie_comm_api *pcie_get_comm_api(void);
 
-#endif
+#endif /* PCIE_COMMON_API_H */

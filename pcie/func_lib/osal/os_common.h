@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef _OS_COMMON_H_
-#define _OS_COMMON_H_
+#ifndef OS_COMMON_H
+#define OS_COMMON_H
 
 #define LOG_PCIE "[PCIE]"
 
@@ -26,4 +26,4 @@
 
 #define Tips(x, args...) Info("[ TIPS ] " x, ##args)
 
-#endif
+#endif /* OS_COMMON_H */

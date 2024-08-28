@@ -60,4 +60,4 @@ struct cmd_mac_dump {
 	uint32_t blk_num[MOD_ID_MAX];
 	const char *module_name;
 };
-#endif
+#endif /* HIKP_NIC_MAC_DUMP_H */

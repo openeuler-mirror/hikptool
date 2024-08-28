@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __CXL_FEATURE_H_
-#define __CXL_FEATURE_H_
+#ifndef CXL_FEATURE_H
+#define CXL_FEATURE_H
 
 #include "tool_cmd.h"
 
@@ -408,4 +408,4 @@ union cxl_mem_error_ctrl {
 	uint32_t val;
 };
 
-#endif
+#endif /* CXL_FEATURE_H */

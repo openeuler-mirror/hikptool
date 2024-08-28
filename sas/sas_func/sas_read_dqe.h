@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __SAS_DQE_H_
-#define __SAS_DQE_H_
+#ifndef SAS_DQE_H
+#define SAS_DQE_H
 
 #include "sas_tools_include.h"
 
@@ -82,4 +82,4 @@ struct hisi_sas_dq_info {
 
 int sas_dqe(const struct tool_sas_cmd *cmd);
 
-#endif
+#endif /* SAS_DQE_H */

@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __PCIE_LINK_LTSSM_H_
-#define __PCIE_LINK_LTSSM_H_
+#ifndef PCIE_LINK_LTSSM_H
+#define PCIE_LINK_LTSSM_H
 
 #include "pcie_common_api.h"
 
@@ -60,4 +60,4 @@ int pcie_ltssm_trace_mode_set(uint32_t port_id, uint32_t mode);
 int pcie_ltssm_link_status_get(uint32_t port_id);
 int pcie_pm_trace(uint32_t port_id);
 
-#endif
+#endif /* PCIE_LINK_LTSSM_H */

@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROCE_RST_H__
-#define __HIKP_ROCE_RST_H__
+#ifndef HIKP_ROCE_RST_H
+#define HIKP_ROCE_RST_H
 
 #include "hikp_roce_ext_common.h"
 
@@ -26,4 +26,4 @@ struct roce_rst_req_param {
 	uint32_t block_id;
 };
 
-#endif /* __HIKP_ROCE_RST_H__ */
+#endif /* HIKP_ROCE_RST_H */

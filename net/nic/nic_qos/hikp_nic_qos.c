@@ -15,9 +15,8 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include "hikp_nic_qos.h"
 #include "hikpt_rciep.h"
+#include "hikp_nic_qos.h"
 
 static struct nic_qos_param g_qos_param = { 0 };
 

@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __SAS_ANALY_DQ_H_
-#define __SAS_ANALY_DQ_H_
+#ifndef SAS_ANALY_DQ_H
+#define SAS_ANALY_DQ_H
 
 #include "sas_tools_include.h"
 
@@ -35,4 +35,4 @@ struct sas_analy_para {
 
 int sas_analy_cmd(struct tool_sas_cmd *cmd);
 
-#endif
+#endif /* SAS_ANALY_DQ_H */

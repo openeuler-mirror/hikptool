@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROCE_QMM_H__
-#define __HIKP_ROCE_QMM_H__
+#ifndef HIKP_ROCE_QMM_H
+#define HIKP_ROCE_QMM_H
 
 #include "hikp_roce_ext_common.h"
 
@@ -51,4 +51,4 @@ enum roce_qmm_cmd_type {
 	QMM_SHOW_TOP_EXT,
 };
 
-#endif /* __HIKP_ROCE_QMM_H__ */
+#endif /* HIKP_ROCE_QMM_H */

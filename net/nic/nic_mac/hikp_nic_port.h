@@ -271,4 +271,4 @@ struct cmd_hot_plug_card_info {
 	uint8_t cur_type;
 };
 
-#endif
+#endif /* HIKP_NIC_PORT_H */

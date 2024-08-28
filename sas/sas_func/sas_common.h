@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __SAS_COMMON_H_
-#define __SAS_COMMON_H_
+#ifndef SAS_COMMON_H
+#define SAS_COMMON_H
 
 #define RESP_MAX_NUM 60
 #define SAS_MAX_PHY_NUM 7
@@ -84,4 +84,4 @@ enum sas_dqe_cmd_type {
 	DQE_UNKNOWN_TYPE,
 };
 
-#endif
+#endif /* SAS_COMMON_H */

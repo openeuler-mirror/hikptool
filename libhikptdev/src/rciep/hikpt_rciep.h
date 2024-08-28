@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __KPT_RCIEP_H__
-#define __KPT_RCIEP_H__
+#ifndef KPT_RCIEP_H
+#define KPT_RCIEP_H
 
 #include <stdint.h>
 #include "hikptdev_plug.h"
@@ -104,4 +104,4 @@ union hikp_space_req {
 };
 #pragma pack()
 
-#endif
+#endif /* KPT_RCIEP_H */

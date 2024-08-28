@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROCE_EXT_COMMON_H__
-#define __HIKP_ROCE_EXT_COMMON_H__
+#ifndef HIKP_ROCE_EXT_COMMON_H
+#define HIKP_ROCE_EXT_COMMON_H
 
 #include "hikp_net_lib.h"
 
@@ -64,4 +64,4 @@ void hikp_roce_ext_execute(struct major_cmd_ctrl *self,
 					   uint32_t block_id,
 					   struct roce_ext_reg_name *reg_name));
 
-#endif /* __HIKP_ROCE_EXT_COMMON_H__ */
+#endif /* HIKP_ROCE_EXT_COMMON_H */

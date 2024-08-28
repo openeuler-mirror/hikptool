@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __SAS_TOOLS_INCLUDE_H_
-#define __SAS_TOOLS_INCLUDE_H_
+#ifndef SAS_TOOLS_INCLUDE_H
+#define SAS_TOOLS_INCLUDE_H
 
 #include "hikptdev_plug.h"
 #include "tool_lib.h"
@@ -42,4 +42,4 @@ int sas_set_die_id(struct major_cmd_ctrl *self, const char *argv);
 int sas_set_que_id(struct major_cmd_ctrl *self, const char *argv);
 int sas_set_dqe_id(struct major_cmd_ctrl *self, const char *argv);
 
-#endif
+#endif /* SAS_TOOLS_INCLUDE_H */

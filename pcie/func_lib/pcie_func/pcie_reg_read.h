@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __PCIE_REG_READ_H_
-#define __PCIE_REG_READ_H_
+#ifndef PCIE_REG_READ_H
+#define PCIE_REG_READ_H
 
 #include "pcie_common_api.h"
 
@@ -57,4 +57,4 @@ enum pcie_module_id_list {
 int pcie_reg_read(uint32_t port_id, uint32_t module_id, uint32_t offset);
 int pcie_read_name2module_id(const char *module_name, uint32_t *module_id);
 
-#endif
+#endif /* PCIE_REG_READ_H */

@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_NIC_DFX_H__
-#define __HIKP_NIC_DFX_H__
+#ifndef HIKP_NIC_DFX_H
+#define HIKP_NIC_DFX_H
 
 #include "hikp_net_lib.h"
 
@@ -138,4 +138,4 @@ struct nic_dfx_rsp_t {
 	uint32_t reg_data[MAX_DFX_DATA_NUM];
 };
 
-#endif
+#endif /* HIKP_NIC_DFX_H */

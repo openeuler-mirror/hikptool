@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROH_SHOW_BP_H__
-#define __HIKP_ROH_SHOW_BP_H__
+#ifndef HIKP_ROH_SHOW_BP_H
+#define HIKP_ROH_SHOW_BP_H
 
 #include "hikp_net_lib.h"
 
@@ -47,4 +47,4 @@ struct roh_show_bp_rsp_t {
 #define VERIFY_MAC_ID 2
 #define BP_SIZE 8
 
-#endif /* __HIKP_ROH_SHOW_BP_H__ */
+#endif /* HIKP_ROH_SHOW_BP_H */

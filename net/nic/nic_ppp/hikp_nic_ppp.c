@@ -1077,7 +1077,7 @@ static int hikp_nic_check_hw_res(struct hikp_nic_ppp_hw_resources *hw_res)
 		return -EINVAL;
 	}
 	if (hw_res->mng_tbl_size == 0) {
-		HIKP_ERROR_PRINT("VF VLAN Table size (%u）is zero!\n");
+		HIKP_ERROR_PRINT("Manager Table size should not be zero!\n");
 		return -EINVAL;
 	}
 	if (hw_res->mac_id >= HIKP_PPP_MAX_MAC_ID_NUM) {

@@ -184,7 +184,7 @@ static void hikp_nic_ppp_show_func_uc_mac_addr(struct mac_vlan_uc_tbl *uc_tbl,
 	struct mac_vlan_uc_entry *uc_entry;
 	uint8_t pf_id;
 	uint8_t vf_id;
-	uint8_t i;
+	uint32_t i;
 
 	for (i = 0; i < uc_tbl->entry_size; i++) {
 		uc_entry = &uc_tbl->entry[i];

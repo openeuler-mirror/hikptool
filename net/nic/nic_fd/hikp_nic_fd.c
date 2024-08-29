@@ -503,7 +503,7 @@ static void hikp_nic_show_fd_rules(const void *data)
 	struct nic_fd_rule_info *rule;
 	uint16_t max_key_bytes;
 	size_t one_rule_size;
-	uint16_t i;
+	uint32_t i;
 
 	key_cfg = &g_fd_hw_info.key_cfg[stage_no];
 	stage_rules = &rules[stage_no];

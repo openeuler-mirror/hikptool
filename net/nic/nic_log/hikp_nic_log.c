@@ -124,8 +124,7 @@ static int hikp_nic_get_first_blk_info(uint32_t *total_blk_num,
 	*cur_blk_size = (uint32_t)log_rsp->cur_blk_size;
 	memcpy(*log_data, log_rsp->log_data, log_rsp->cur_blk_size);
 err_out:
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }
@@ -152,8 +151,7 @@ static int hikp_nic_get_log_info(uint32_t blk_id, uint32_t *cur_blk_size, uint8_
 	}
 	memcpy(log_data, log_rsp->log_data, log_rsp->cur_blk_size);
 err_out:
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }

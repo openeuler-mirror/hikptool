@@ -109,7 +109,7 @@ static int hikp_unic_ppp_get_blk(struct hikp_cmd_header *req_header,
 	memcpy(rsp_head, &rsp->rsp_head, sizeof(struct unic_ppp_rsp_head));
 
 out:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 

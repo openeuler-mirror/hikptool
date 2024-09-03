@@ -33,14 +33,13 @@ static int hikp_nic_notify_pkt_query(struct major_cmd_ctrl *self, const struct b
 	self->err_no = hikp_rsp_normal_check(cmd_resp);
 	if (self->err_no) {
 		snprintf(self->err_str, sizeof(self->err_str), "get notify pkt failed.");
-		if (cmd_resp)
-			free(cmd_resp);
+		hikp_cmd_free(&cmd_resp);
 		return self->err_no;
 	}
 
 	rsp = (struct nic_notify_pkt_rsp *)cmd_resp->rsp_data;
 	*info = *(struct nic_notify_pkt_info *)rsp->data;
-	free(cmd_resp);
+	hikp_cmd_free(&cmd_resp);
 
 	return 0;
 }

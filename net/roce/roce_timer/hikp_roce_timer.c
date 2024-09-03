@@ -135,8 +135,7 @@ static int hikp_roce_timer_show_qpc(struct major_cmd_ctrl *self)
 	printf("**************QPC TIMER INFO*************\n");
 	hikp_roce_timer_print(timer_rsp, TIMER_SHOW_QPC);
 out:
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 
@@ -169,8 +168,7 @@ static int hikp_roce_timer_show_cqc(struct major_cmd_ctrl *self)
 	printf("**************CQC TIMER INFO*************\n");
 	hikp_roce_timer_print(timer_rsp, TIMER_SHOW_CQC);
 out:
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 

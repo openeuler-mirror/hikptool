@@ -51,6 +51,7 @@ void hikp_cmd_init(struct hikp_cmd_header *req_header, uint32_t mod_code, uint32
 		   uint32_t sub_cmd_code);
 struct hikp_cmd_ret *hikp_cmd_alloc(struct hikp_cmd_header *req_header,
 				    const void *req_data, uint32_t req_size);
+void hikp_cmd_free(struct hikp_cmd_ret **cmd_ret);
 int hikp_dev_init(void);
 void hikp_dev_uninit(void);
 int hikp_rsp_normal_check(const struct hikp_cmd_ret *cmd_ret);

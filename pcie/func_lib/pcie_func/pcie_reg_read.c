@@ -95,7 +95,7 @@ int pcie_reg_read(uint32_t port_id, uint32_t module_id, uint32_t offset)
 	ret = pcie_reg_read_result_show(cmd_ret);
 
 free_cmd_ret:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }

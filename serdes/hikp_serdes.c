@@ -342,7 +342,7 @@ static void hikp_serdes_info_cmd_execute(struct major_cmd_ctrl *self)
 	}
 
 err_out:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void cmd_serdes_maininfo_init(void)
@@ -496,7 +496,7 @@ static void hikp_serdes_dump_cmd_execute(struct major_cmd_ctrl *self)
 	dump_data = (uint32_t *)out_put.out_str;
 	hikp_serdes_dump_print(self, dump_data, out_put.result_offset / sizeof(uint32_t));
 err_out:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void cmd_serdes_dump_init(void)

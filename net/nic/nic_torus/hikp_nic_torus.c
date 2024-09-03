@@ -33,16 +33,15 @@ static int hikp_nic_torus_query(const struct bdf_t *bdf,
 	hikp_cmd_init(&header, NIC_MOD, GET_TORUS_INFO_CMD, NIC_TORUS_INFO_DUMP);
 	cmd_ret = hikp_cmd_alloc(&header, &req, sizeof(req));
 	if (cmd_ret == NULL || cmd_ret->status != 0) {
-		ret = cmd_ret ? -cmd_ret->status : -EIO;
+		ret = cmd_ret ? (int)(-cmd_ret->status) : -EIO;
 		HIKP_ERROR_PRINT("fail to get torus info, retcode: %d\n", ret);
-		if (cmd_ret)
-			free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		return ret;
 	}
 
 	rsp = (struct nic_torus_rsp *)cmd_ret->rsp_data;
 	*info = *(struct nic_torus_info *)rsp->data;
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return 0;
 }

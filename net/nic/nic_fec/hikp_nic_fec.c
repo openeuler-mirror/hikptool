@@ -32,16 +32,15 @@ static int hikp_nic_fec_err_query(const struct bdf_t *bdf, struct nic_fec_err_in
 	hikp_cmd_init(&header, NIC_MOD, GET_FEC_INFO_CMD, NIC_FEC_ERR_INFO_DUMP);
 	cmd_ret = hikp_cmd_alloc(&header, &req, sizeof(req));
 	if (cmd_ret == NULL || cmd_ret->status != 0) {
-		ret = cmd_ret ? -cmd_ret->status : -EIO;
+		ret = cmd_ret ? (int)(-cmd_ret->status) : -EIO;
 		HIKP_ERROR_PRINT("fail to get fec info, retcode: %d\n", ret);
-		free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		return ret;
 	}
 
 	rsp = (struct nic_fec_rsp *)cmd_ret->rsp_data;
 	*info = *(struct nic_fec_err_info *)rsp->data;
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 
 	if (info->fec_mode >= NIC_FEC_MODE_BUTT) {
 		HIKP_ERROR_PRINT("unknown fec mode: %u\n", info->fec_mode);

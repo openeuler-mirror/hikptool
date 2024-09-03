@@ -246,8 +246,7 @@ static void hikp_roce_qmm_execute_origin(struct major_cmd_ctrl *self)
 	hikp_roce_qmm_print(roce_qmm_res);
 
 exec_error:
-	if (cmd_ret)
-		free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void hikp_roce_qmm_execute(struct major_cmd_ctrl *self)

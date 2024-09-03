@@ -32,15 +32,15 @@ static int hikp_nic_gro_query(const struct bdf_t *bdf, struct nic_gro_info *info
 	hikp_cmd_init(&header, NIC_MOD, GET_GRO_INFO_CMD, NIC_GRO_INFO_DUMP);
 	cmd_ret = hikp_cmd_alloc(&header, &req, sizeof(req));
 	if (cmd_ret == NULL || cmd_ret->status != 0) {
-		ret = cmd_ret ? -cmd_ret->status : -EIO;
+		ret = cmd_ret ? (int)(-cmd_ret->status) : -EIO;
 		HIKP_ERROR_PRINT("fail to get gro info, retcode: %d\n", ret);
-		free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		return ret;
 	}
 
 	rsp = (struct nic_gro_rsp *)cmd_ret->rsp_data;
 	*info = *(struct nic_gro_info *)rsp->data;
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return 0;
 }

@@ -285,6 +285,14 @@ free_req_data:
 	return cmd_ret;
 }
 
+void hikp_cmd_free(struct hikp_cmd_ret **cmd_ret)
+{
+	if (*cmd_ret) {
+		free(*cmd_ret);
+		*cmd_ret = NULL;
+	}
+}
+
 int hikp_rsp_normal_check(const struct hikp_cmd_ret *cmd_ret)
 {
 	if (cmd_ret == NULL)

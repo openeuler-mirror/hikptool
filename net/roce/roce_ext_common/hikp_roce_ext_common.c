@@ -26,12 +26,6 @@ static void hikp_roce_ext_reg_data_free(struct reg_data *reg)
 	}
 }
 
-static void hikp_roce_ext_cmd_ret_free(struct hikp_cmd_ret *cmd_ret)
-{
-	if (cmd_ret)
-		free(cmd_ret);
-}
-
 static const struct cmd_type_info {
 	enum roce_cmd_type cmd_type;
 	const char *cmd_name;
@@ -156,7 +150,7 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 	       (uint32_t *)&roce_ext_res->reg_data + reg_array_length, cur_size);
 
 get_data_error:
-	hikp_roce_ext_cmd_ret_free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 

@@ -33,17 +33,16 @@ static int hikp_nic_port_fault_query(const struct bdf_t *bdf,
 		      NIC_PORT_FAULT_INFO_DUMP);
 	cmd_ret = hikp_cmd_alloc(&header, &req, sizeof(req));
 	if (cmd_ret == NULL || cmd_ret->status != 0) {
-		ret = cmd_ret ? -cmd_ret->status : -EIO;
+		ret = cmd_ret ? (int)(-cmd_ret->status) : -EIO;
 		HIKP_ERROR_PRINT("fail to get port fault, retcode: %d\n", ret);
-		if (cmd_ret != NULL)
-			free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 
 		return ret;
 	}
 
 	rsp = (struct nic_port_fault_rsp *)cmd_ret->rsp_data;
 	*info = *(struct nic_port_fault_status *)rsp->data;
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return 0;
 }

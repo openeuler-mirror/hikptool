@@ -99,8 +99,7 @@ static void hikp_roce_caep_execute_origin(struct major_cmd_ctrl *self)
 			     roce_caep_res->reg_data.data);
 
 exec_error:
-	if (cmd_ret)
-		free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void hikp_roce_caep_execute(struct major_cmd_ctrl *self)

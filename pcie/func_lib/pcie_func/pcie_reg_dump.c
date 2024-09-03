@@ -577,7 +577,7 @@ int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level)
 close_file_ret:
 	(void)pcie_close_dumpreg_log_file();
 free_cmd_ret:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }

@@ -70,14 +70,12 @@ static int hikp_nic_get_curr_die_info(void)
 	ret = hikp_nic_get_hw_info(&cmd_ret);
 	if (ret != 0) {
 		HIKP_ERROR_PRINT("Get chip info fail.\n");
-		free(cmd_ret);
-		cmd_ret = NULL;
+		hikp_cmd_free(&cmd_ret);
 		return ret;
 	}
 	info_rsp = (struct nic_info_rsp_t *)(cmd_ret->rsp_data);
 	g_info_param.info = *info_rsp;
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 
 	ret = get_revision_id_by_bdf(&g_info_param.target.bdf, g_info_param.revision_id,
 				     sizeof(g_info_param.revision_id));

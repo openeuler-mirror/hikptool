@@ -103,8 +103,7 @@ static int hikp_roce_scc_get_data(struct hikp_cmd_ret **cmd_ret, const uint32_t 
 	ret = hikp_rsp_normal_check(*cmd_ret);
 	if (ret) {
 		printf("hikptool roce_scc get cmd data failed, ret: %d\n", ret);
-		free(*cmd_ret);
-		*cmd_ret = NULL;
+		hikp_cmd_free(cmd_ret);
 	}
 
 	return ret;
@@ -119,14 +118,6 @@ static void hikp_roce_scc_reg_data_free(uint32_t **offset, uint32_t **data)
 	if (*data) {
 		free(*data);
 		*data = NULL;
-	}
-}
-
-static void hikp_roce_scc_cmd_ret_free(struct hikp_cmd_ret **cmd_ret)
-{
-	if (*cmd_ret) {
-		free(*cmd_ret);
-		*cmd_ret = NULL;
 	}
 }
 
@@ -176,7 +167,7 @@ static int hikp_roce_scc_get_total_data_num(struct roce_scc_head *res_head,
 	ret = 0;
 
 get_data_error:
-	hikp_roce_scc_cmd_ret_free(&cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 
@@ -198,7 +189,7 @@ static int hikp_roce_scc_get_next_data(struct roce_scc_head *res_head,
 	roce_scc_res = (struct roce_scc_res_param *)cmd_ret->rsp_data;
 	cur_size = roce_scc_res->head.cur_block_num * sizeof(uint32_t);
 	if (cur_size > data_size) {
-		hikp_roce_scc_cmd_ret_free(&cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		printf("hikptool roce_scc next log data copy size error, "
 		       "data size: 0x%zx, max size: 0x%zx\n", cur_size, data_size);
 		return -EINVAL;
@@ -209,7 +200,7 @@ static int hikp_roce_scc_get_next_data(struct roce_scc_head *res_head,
 	*block_id = roce_scc_res->block_id;
 	res_head->cur_block_num = roce_scc_res->head.cur_block_num;
 	res_head->total_block_num = res_head->total_block_num - roce_scc_res->head.cur_block_num;
-	hikp_roce_scc_cmd_ret_free(&cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return 0;
 }

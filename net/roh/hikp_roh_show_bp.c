@@ -86,8 +86,7 @@ static int hikp_roh_show_bp(struct major_cmd_ctrl *self)
 	printf("MAC%d_flit_bp : 0x%x\n", mac_id, flit_bp);
 
 out:
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 

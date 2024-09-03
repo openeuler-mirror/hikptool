@@ -55,8 +55,7 @@ static int hikp_roce_pkt_get_data(struct hikp_cmd_ret **cmd_ret, struct roce_pkt
 	ret = hikp_rsp_normal_check(*cmd_ret);
 	if (ret) {
 		printf("hikptool roce_pkt get cmd data failed, ret: %d\n", ret);
-		free(*cmd_ret);
-		*cmd_ret = NULL;
+		hikp_cmd_free(cmd_ret);
 	}
 
 	return ret;
@@ -122,8 +121,7 @@ static void hikp_roce_pkt_execute(struct major_cmd_ctrl *self)
 	hikp_roce_pkt_print(roce_pkt_res->total_block_num,
 			    roce_pkt_res->reg_data.offset, roce_pkt_res->reg_data.data);
 
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void cmd_roce_pkt_init(void)

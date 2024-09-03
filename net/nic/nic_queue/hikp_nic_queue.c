@@ -260,7 +260,7 @@ static int hikp_nic_queue_get_blk(struct hikp_cmd_header *req_header,
 	rsp_head->cur_blk_size = rsp->rsp_head.cur_blk_size;
 
 out:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 

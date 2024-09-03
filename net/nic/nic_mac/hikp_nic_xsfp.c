@@ -597,16 +597,14 @@ static int hikp_xsfp_get_raw_data(uint8_t *buf, uint32_t size, uint32_t blk_num)
 		ret = hikp_xsfp_get_cmd_data(&cmd_resp, NIC_XSFP_GET_EEPROM_DATA, i);
 		if (ret != 0) {
 			HIKP_ERROR_PRINT("get optical module eeprom data failed\n");
-			free(cmd_resp);
-			cmd_resp = NULL;
+			hikp_cmd_free(&cmd_resp);
 			return ret;
 		}
 
 		if (cmd_resp->rsp_data_num == 0) {
 			HIKP_ERROR_PRINT("get eeprom data rsp_data_num %u error\n",
 					 cmd_resp->rsp_data_num);
-			free(cmd_resp);
-			cmd_resp = NULL;
+			hikp_cmd_free(&cmd_resp);
 			return -EINVAL;
 		}
 
@@ -616,8 +614,7 @@ static int hikp_xsfp_get_raw_data(uint8_t *buf, uint32_t size, uint32_t blk_num)
 		offset += len;
 
 		/* current cmd interaction is complete, so free cmd_buf */
-		free(cmd_resp);
-		cmd_resp = NULL;
+		hikp_cmd_free(&cmd_resp);
 	}
 
 	return 0;
@@ -700,8 +697,7 @@ static void hikp_xsfp_get_info(struct major_cmd_ctrl *self)
 	hikp_xsfp_get_eeprom_data(self, info->data_size, info->total_blk_num);
 
 ERR_OUT:
-	free(cmd_resp);
-	cmd_resp = NULL;
+	hikp_cmd_free(&cmd_resp);
 }
 
 static int hikp_xsfp_show_help(struct major_cmd_ctrl *self, const char *argv)

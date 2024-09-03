@@ -152,8 +152,7 @@ static void hikp_roce_mdb_execute_origin(struct major_cmd_ctrl *self)
 	hikp_roce_mdb_print(reg_num, mdb_rsp);
 
 exec_error:
-	if (cmd_ret)
-		free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void hikp_roce_mdb_execute(struct major_cmd_ctrl *self)

@@ -87,13 +87,12 @@ int hikp_roh_get_mac_type(struct major_cmd_ctrl *self, struct bdf_t bdf)
 		HIKP_ERROR_PRINT("failed to get roh info, retcode: %u\n",
 				 cmd_ret ? cmd_ret->status : EIO);
 		self->err_no = -EIO;
-		free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		return -EIO;
 	}
 	mac_rsp = (struct roh_mac_get_type *)(cmd_ret->rsp_data);
 	is_roh = mac_rsp->mac_type;
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 	return is_roh;
 }
 
@@ -145,13 +144,12 @@ static int hikp_roh_get_cam_reg_num(struct major_cmd_ctrl *self)
 		HIKP_ERROR_PRINT("fail to get cam reg num, retcode: %u\n",
 				 cmd_ret ? cmd_ret->status : EIO);
 		self->err_no = -EIO;
-		free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		return -EIO;
 	}
 	mac_rsp = (struct roh_mac_cam_reg_num *)(cmd_ret->rsp_data);
 	cam_reg_num = mac_rsp->cam_reg_num;
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 	return cam_reg_num;
 }
 
@@ -182,7 +180,7 @@ static int hikp_roh_build_cam(struct major_cmd_ctrl *self, struct cam_table_entr
 			HIKP_ERROR_PRINT("fail to get cam table info, retcode: %u\n",
 					 cmd_ret ? cmd_ret->status : EIO);
 			self->err_no = -EIO;
-			free(cmd_ret);
+			hikp_cmd_free(&cmd_ret);
 			return -EIO;
 		}
 		mac_rsp = (struct roh_mac_cam_table *)(cmd_ret->rsp_data);
@@ -198,8 +196,7 @@ static int hikp_roh_build_cam(struct major_cmd_ctrl *self, struct cam_table_entr
 						(unsigned long)(mac_rsp->cam_mac_high16[j])) <<
 						ROH_MAC_CAM_OFFSET);
 		}
-		free(cmd_ret);
-		cmd_ret = NULL;
+		hikp_cmd_free(&cmd_ret);
 	}
 	return 0;
 }
@@ -222,14 +219,13 @@ static void hikp_roh_show_cam(struct major_cmd_ctrl *self)
 		HIKP_ERROR_PRINT("fail to get cam info, retcode: %u\n",
 				 cmd_ret ? cmd_ret->status : EIO);
 		self->err_no = -EIO;
-		free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		return;
 	}
 	mac_rsp = (struct roh_mac_cam_caps *)cmd_ret->rsp_data;
 	convert_enable = mac_rsp->convert_enable;
 	cam_convert_enable = mac_rsp->cam_convert_enable;
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 
 	ret = hikp_roh_build_cam(self, cam_table);
 	if (ret != 0)
@@ -253,8 +249,7 @@ static int hikp_roh_query_crd(uint8_t crd_type, uint32_t num_rows, char const *c
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	ret = hikp_rsp_normal_check(cmd_ret);
 	if (ret != 0) {
-		free(cmd_ret);
-		cmd_ret = NULL;
+		hikp_cmd_free(&cmd_ret);
 		return ret;
 	}
 	mac_rsp = (struct roh_mac_credit_data *)(cmd_ret->rsp_data);
@@ -268,8 +263,7 @@ static int hikp_roh_query_crd(uint8_t crd_type, uint32_t num_rows, char const *c
 		if ((strcmp(crds[i][1], "NULL") != 0) && (reg.cut)[1] != 0)
 			printf("%-28s : %#x\n", crds[i][1], (reg.cut)[1]);
 	}
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 	return 0;
 }
 

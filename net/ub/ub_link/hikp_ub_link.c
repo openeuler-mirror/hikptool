@@ -58,16 +58,14 @@ static int hikp_ub_query_link_info(const struct bdf_t *bdf)
 	hikp_cmd_init(&header, UB_MOD, GET_UB_LINK_INFO_CMD, UB_LINK_INFO_DUMP);
 	cmd_ret = hikp_cmd_alloc(&header, &req, sizeof(req));
 	if (cmd_ret == NULL || cmd_ret->status != 0) {
-		free(cmd_ret);
-		cmd_ret = NULL;
+		hikp_cmd_free(&cmd_ret);
 		return -EIO;
 	}
 
 	rsp = (struct ub_link_rsp *)cmd_ret->rsp_data;
 	hikp_ub_link_info_show(rsp);
 
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 	return 0;
 }
 

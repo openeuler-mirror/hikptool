@@ -579,7 +579,7 @@ static int hikp_nic_fd_get_blk(struct hikp_cmd_header *req_header,
 	rsp_head->cur_blk_entry_cnt = rsp->rsp_head.cur_blk_entry_cnt;
 
 out:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 
@@ -929,7 +929,6 @@ static void hikp_nic_fd_cmd_execute(struct major_cmd_ctrl *self)
 	const struct fd_feature_cmd *fd_cmd;
 	union nic_fd_feature_info *fd_data;
 	struct hikp_cmd_header req_header = {0};
-	uint8_t stage_no;
 	int ret;
 
 	ret = hikp_nic_fd_check_input_param(self, &g_fd_param);
@@ -967,7 +966,6 @@ static void hikp_nic_fd_cmd_execute(struct major_cmd_ctrl *self)
 	/* The 'hw_info' cmd no need to input stage number,
 	 * because it queries all stages information.
 	 */
-	stage_no = fd_cmd->sub_cmd_code == NIC_FD_HW_INFO_DUMP ? 0 : g_fd_param.stage_no - 1;
 	hikp_cmd_init(&req_header, NIC_MOD, GET_FD_INFO_CMD, fd_cmd->sub_cmd_code);
 	ret = fd_cmd->query(&req_header, bdf, g_fd_param.stage_no - 1, fd_data, sizeof(*fd_data));
 	if (ret != 0) {

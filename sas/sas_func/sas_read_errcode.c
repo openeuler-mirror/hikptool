@@ -33,14 +33,14 @@ static int sas_get_errcode(const struct tool_sas_cmd *cmd, uint32_t *reg_save, u
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	if (cmd_ret == NULL || cmd_ret->status != 0 || cmd_ret->rsp_data_num > RESP_MAX_NUM) {
 		printf("sas_errcode excutes hikp_cmd_alloc err\n");
-		free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		return -EINVAL;
 	}
 	*reg_num = cmd_ret->rsp_data_num;
 	for (int i = 0; i < *reg_num; i++)
 		reg_save[i] = cmd_ret->rsp_data[i];
 
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return 0;
 }
 

@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <inttypes.h>
 #include "os_common.h"
 #include "pcie_common.h"
 #include "hikptdev_plug.h"
@@ -95,7 +96,7 @@ static int pcie_get_ltssm_trace(uint32_t port_id, uint64_t *ltssm_status, uint32
 	src_size = (*ltssm_num) * sizeof(uint64_t);
 	dst_size = TRACER_DEPTH * sizeof(uint64_t);
 	if (src_size > dst_size) {
-		Err("size check failed, %u > %u.\n", src_size, dst_size);
+		Err("size check failed, %zu > %zu.\n", src_size, dst_size);
 		ret = -EINVAL;
 		goto free_cmd_ret;
 	}
@@ -110,7 +111,7 @@ static int pcie_get_ltssm_trace(uint32_t port_id, uint64_t *ltssm_status, uint32
 	memcpy(ltssm_status, (cmd_ret->rsp_data + 1), src_size);
 
 free_cmd_ret:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 
@@ -187,7 +188,7 @@ static int pcie_print_ltssm_trace(const uint64_t *ltssm_input, uint32_t ltssm_nu
 		return -EINVAL;
 	}
 	Info("ltssm tracer:\n");
-	Info("\ttrace mode: %llx\n", *ltssm_input);
+	Info("\ttrace mode: %" PRIx64 "\n", *ltssm_input);
 	Info("\tltssm[ii]:  63:48 47:32 31 30 29 28 27 26 25 24 23 22 21:"
 	     "20 19:12 11:10 9:6 5:0  ltssm\n");
 	for (i = 1; i < ltssm_num; i++) {
@@ -245,7 +246,7 @@ int pcie_ltssm_trace_mode_set(uint32_t port_id, uint32_t mode)
 	hikp_cmd_init(&req_header, PCIE_MOD, PCIE_TRACE, TRACE_MODE);
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	ret = hikp_rsp_normal_check(cmd_ret);
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }
@@ -261,7 +262,7 @@ int pcie_ltssm_trace_clear(uint32_t port_id)
 	hikp_cmd_init(&req_header, PCIE_MOD, PCIE_TRACE, TRACE_CLEAR);
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	ret = hikp_rsp_normal_check(cmd_ret);
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }
@@ -298,7 +299,7 @@ int pcie_ltssm_link_status_get(uint32_t port_id)
 	Info("    link_up: %u\n", reg_val.bits.mac_link_up);
 	Info("    lane_reverse: %u\n", reg_val.bits.lane_reverse);
 free_cmd_ret:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }
@@ -330,7 +331,7 @@ static int pcie_get_pm_trace(uint32_t port_id, uint64_t *pm_status, uint32_t *pm
 	src_size = (*pm_num) * sizeof(uint64_t);
 	dst_size = TRACER_DEPTH * sizeof(uint64_t);
 	if (src_size > dst_size) {
-		Err("size check failed, %u > %u.\n", src_size, dst_size);
+		Err("size check failed, %zu > %zu.\n", src_size, dst_size);
 		ret = -EINVAL;
 		goto free_cmd_ret;
 	}
@@ -345,7 +346,7 @@ static int pcie_get_pm_trace(uint32_t port_id, uint64_t *pm_status, uint32_t *pm
 	memcpy(pm_status, (cmd_ret->rsp_data + 1), src_size);
 
 free_cmd_ret:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 
@@ -412,7 +413,7 @@ static int pcie_print_pm_trace(const uint64_t *pm_status, uint32_t pm_num)
 		return -EINVAL;
 	}
 	Info("pm tracer:\n");
-	Info("\ttrace state: %llx\n", pm_status[0]);
+	Info("\ttrace state: %" PRIx64 "\n", pm_status[0]);
 	Info("\tpm[ii]: BE8: 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 "
 	     "BD8:   23:6   5:0 :  pm state\n");
 	for (i = 1; i < pm_num; i++) {

@@ -189,8 +189,7 @@ static int hikp_roh_fill_pmu_cnt(int round)
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	ret = hikp_rsp_normal_check(cmd_ret);
 	if (ret != 0) {
-		free(cmd_ret);
-		cmd_ret = NULL;
+		hikp_cmd_free(&cmd_ret);
 		return ret;
 	}
 	mib_rsp = (struct roh_show_mib_rsp_t *)(cmd_ret->rsp_data);
@@ -207,8 +206,7 @@ static int hikp_roh_fill_pmu_cnt(int round)
 		if (mac2_pmu_cnt)
 			printf("MAC2_%-28s : 0x%lx\n", g_roh_mac_mib_name[index], mac2_pmu_cnt);
 	}
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 

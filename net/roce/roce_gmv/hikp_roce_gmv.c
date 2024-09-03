@@ -113,8 +113,7 @@ static void hikp_roce_gmv_execute(struct major_cmd_ctrl *self)
 	gmv_rsp = (struct roce_gmv_rsp_data *)(cmd_ret->rsp_data);
 	hikp_roce_gmv_print(reg_num, gmv_rsp);
 exec_error:
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void cmd_roce_gmv_init(void)

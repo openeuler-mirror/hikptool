@@ -161,8 +161,7 @@ static int hikp_nic_get_first_blk_dfx(struct nic_dfx_rsp_head_t *rsp_head, uint3
 
 	*max_dfx_size -= (uint32_t)rsp_head->cur_blk_size;
 err_out:
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }
@@ -191,8 +190,7 @@ static int hikp_nic_get_blk_dfx(struct nic_dfx_rsp_head_t *rsp_head, uint32_t bl
 	*max_dfx_size -= (uint32_t)rsp_head->cur_blk_size;
 
 err_out:
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }

@@ -354,8 +354,7 @@ int cxl_reg_show_execute(uint32_t port_id, uint32_t mode_code, uint32_t cmd_type
 	if (ret) {
 		printf("cxl_cmd mode_code: %u cmd_type: %u, hikp_get_data_proc err, ret : %d\n",
 		       mode_code, cmd_type, ret);
-		if (cmd_ret)
-			free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		return ret;
 	}
 
@@ -363,7 +362,7 @@ int cxl_reg_show_execute(uint32_t port_id, uint32_t mode_code, uint32_t cmd_type
 		printf("cxl_cmd mode_code: %u cmd_type: %u,"
 		       "The value of rsp data num is less than 2, rsp data num: %u\n",
 		       mode_code, cmd_type, cmd_ret->rsp_data_num);
-		free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		return -EINVAL;
 	}
 	data_head = (struct cxl_out_data *)cmd_ret->rsp_data;
@@ -371,7 +370,7 @@ int cxl_reg_show_execute(uint32_t port_id, uint32_t mode_code, uint32_t cmd_type
 
 	ret = cxl_data_unit_buf_check(data_head->data_offset, data_unit_len, cmd_ret->rsp_data_num);
 	if (ret) {
-		free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		return ret;
 	}
 
@@ -381,11 +380,11 @@ int cxl_reg_show_execute(uint32_t port_id, uint32_t mode_code, uint32_t cmd_type
 		if (mode_code == g_prtf[i].mode_code &&
 		    cmd_type == g_prtf[i].cmd_type && g_prtf[i].cxl_prt_handle) {
 			g_prtf[i].cxl_prt_handle(data_unit_buf, data_unit_len);
-			free(cmd_ret);
+			hikp_cmd_free(&cmd_ret);
 			return 0;
 		}
 	}
 
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return -EINVAL;
 }

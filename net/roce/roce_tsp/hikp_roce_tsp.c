@@ -130,8 +130,7 @@ static int hikp_roce_tsp_get_data(struct hikp_cmd_ret **cmd_ret,
 	ret = hikp_rsp_normal_check(*cmd_ret);
 	if (ret) {
 		printf("hikptool roce_tsp get cmd data failed, ret: %d\n", ret);
-		free(*cmd_ret);
-		*cmd_ret = NULL;
+		hikp_cmd_free(cmd_ret);
 	}
 
 	return ret;
@@ -272,8 +271,7 @@ static void hikp_roce_tsp_execute(struct major_cmd_ctrl *self)
 	hikp_roce_tsp_print(roce_tsp_res->total_block_num,
 			    roce_tsp_res->reg_data.offset, roce_tsp_res->reg_data.data);
 
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void cmd_roce_tsp_init(void)

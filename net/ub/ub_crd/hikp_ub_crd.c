@@ -85,8 +85,7 @@ static int hikp_ub_query_crd(void)
 	req_data.bdf = g_ub_crd_param.target.bdf;
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	if (cmd_ret == NULL || cmd_ret->status != 0) {
-		free(cmd_ret);
-		cmd_ret = NULL;
+		hikp_cmd_free(&cmd_ret);
 		return -EIO;
 	}
 
@@ -101,8 +100,7 @@ static int hikp_ub_query_crd(void)
 	printf("-------------------  TEMP CREDIT END  --------------------\n");
 	printf("********************* CREDIT CNT END *********************\n");
 
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 	return 0;
 }
 

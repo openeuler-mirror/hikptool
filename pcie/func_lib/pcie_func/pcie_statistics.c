@@ -43,8 +43,7 @@ static int port_distribution_rsp_data_check(const struct hikp_cmd_ret *cmd_ret, 
 	rsp_data_size = cmd_ret->rsp_data_num * sizeof(uint32_t);
 	/* Check whether enough data of a port unit */
 	if (rsp_data_size < sizeof(struct pcie_port_info)) {
-		Err("port distribution rsp check failed, size: %u.\n",
-			rsp_data_size);
+		Err("port distribution rsp check failed, size: %zu.\n", rsp_data_size);
 		return -EINVAL;
 	}
 	/* Check whether enough data of n pairs */
@@ -53,7 +52,7 @@ static int port_distribution_rsp_data_check(const struct hikp_cmd_ret *cmd_ret, 
 	expect_data_size = sizeof(struct pcie_port_info) +
 		sizeof(struct pcie_info_distribution_pair) * (*port_num);
 	if (expect_data_size > rsp_data_size) {
-		Err("port distribution data size check failed, size: %u, expect size: %u.\n",
+		Err("port distribution data size check failed, size: %zu, expect size: %zu.\n",
 		    rsp_data_size, expect_data_size);
 		return -EINVAL;
 	}
@@ -117,7 +116,7 @@ int pcie_port_distribution_get(uint32_t chip_id)
 					    port_info->info_pair[i].ndie_id);
 	}
 free_cmd_ret:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }
@@ -134,7 +133,7 @@ static int port_err_state_rsp_data_check(struct hikp_cmd_ret *cmd_ret)
 	}
 	rsp_data_size = cmd_ret->rsp_data_num * sizeof(uint32_t);
 	if (rsp_data_size < sizeof(struct pcie_err_state)) {
-		Err("err state get rsp size check failed, rsp size: %u, expect size:%u.\n",
+		Err("err state get rsp size check failed, rsp size: %zu, expect size:%zu.\n",
 		    rsp_data_size, sizeof(struct pcie_err_state));
 		return -EINVAL;
 	}
@@ -172,7 +171,7 @@ int pcie_error_state_get(uint32_t port_id)
 	Info("dl_lcrc_err_num = %u\n", state->lcrc_err_num.bits.dl_lcrc_err_num);
 	Info("dl_dcrc_err_num = %u\n", state->dcrc_err_num.bits.dl_dcrc_err_num);
 free_cmd_ret:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }
@@ -188,7 +187,7 @@ int pcie_error_state_clear(uint32_t port_id)
 	hikp_cmd_init(&req_header, PCIE_MOD, PCIE_INFO, INFO_ERR_STATE_CLEAR);
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	ret = hikp_rsp_normal_check(cmd_ret);
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }

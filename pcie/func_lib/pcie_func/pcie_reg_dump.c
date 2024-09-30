@@ -129,6 +129,9 @@ struct pcie_dumpreg_info g_reg_table_mac[] = {
 	{0, "MAC_LEAVE_L0_INFO"},
 	{0, "DFX_APB_LANE_ERROR_STATUS_0"},
 	{0, "DFX_APB_LANE_ERROR_STATUS_1"},
+	{0, "MAC_REG_PHY_RXDATA_TS_REG"},
+	{0, "MAC_LTSSM_TRACER_CFG0_REG"},
+	{0, "MAC_POWERDOWN_VALUE_REG"},
 };
 
 struct pcie_dumpreg_info g_reg_table_pcs[] = {
@@ -141,6 +144,8 @@ struct pcie_dumpreg_info g_reg_table_pcs[] = {
 	HIKP_PCIE_PCS_LANE_TBL_ENTRY(LANE_INTR_STATUS),
 	HIKP_PCIE_PCS_LANE_TBL_ENTRY(M_PCS_RPT_REG),
 	HIKP_PCIE_PCS_LANE_TBL_ENTRY(MSG_BUS_DFX),
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(DETECT_CLK_FLG_REG),
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(SDS_CFG_REG_REG),
 };
 
 struct pcie_dumpreg_info g_reg_table_iob_tx[] = {
@@ -364,6 +369,8 @@ struct pcie_dumpreg_info g_reg_table_core_glb[] = {
 	{0, "CORE_INT_FE_RO_2"},
 	{0, "PORT07_LINK_MODE"},
 	{0, "PORT815_LINK_MODE"},
+	{0, "PCIE_LINK_DOWN_CLR_PORT_EN_REG"},
+	{0, "CORE_CLK_FLG_REG"},
 };
 
 struct pcie_dumpreg_info g_reg_table_core_tl[] = {

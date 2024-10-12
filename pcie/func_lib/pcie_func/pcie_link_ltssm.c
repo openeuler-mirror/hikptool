@@ -211,7 +211,7 @@ static int pcie_print_ltssm_trace(const uint64_t *ltssm_input, uint32_t ltssm_nu
 			(uint32_t)ltssm_val.bits.any_change_pipe_req,
 			(uint32_t)ltssm_val.bits.rxl0s_st,
 			(uint32_t)ltssm_val.bits.train_bit_map1,
-			(((uint32_t)ltssm_val.bits.rxl0s_st) << GEN5_BIT_OFFEST) |
+			(((uint32_t)ltssm_val.bits.rxl0s_st) << GEN5_BIT_OFFSET) |
 			((uint32_t)ltssm_val.bits.mac_rate),
 			(uint32_t)ltssm_val.bits.duration_counter,
 			(uint32_t)ltssm_val.bits.ltssm_state,

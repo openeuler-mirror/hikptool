@@ -70,7 +70,7 @@ static int pcie_portid_serdes_relation(const struct pcie_macro_info *macro_info,
 		return -1;
 	}
 
-	if (macro_num >= MAX_MACRO_ONEPORT) {
+	if (macro_num > MAX_MACRO_ONEPORT) {
 		Info("macro_num [%u] exceeds the maximum array length\n", macro_num);
 		return -1;
 	}

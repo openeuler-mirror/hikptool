@@ -142,7 +142,8 @@ static bool check_dev_name_and_get_bdf(int sockfd, struct tool_target *target)
 	ifr.ifr_data = (char *)&drvinfo;
 	drvinfo.cmd = ETHTOOL_GDRVINFO;
 
-	strncpy(ifr.ifr_name, target->dev_name, IFNAMSIZ - 1);
+	strncpy(ifr.ifr_name, target->dev_name, IFNAMSIZ);
+	ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 
 	if (ioctl(sockfd, SIOCETHTOOL, &ifr) < 0)
 		return false;

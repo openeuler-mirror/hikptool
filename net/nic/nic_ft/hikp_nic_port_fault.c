@@ -41,7 +41,7 @@ static int hikp_nic_port_fault_query(const struct bdf_t *bdf,
 	}
 
 	rsp = (struct nic_port_fault_rsp *)cmd_ret->rsp_data;
-	*info = *(struct nic_port_fault_status *)rsp->data;
+	memcpy(info, rsp->data, sizeof(struct nic_port_fault_status));
 	hikp_cmd_free(&cmd_ret);
 
 	return 0;

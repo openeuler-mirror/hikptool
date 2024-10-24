@@ -286,9 +286,10 @@ static void hikp_nic_qos_cmd_execute(struct major_cmd_ctrl *self)
 	memset(revision_id, 0, MAX_PCI_ID_LEN + 1);
 	ret = get_revision_id_by_bdf(bdf, revision_id, sizeof(g_qos_param.revision_id));
 	// show pfc threshold as default if get revision_id error
-	if (ret)
-		strncpy(g_qos_param.revision_id, HIKP_IEP_REVISION,
-			MAX_PCI_REVISION_LEN);
+	if (ret) {
+		strncpy(g_qos_param.revision_id, HIKP_IEP_REVISION, MAX_PCI_REVISION_LEN);
+		g_qos_param.revision_id[MAX_PCI_ID_LEN] = '\0';
+	}
 
 	printf("############## NIC QOS: %s info ############\n", qos_cmd->feature_name);
 	qos_cmd->show(&qos_data);

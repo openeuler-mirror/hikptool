@@ -11,7 +11,7 @@
 
 project(hikptool C)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -fPIC -fPIE -Wall -Wextra -fno-common -std=gnu11")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -fPIC -fPIE -Wall -Werror -fno-common -std=gnu11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wfloat-equal -fstack-protector-strong -D_FORTIFY_SOURCE=2")
 set(CMAKE_SKIP_RPATH TRUE)
 

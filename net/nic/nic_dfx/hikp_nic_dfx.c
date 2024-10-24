@@ -17,6 +17,7 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include "tool_cmd.h"
 #include "hikp_net_lib.h"
 #include "hikp_nic_dfx.h"
@@ -626,10 +627,10 @@ static void hikp_nic_dfx_print_b64(struct nic_dfx_type_head *type_head, uint32_t
 			(HI_GET_BITFIELD((uint64_t)reg_data[i], DFX_REG_VALUE_OFF,
 			DFX_REG_VALUE_MASK) << BIT_NUM_OF_WORD);
 		if (reg_list != NULL) {
-			printf("%-30s\t0x%04x\t0x%016lx\n", reg_list->name, offset, value);
+			printf("%-30s\t0x%04x\t0x%" PRIx64 "\n", reg_list->name, offset, value);
 			reg_list++;
 		} else {
-			printf("%-30s\t0x%04x\t0x%08x\n", "", offset, value);
+			printf("%-30s\t0x%04x\t0x%" PRIx64 "\n", "", offset, value);
 		}
 	}
 }

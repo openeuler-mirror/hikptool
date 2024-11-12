@@ -18,6 +18,8 @@
 
 #define REG_NUM_DQ 2
 #define REG_NUM_CQ 2
+#define REG_NUM_CQ_MAX 4
+#define REG_NUM_PTR_MAX 32
 #define CQE_NUM_BYTE 0
 #define DQE_NUM_REG 2
 #define CQ_COAL 1

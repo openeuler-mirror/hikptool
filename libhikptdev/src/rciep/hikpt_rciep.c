@@ -208,8 +208,11 @@ static int hikp_multi_round_interact(struct hikp_cmd_ret **cmd_ret, uint32_t sta
 		return -EINVAL;
 	}
 
-	p_cmd_ret = (struct hikp_cmd_ret *)malloc(sizeof(struct hikp_cmd_ret) +
-		    rsp_num * REP_DATA_BLK_SIZE);
+	/* By default, the memory is applied for based on the supported maximum length.
+	 * The memory buffer is converted into the corresponding data structure inside the module.
+	 */
+	p_cmd_ret = (struct hikp_cmd_ret *)calloc(1,
+		    (sizeof(struct hikp_cmd_ret) + HIKP_RSP_DATA_SIZE_MAX));
 	if (p_cmd_ret == NULL) {
 		printf("response memory malloc fail.\n");
 		return -ENOMEM;
@@ -509,7 +512,8 @@ out_free_iep:
 static void hikp_munmap(void)
 {
 	g_unmap_flag = 1;
-	munmap((void *)g_hikp_req, sizeof(union hikp_space_req));
+	if (munmap((void *)g_hikp_req, sizeof(union hikp_space_req)) == -1)
+		printf("failed to munmap, errno %d.\n", errno);
 	g_hikp_req = NULL;
 	g_hikp_rsp = NULL;
 }
@@ -538,7 +542,7 @@ int hikp_dev_init(void)
 
 	g_hikp_req = (union hikp_space_req *)mmap(0, sizeof(union hikp_space_req),
 		     PROT_READ | PROT_WRITE, MAP_SHARED, g_iep_fd, 0);
-	if (!g_hikp_req) {
+	if (g_hikp_req == MAP_FAILED) {
 		printf("failed to mmap %s.\n", iep);
 		ret = -errno;
 		goto out_close_fd;

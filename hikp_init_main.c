@@ -92,7 +92,8 @@ static int parse_and_init_cmd(const char *arg)
 		if (strnlen(cmd_ptr->name, MAX_CMD_LEN) != strnlen(arg, MAX_CMD_LEN))
 			continue;
 
-		if (strncmp(arg, cmd_ptr->name, strnlen(cmd_ptr->name, MAX_CMD_LEN - 1) + 1) == 0) {
+		if ((strncmp(arg, cmd_ptr->name,
+		    strnlen(cmd_ptr->name, MAX_CMD_LEN - 1) + 1) == 0) && cmd_ptr->cmd_init) {
 			g_tool.p_major_cmd.cmd_ptr = cmd_ptr;
 			cmd_ptr->cmd_init();
 			return 0;

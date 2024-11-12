@@ -37,8 +37,8 @@ static int hikp_ub_crd_target(struct major_cmd_ctrl *self, const char *argv)
 	return 0;
 }
 
-static int hikp_ub_show_crd(uint32_t off, struct ub_crd_rsp *crd_rsp, uint32_t num_rows,
-			    char const *crds[][2])
+static uint32_t hikp_ub_show_crd(uint32_t off, struct ub_crd_rsp *crd_rsp, uint32_t num_rows,
+				 char const *crds[][2])
 {
 	int reg_index;
 	int i;
@@ -63,7 +63,7 @@ static int hikp_ub_query_crd(void)
 	struct ub_crd_req_para req_data = { 0 };
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	struct ub_crd_rsp *crd_rsp = NULL;
-	int offset;
+	uint32_t offset;
 
 	char const *init_crds[][2] = {
 		{"CFG_REMOTE_ICRD", "CFG_REMOTE_LCRD"},

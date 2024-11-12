@@ -31,7 +31,7 @@ static int sas_get_errcode(const struct tool_sas_cmd *cmd, uint32_t *reg_save, u
 
 	hikp_cmd_init(&req_header, SAS_MOD, SAS_ERRCODE, cmd->sas_cmd_type);
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
-	if (cmd_ret == NULL || cmd_ret->status != 0) {
+	if (cmd_ret == NULL || cmd_ret->status != 0 || cmd_ret->rsp_data_num > RESP_MAX_NUM) {
 		printf("sas_errcode excutes hikp_cmd_alloc err\n");
 		free(cmd_ret);
 		return -EINVAL;
@@ -55,11 +55,12 @@ static void sas_print_errcode(uint32_t cmd_type, const uint32_t *reg_save, uint3
 		"OPEN_REJ"
 	};
 
-	if (reg_num == 0) {
-		printf("SAS error code read is failed\n");
-		return;
-	}
 	if (cmd_type == ERRCODE_ALL) {
+		if (reg_num < REG_NUM_ERR_CODE_ALL_MAX) {
+			printf("SAS error code read is failed\n");
+			return;
+		}
+
 		printf("       DWS_LOST  RESET_PROB  CRC_FAIL  OPEN_REJ\n");
 		for (i = 0; i < reg_num; i += SAS_ERR_NUM) {
 			printf("phy%u  0x%08x    0x%08x      0x%08x    0x%08x\n", i / SAS_ERR_NUM,
@@ -67,6 +68,11 @@ static void sas_print_errcode(uint32_t cmd_type, const uint32_t *reg_save, uint3
 			       reg_save[i + CRC_FAIL], reg_save[i + OPEN_REJ]);
 		}
 	} else {
+		if (reg_num < REG_NUM_ERR_CODE_MAX) {
+			printf("SAS error code read is failed\n");
+			return;
+		}
+
 		printf("       %s\n", errcode_type[cmd_type]);
 		for (i = 0; i < reg_num; i++)
 			printf("phy%u  0x%08x\n", i, reg_save[i]);

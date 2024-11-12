@@ -19,7 +19,7 @@
 #define HIKP_UNIC_IP_ADDR_FMT_SIZE	50
 #define MAX_IP_ADDR_STR_LEN		50
 #define IP_ADDR_LEN			16
-#define IP_ADDR_TBL_LEN		8
+#define IP_ADDR_TBL_LEN			8
 
 #define HIKP_UNIC_IP_ADDR_LEN		4
 #define HIKP_UNIC_GUID_BITMAP_LEN	8

@@ -66,11 +66,11 @@ int pcie_read_name2module_id(const char *module_name, uint32_t *module_id)
 static int pcie_reg_read_result_show(const struct hikp_cmd_ret *cmd_ret)
 {
 	if (cmd_ret->rsp_data_num != 1) { /* 1 uint32_t data for reg read cmd */
-		Err("PCIe REGREAD", "pcie reg read data num check failed, num: %u.\n",
+		Err("pcie reg read data num check failed, num: %u.\n",
 		    cmd_ret->rsp_data_num);
 		return -EINVAL;
 	}
-	Info("PCIe REGREAD", "RIGISTER VALUE[0x%08x].\n", cmd_ret->rsp_data[0]);
+	Info("RIGISTER VALUE[0x%08x].\n", cmd_ret->rsp_data[0]);
 
 	return 0;
 }
@@ -89,7 +89,7 @@ int pcie_reg_read(uint32_t port_id, uint32_t module_id, uint32_t offset)
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	ret = hikp_rsp_normal_check(cmd_ret);
 	if (ret) {
-		Err("PCIe REGREAD", "pcie reg read cmd_ret check failed, ret: %d.\n", ret);
+		Err("pcie reg read cmd_ret check failed, ret: %d.\n", ret);
 		goto free_cmd_ret;
 	}
 	ret = pcie_reg_read_result_show(cmd_ret);

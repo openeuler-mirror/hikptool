@@ -74,7 +74,7 @@ static void hikp_nic_notify_pkt_show(const struct nic_notify_pkt_info *info)
 static void hikp_nic_notify_pkt_cmd_execute(struct major_cmd_ctrl *self)
 {
 	struct bdf_t *bdf = &g_notify_pkt_target.bdf;
-	struct nic_notify_pkt_info info;
+	struct nic_notify_pkt_info info = {0};
 
 	self->err_no = hikp_nic_notify_pkt_query(self, bdf, &info);
 	if (self->err_no)

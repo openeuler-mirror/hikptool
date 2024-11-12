@@ -13,6 +13,7 @@
 
 #include "tool_cmd.h"
 #include "hikp_net_lib.h"
+#include "hikpt_rciep.h"
 #include "hikp_ub_dfx.h"
 
 struct ub_dfx_param g_ub_dfx_param = { 0 };
@@ -100,6 +101,7 @@ static int hikp_ub_get_first_blk_dfx(struct ub_dfx_rsp_head *rsp_head, uint32_t 
 {
 	struct ub_dfx_rsp *dfx_rsp = NULL;
 	struct hikp_cmd_ret *cmd_ret;
+	uint32_t rsp_data_size;
 	int ret;
 
 	ret = hikp_ub_dfx_get_blk_data(&cmd_ret, 0, g_ub_dfx_param.sub_cmd_code);
@@ -122,11 +124,13 @@ static int hikp_ub_get_first_blk_dfx(struct ub_dfx_rsp_head *rsp_head, uint32_t 
 		goto err_out;
 	}
 
-	if (rsp_head->cur_blk_size > *max_dfx_size) {
+	rsp_data_size = cmd_ret->rsp_data_num * REP_DATA_BLK_SIZE;
+	if (rsp_data_size - sizeof(dfx_rsp->rsp_head) < rsp_head->cur_blk_size ||
+	    *max_dfx_size < rsp_head->cur_blk_size) {
+		HIKP_ERROR_PRINT("blk0 reg_data copy size error, rsp data size: %u, data size: %hhu, max size: %u\n",
+				 rsp_data_size, rsp_head->cur_blk_size, *max_dfx_size);
 		free(*reg_data);
 		*reg_data = NULL;
-		HIKP_ERROR_PRINT("blk0 reg_data copy size error, data size: 0x%x, max size: 0x%x\n",
-				 rsp_head->cur_blk_size, *max_dfx_size);
 		ret = -EINVAL;
 		goto err_out;
 	}
@@ -145,6 +149,7 @@ static int hikp_ub_get_blk_dfx(struct ub_dfx_rsp_head *rsp_head, uint32_t blk_id
 {
 	struct ub_dfx_rsp *dfx_rsp = NULL;
 	struct hikp_cmd_ret *cmd_ret;
+	uint32_t rsp_data_size;
 	int ret;
 
 	ret = hikp_ub_dfx_get_blk_data(&cmd_ret, blk_id, g_ub_dfx_param.sub_cmd_code);
@@ -153,10 +158,11 @@ static int hikp_ub_get_blk_dfx(struct ub_dfx_rsp_head *rsp_head, uint32_t blk_id
 
 	dfx_rsp = (struct ub_dfx_rsp *)(cmd_ret->rsp_data);
 	*rsp_head = dfx_rsp->rsp_head;
-	if (rsp_head->cur_blk_size > *max_dfx_size) {
-		HIKP_ERROR_PRINT("blk%u reg_data copy size error, "
-				 "data size: 0x%x, max size: 0x%x\n",
-				 blk_id, rsp_head->cur_blk_size, *max_dfx_size);
+	rsp_data_size = cmd_ret->rsp_data_num * REP_DATA_BLK_SIZE;
+	if (rsp_data_size - sizeof(dfx_rsp->rsp_head) < rsp_head->cur_blk_size ||
+	    rsp_head->cur_blk_size > *max_dfx_size) {
+		HIKP_ERROR_PRINT("blk%u reg_data copy size error, rsp data size: %u, data size: %hhu, max size: %u\n",
+				 blk_id, rsp_data_size, rsp_head->cur_blk_size, *max_dfx_size);
 		ret = -EINVAL;
 		goto err_out;
 	}
@@ -194,7 +200,7 @@ static void hikp_ub_dfx_print_type_head(uint8_t type_id, uint8_t *last_type_id)
 		if (is_type_found(type_id, &index))
 			printf("type name: %s\n\n", g_dfx_type_parse[index].type_name);
 		else
-			HIKP_WARN_PRINT("type name: unknown type, type id is %u\n\n", type_id);
+			HIKP_WARN_PRINT("type name: unknown type, type id is %hhu\n\n", type_id);
 
 		*last_type_id = type_id;
 	}
@@ -244,7 +250,7 @@ static void hikp_ub_dfx_print(const struct ub_dfx_rsp_head *rsp_head, uint32_t *
 	for (i = 0; i < rsp_head->total_type_num; i++) {
 		type_head = (struct ub_dfx_type_head *)ptr;
 		if (type_head->type_id == INCORRECT_REG_TYPE) {
-			HIKP_ERROR_PRINT("No.%u type is incorrect reg type\n", i + 1u);
+			HIKP_ERROR_PRINT("No.%u type is incorrect reg type\n", (uint32_t)(i + 1u));
 			break;
 		}
 		hikp_ub_dfx_print_type_head(type_head->type_id, &last_type_id);
@@ -254,7 +260,7 @@ static void hikp_ub_dfx_print(const struct ub_dfx_rsp_head *rsp_head, uint32_t *
 		} else if (type_head->bit_width == WIDTH_64_BIT) {
 			hikp_ub_dfx_print_b64((uint32_t)type_head->reg_num, ptr);
 		} else {
-			HIKP_ERROR_PRINT("type%u's bit width error.\n", type_head->type_id);
+			HIKP_ERROR_PRINT("type%hhu's bit width error.\n", type_head->type_id);
 			break;
 		}
 		ptr += (uint32_t)type_head->reg_num * WORD_NUM_PER_REG;

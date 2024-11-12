@@ -129,9 +129,9 @@ static void hikp_nic_ppp_get_overflow_mac(struct nic_mac_tbl *of_tbl, struct nic
 
 static void hikp_nic_ppp_show_key_mem(struct nic_mac_tbl *tbl, bool is_key_mem)
 {
+	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE] = {0};
 	struct mac_vlan_uc_tbl *uc_tbl = &tbl->uc_tbl;
 	struct mac_vlan_mc_tbl *mc_tbl = &tbl->mc_tbl;
-	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE];
 	struct mac_vlan_uc_entry *uc_entry;
 	struct mac_vlan_mc_entry *mc_entry;
 	uint32_t idx;
@@ -178,7 +178,7 @@ static void hikp_nic_ppp_show_key_mem(struct nic_mac_tbl *tbl, bool is_key_mem)
 static void hikp_nic_ppp_show_func_uc_mac_addr(struct mac_vlan_uc_tbl *uc_tbl,
 					       const struct bdf_t *bdf, uint16_t func_id)
 {
-	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE];
+	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE] = {0};
 	struct mac_vlan_uc_entry *uc_entry;
 	uint8_t pf_id;
 	uint8_t vf_id;
@@ -202,7 +202,7 @@ static void hikp_nic_ppp_show_func_uc_mac_addr(struct mac_vlan_uc_tbl *uc_tbl,
 static void hikp_nic_ppp_show_func_mc_mac_addr(struct mac_vlan_mc_tbl *mc_tbl,
 					       const struct bdf_t *bdf, uint16_t func_id)
 {
-	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE];
+	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE] = {0};
 	struct mac_vlan_mc_entry *mc_entry;
 	uint16_t abs_func_id;
 	uint8_t offset;
@@ -394,7 +394,7 @@ static void hikp_nic_ppp_show_vlan_tbl(const void *data)
 static void hikp_nic_ppp_show_manager_tbl(const void *data)
 {
 	struct nic_mng_tbl *tbl = (struct nic_mng_tbl *)data;
-	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE];
+	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE] = {0};
 	struct manager_entry *entry;
 	uint32_t i;
 

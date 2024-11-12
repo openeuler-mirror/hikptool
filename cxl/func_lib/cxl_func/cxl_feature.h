@@ -28,6 +28,7 @@
 #define CXL_HDM_CNT_EACH_PORT 2
 #define CXL_DATA_UNIT_SIZE 2  // reg addr + data
 #define CXL_MEM_HEADER_LOG_UNIT 4
+#define CXL_DATA_OFFSET 2
 
 enum cxl_cmd_type {
 	CXL_CPA = 0,

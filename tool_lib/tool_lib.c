@@ -21,7 +21,7 @@ int string_toui(const char *nptr, uint32_t *value)
 	char *endptr = NULL;
 	int64_t tmp_value;
 
-	if (nptr == NULL)
+	if (nptr == NULL || value == NULL)
 		return -EINVAL;
 
 	tmp_value = strtol(nptr, &endptr, 0);
@@ -37,7 +37,7 @@ int string_toub(const char *nptr, uint8_t *value)
 	char *endptr = NULL;
 	int64_t tmp_value;
 
-	if (nptr == NULL)
+	if (nptr == NULL || value == NULL)
 		return -EINVAL;
 
 	tmp_value = strtol(nptr, &endptr, 0);
@@ -141,14 +141,14 @@ int check_file_access(const char *file_dir)
 
 static uint32_t get_file_size(const char *file_dir)
 {
-	char format_dir[TOOL_REAL_PATH_MAX_LEN] = {0};
+	char format_dir[PATH_MAX + 1] = {0};
 	struct stat file_stat = { 0 };
 	int ret;
 
 	if (file_dir == NULL)
 		return 0;
 
-	ret = check_file_path_dir(file_dir, format_dir, TOOL_REAL_PATH_MAX_LEN);
+	ret = check_file_path_dir(file_dir, format_dir, (PATH_MAX + 1));
 	if (ret) {
 		HIKP_ERROR_PRINT("This file path[%s] is not exist.\n", file_dir);
 		return 0;
@@ -313,7 +313,7 @@ int generate_file_name(unsigned char *file_name,
 #define RANDOM_STR_LENGTH 7
 	char str_r[RANDOM_STR_LENGTH] = {0};
 	time_t time_seconds = time(0);
-	struct tm timeinfo;
+	struct tm timeinfo = {0};
 	int ret;
 
 	ret = get_rand_str(str_r, RANDOM_STR_LENGTH);
@@ -321,7 +321,7 @@ int generate_file_name(unsigned char *file_name,
 		HIKP_ERROR_PRINT("get randrom string failed.\n");
 		return ret;
 	}
-	localtime_r(&time_seconds, &timeinfo);
+	(void)localtime_r(&time_seconds, &timeinfo);
 	ret = snprintf((char *)file_name, file_name_len, "%s_%d_%d_%d_%d_%d_%d_%s.log", prefix,
 		       timeinfo.tm_year + START_YEAR, timeinfo.tm_mon + 1, timeinfo.tm_mday,
 		       timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec, str_r);

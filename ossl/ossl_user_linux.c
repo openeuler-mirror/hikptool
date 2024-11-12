@@ -26,7 +26,7 @@ int uda_access(const char *file_dir)
 {
 	char path[PATH_MAX + 1] = { 0 };
 
-	if (strlen(file_dir) > PATH_MAX || realpath(file_dir, path) == NULL)
+	if (file_dir == NULL || strlen(file_dir) > PATH_MAX || realpath(file_dir, path) == NULL)
 		return -ENOENT;
 
 	return faccessat(AT_FDCWD, path, F_OK, AT_EACCESS) ? (-ENOENT) : 0;
@@ -53,7 +53,7 @@ int uda_fcntl(const char *lock_file, uint32_t operation, int *fd)
 	if ((fd == NULL) || (lock_file == NULL))
 		return -EFAULT;
 
-	fd_t = open(lock_file, O_WRONLY | O_CREAT, 0700);
+	fd_t = open(lock_file, O_WRONLY | O_CREAT, 0600);
 	if (fd_t < 0)
 		return -errno;
 

@@ -602,6 +602,14 @@ static int hikp_xsfp_get_raw_data(uint8_t *buf, uint32_t size, uint32_t blk_num)
 			return ret;
 		}
 
+		if (cmd_resp->rsp_data_num == 0) {
+			HIKP_ERROR_PRINT("get eeprom data rsp_data_num %u error\n",
+					 cmd_resp->rsp_data_num);
+			free(cmd_resp);
+			cmd_resp = NULL;
+			return -EINVAL;
+		}
+
 		len = HIKP_MIN(left_size, (cmd_resp->rsp_data_num * sizeof(uint32_t)));
 		memcpy(buf + offset, (uint8_t *)(cmd_resp->rsp_data), len);
 		left_size -= len;

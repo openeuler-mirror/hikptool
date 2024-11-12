@@ -57,6 +57,7 @@ struct nic_pfc_storm_para {
 	uint32_t period_ms;
 	uint32_t times;
 	uint32_t recovery_period_ms;
+	uint32_t storm_count;
 };
 
 struct nic_ets_info {
@@ -87,11 +88,14 @@ struct nic_pause_info {
 	uint16_t rsv;
 };
 
-union nic_qos_feature_info {
-	struct nic_pkt_buf_info pkt_buf;
-	struct nic_dcb_info dcb;
-	struct nic_pause_info pause;
-	struct nic_pfc_storm_para pfc_storm_para;
+struct qos_cmd_info {
+	uint32_t length;
+	union nic_qos_feature_info {
+		struct nic_pkt_buf_info pkt_buf;
+		struct nic_dcb_info dcb;
+		struct nic_pause_info pause;
+		struct nic_pfc_storm_para pfc_storm_para;
+	} info;
 };
 
 struct nic_qos_rsp_head {

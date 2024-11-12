@@ -56,7 +56,8 @@ static int hikp_nic_qos_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 
 static void hikp_nic_qos_show_pkt_buf(const void *data)
 {
-	struct nic_pkt_buf_info *pkt_buf = (struct nic_pkt_buf_info *)data;
+	struct qos_cmd_info *qos_info_pkt = (struct qos_cmd_info *)data;
+	struct nic_pkt_buf_info *pkt_buf = (struct nic_pkt_buf_info *)&qos_info_pkt->info;
 	struct nic_shared_buf *share_buf = &pkt_buf->share_buf;
 	struct nic_priv_buf *priv_buf = pkt_buf->priv_buf;
 	uint16_t tc_no;
@@ -88,11 +89,12 @@ static void hikp_nic_qos_show_pkt_buf(const void *data)
 
 static void hikp_nic_qos_show_dcb_info(const void *data)
 {
-	struct nic_dcb_info *dcb = (struct nic_dcb_info *)data;
+	struct qos_cmd_info *qos_info_dcb = (struct qos_cmd_info *)data;
+	struct nic_dcb_info *dcb = (struct nic_dcb_info *)&qos_info_dcb->info;
 	struct nic_pfc_info *pfc = &dcb->pfc;
 	struct nic_ets_info *ets = &dcb->ets;
-	uint16_t up;
 	uint16_t tc_no;
+	uint16_t up;
 
 	printf("PFC configuration\n");
 	printf("  PFC enable:");
@@ -125,7 +127,8 @@ static void hikp_nic_qos_show_dcb_info(const void *data)
 
 static void hikp_nic_qos_show_pause_info(const void *data)
 {
-	struct nic_pause_info *pause = (struct nic_pause_info *)data;
+	struct qos_cmd_info *qos_info_pause = (struct qos_cmd_info *)data;
+	struct nic_pause_info *pause = (struct nic_pause_info *)&qos_info_pause->info;
 
 	printf("PAUSE Information\n");
 	if (pause->type == HIKP_NONE_PAUSE)
@@ -143,8 +146,10 @@ static void hikp_nic_qos_show_pause_info(const void *data)
 
 static void hikp_nic_qos_show_pfc_storm_para(const void *data)
 {
+	struct qos_cmd_info *qos_info_pfc = (struct qos_cmd_info *)data;
 	struct nic_pfc_storm_para *pfc_storm_para =
-		(struct nic_pfc_storm_para *)data;
+		(struct nic_pfc_storm_para *)&qos_info_pfc->info;
+	uint32_t length = qos_info_pfc->length;
 
 	printf("PFC STORM Information:\n");
 	printf("direction: %s\n", pfc_storm_para->dir ? "tx" : "rx");
@@ -155,6 +160,11 @@ static void hikp_nic_qos_show_pfc_storm_para(const void *data)
 		printf("check times: %u\n", pfc_storm_para->times) :
 		printf("pfc threshold: %ums\n", pfc_storm_para->times);
 	printf("recovery period: %ums\n", pfc_storm_para->recovery_period_ms);
+
+	if (length < sizeof(struct nic_pfc_storm_para))
+		return;
+
+	printf("storm count: %u\n", pfc_storm_para->storm_count);
 }
 
 static int hikp_nic_qos_get_blk(struct hikp_cmd_header *req_header,
@@ -192,11 +202,11 @@ out:
 }
 
 static int hikp_nic_query_qos_feature(struct hikp_cmd_header *req_header, const struct bdf_t *bdf,
-				      union nic_qos_feature_info *data)
+				      struct qos_cmd_info *qcmd_info)
 {
+	size_t buf_len = sizeof(qcmd_info->info);
 	struct nic_qos_rsp_head rsp_head = {0};
 	struct nic_qos_req_para req_data;
-	size_t buf_len = sizeof(*data);
 	uint32_t total_blk_size;
 	uint8_t total_blk_num;
 	uint8_t blk_id = 0;
@@ -207,7 +217,7 @@ static int hikp_nic_query_qos_feature(struct hikp_cmd_header *req_header, const 
 	req_data.block_id = blk_id;
 	req_data.dir = g_qos_param.dir;
 
-	ret = hikp_nic_qos_get_blk(req_header, &req_data, data, buf_len, &rsp_head);
+	ret = hikp_nic_qos_get_blk(req_header, &req_data, &qcmd_info->info, buf_len, &rsp_head);
 	if (ret != 0)
 		return ret;
 
@@ -220,12 +230,14 @@ static int hikp_nic_query_qos_feature(struct hikp_cmd_header *req_header, const 
 		req_data.dir = g_qos_param.dir;
 
 		ret = hikp_nic_qos_get_blk(req_header, &req_data,
-					   (uint8_t *)data + total_blk_size,
+					   (uint8_t *)&qcmd_info->info + total_blk_size,
 					   buf_len - total_blk_size, &rsp_head);
 		if (ret != 0)
 			return ret;
 		total_blk_size += rsp_head.cur_blk_size;
 	}
+
+	qcmd_info->length = total_blk_size;
 
 	return ret;
 }
@@ -234,9 +246,9 @@ static void hikp_nic_qos_cmd_execute(struct major_cmd_ctrl *self)
 {
 	char *revision_id = g_qos_param.revision_id;
 	struct bdf_t *bdf = &g_qos_param.target.bdf;
-	union nic_qos_feature_info qos_data = {0};
 	struct hikp_cmd_header req_header = {0};
 	const struct qos_feature_cmd *qos_cmd;
+	struct qos_cmd_info qos_data = {0};
 	int ret;
 
 	if (bdf->dev_id != 0) {

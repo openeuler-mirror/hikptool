@@ -40,8 +40,8 @@ static int hikp_ub_crd_target(struct major_cmd_ctrl *self, const char *argv)
 static uint32_t hikp_ub_show_crd(uint32_t off, struct ub_crd_rsp *crd_rsp, uint32_t num_rows,
 				 char const *crds[][2])
 {
-	int reg_index;
-	int i;
+	uint32_t reg_index;
+	uint32_t i;
 
 	for (i = 0; i < num_rows; i++) {
 		union cut_reg reg;

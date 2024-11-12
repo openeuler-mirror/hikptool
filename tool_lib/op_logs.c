@@ -25,29 +25,38 @@ static bool g_record = true;
 static bool g_log_info;
 static char g_input_buf[OP_LOG_FILE_W_MAXSIZE + 1] = {0};
 
-static void op_log_write(const char *log_data)
+static int op_log_write(const char *log_data)
 {
 	size_t w_size;
 	FILE *fd;
 
 	if (strlen(g_op_log) == 0)
-		return;
+		return -EINVAL;
 
 	if (!is_file_exist(g_op_log))
-		return;
+		return -EPERM;
 
 	fd = fopen(g_op_log, "a");
 	if (fd == NULL) {
 		HIKP_ERROR_PRINT("Can not open operation log file[%s], errno is %d\n",
 				 g_op_log, errno);
-		return;
+		return -errno;
 	}
-	(void)chmod(g_op_log, 0640);
-	w_size = fwrite((void *)log_data, 1U, strlen(log_data), fd);
-	if (strlen(log_data) > ((uint32_t)w_size))
-		HIKP_ERROR_PRINT("Error data size write to file, errno is %d\n", errno);
 
-	(void)fclose(fd);
+	if (chmod(g_op_log, 0640)) {
+		HIKP_ERROR_PRINT("Can not chmod log file[%s], errno is %d\n", g_op_log, errno);
+		(void)fclose(fd);
+		return -errno;
+	}
+
+	w_size = fwrite((void *)log_data, 1U, strlen(log_data), fd);
+	if (strlen(log_data) > ((uint32_t)w_size)) {
+		HIKP_ERROR_PRINT("Error data size write to file, errno is %d\n", errno);
+		(void)fclose(fd);
+		return -errno;
+	}
+
+	return fclose(fd);
 }
 
 static int op_log_write_buffer(const char *log_data, const char *log_dir)
@@ -70,11 +79,13 @@ static int op_log_write_buffer(const char *log_data, const char *log_dir)
 		return ret;
 	}
 
-	op_log_write(log_data);
+	ret = op_log_write(log_data);
+	if (ret == 0)
+		g_log_info = true;
+
 	tool_unlock(&op_lock_fd, UDA_FLOCK_BLOCK);
-	g_log_info = true;
 	(void)sigprocmask(SIG_UNBLOCK, &sigset, NULL);
-	return 0;
+	return ret;
 }
 
 void op_log_on(void)

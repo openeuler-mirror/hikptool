@@ -630,7 +630,7 @@ static int hikp_nic_query_fd_rules(struct hikp_cmd_header *req_header, const str
 	uint16_t max_key_bytes;
 	uint32_t left_buf_len;
 	size_t one_rule_size;
-	uint16_t idx;
+	uint32_t idx;
 	int ret = 0;
 
 	if (stage >= NIC_FD_STAGE_NUM) {

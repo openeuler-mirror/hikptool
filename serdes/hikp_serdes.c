@@ -12,7 +12,6 @@
  */
 
 #include <unistd.h>
-#include <unistd.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <string.h>
@@ -75,7 +74,7 @@ static int cmd_serdes_start_lane_id(struct major_cmd_ctrl *self, const char *arg
 
 	ptr++;
 	macro_id = strtol(ptr, &endptr, 10); /* 10:decimal */
-	if (endptr <= ptr)
+	if ((endptr <= ptr) || (macro_id < 0) || (macro_id > UCHAR_MAX))
 		goto _START_LANE_ID_ERR_PRO_;
 
 	ptr = endptr;
@@ -87,7 +86,7 @@ static int cmd_serdes_start_lane_id(struct major_cmd_ctrl *self, const char *arg
 	if ((endptr <= ptr) || (*endptr != 0))
 		goto _START_LANE_ID_ERR_PRO_;
 
-	if ((macro_id < 0) || (macro_id > UCHAR_MAX) || (ds_id < 0) || (ds_id > UCHAR_MAX))
+	if ((ds_id < 0) || (ds_id > UCHAR_MAX))
 		goto _START_LANE_ID_ERR_PRO_;
 
 	g_serdes_param.macro_id = (uint8_t)macro_id;

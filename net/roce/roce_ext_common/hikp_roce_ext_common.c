@@ -169,7 +169,7 @@ static void hikp_roce_ext_print(enum roce_cmd_type cmd_type,
 	uint8_t arr_len = output->reg_name.arr_len;
 	uint32_t *offset = output->reg.offset;
 	uint32_t *data = output->reg.data;
-	int i;
+	uint32_t i;
 
 	printf("**************%s INFO*************\n", cmd_name);
 	printf("%-40s[addr_offset] : reg_data\n", "reg_name");

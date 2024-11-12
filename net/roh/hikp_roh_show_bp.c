@@ -39,7 +39,7 @@ static int hikp_roh_show_bp_target(struct major_cmd_ctrl *self, const char *argv
 
 static int hikp_roh_show_bp(struct major_cmd_ctrl *self)
 {
-	uint8_t pfc[8] = { 0 };
+	uint8_t pfc[BP_SIZE] = { 0 };
 	uint8_t egu_tx_bp;
 	union bp_val res;
 	uint8_t flit_bp;

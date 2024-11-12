@@ -39,34 +39,29 @@ static int hikp_roh_mac_target(struct major_cmd_ctrl *self, const char *argv)
 	return self->err_no;
 }
 
-static int cmd_show_mac_type_parse(void)
+static void cmd_show_mac_type_parse(void)
 {
 	g_roh_mac_param.flag |= CMD_SHOW_MAC_TYPE_FLAG;
-	return 0;
 }
 
-static int cmd_show_cam_parse(void)
+static void cmd_show_cam_parse(void)
 {
 	g_roh_mac_param.flag |= CMD_SHOW_CAM_FLAG;
-	return 0;
 }
 
-static int cmd_show_credit_parse(void)
+static void cmd_show_credit_parse(void)
 {
 	g_roh_mac_param.flag |= CMD_SHOW_CREDIT_CNT;
-	return 0;
 }
 
 static int hikp_roh_mac_show_parse(struct major_cmd_ctrl *self, const char *argv)
 {
-	int ret;
-
 	if (strncmp(argv, "cam", sizeof("cam")) == 0) {
-		ret = cmd_show_cam_parse();
+		cmd_show_cam_parse();
 	} else if (strncmp(argv, "mac_type", sizeof("mac_type")) == 0) {
-		ret = cmd_show_mac_type_parse();
+		cmd_show_mac_type_parse();
 	} else if (strncmp(argv, "credit", sizeof("credit")) == 0) {
-		ret = cmd_show_credit_parse();
+		cmd_show_credit_parse();
 	} else {
 		hikp_roh_mac_help(self, NULL);
 		snprintf(self->err_str, sizeof(self->err_str),
@@ -74,7 +69,7 @@ static int hikp_roh_mac_show_parse(struct major_cmd_ctrl *self, const char *argv
 		self->err_no = -EINVAL;
 		return -EINVAL;
 	}
-	return ret;
+	return 0;
 }
 
 int hikp_roh_get_mac_type(struct major_cmd_ctrl *self, struct bdf_t bdf)
@@ -180,7 +175,7 @@ static int hikp_roh_build_cam(struct major_cmd_ctrl *self, struct cam_table_entr
 
 	for (int i = 0; i < block_num; i++) {
 		req_data.bdf = g_roh_mac_param.target.bdf;
-		req_data.cam_block_index = i;
+		req_data.cam_block_index = (uint32_t)i;
 		hikp_cmd_init(&req_header, ROH_MOD, HIKP_ROH_MAC, CMD_BUILD_CAM_TABLE);
 		cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 		if (cmd_ret == NULL || cmd_ret->status != 0) {
@@ -249,6 +244,7 @@ static int hikp_roh_query_crd(uint8_t crd_type, uint32_t num_rows, char const *c
 	struct roh_mac_req_para req_data = { 0 };
 	struct hikp_cmd_header req_header = { 0 };
 	struct hikp_cmd_ret *cmd_ret = NULL;
+	uint32_t i;
 	int ret;
 
 	hikp_cmd_init(&req_header, ROH_MOD, HIKP_ROH_MAC, CMD_SHOW_CREDIT);
@@ -262,7 +258,7 @@ static int hikp_roh_query_crd(uint8_t crd_type, uint32_t num_rows, char const *c
 		return ret;
 	}
 	mac_rsp = (struct roh_mac_credit_data *)(cmd_ret->rsp_data);
-	for (int i = 0; i < num_rows; i++) {
+	for (i = 0; i < num_rows; i++) {
 		union cut_reg reg;
 
 		reg.value = (mac_rsp->cut_reg_value)[i];

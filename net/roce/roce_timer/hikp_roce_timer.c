@@ -84,8 +84,8 @@ static void hikp_roce_timer_print(struct roce_timer_rsp_data *timer_rsp,
 				  enum roce_timer_cmd_type cmd_type)
 {
 	const char **reg_name;
+	uint32_t index = 0;
 	uint8_t arr_len;
-	int index = 0;
 
 	if (cmd_type == TIMER_SHOW_QPC) {
 		reg_name = g_timer_qpc_reg_name;

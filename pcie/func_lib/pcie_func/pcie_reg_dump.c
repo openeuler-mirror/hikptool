@@ -559,7 +559,7 @@ int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level)
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	ret = hikp_rsp_normal_check(cmd_ret);
 	if (ret) {
-		Err("PCIe DUMPREG", "pcie dump cmd_ret check failed, ret: %d.\n", ret);
+		Err("pcie dump cmd_ret check failed, ret: %d.\n", ret);
 		goto free_cmd_ret;
 	}
 	ret = pcie_create_dumpreg_log_file(port_id, dump_level);

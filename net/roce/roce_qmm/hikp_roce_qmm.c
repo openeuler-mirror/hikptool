@@ -154,8 +154,8 @@ static const struct reg_name_info {
 static void hikp_roce_qmm_print(struct roce_qmm_rsp_data *qmm_rsp)
 {
 	const char **reg_name;
+	uint32_t index = 0;
 	uint8_t arr_len;
-	int index = 0;
 
 	for (index = 0; index < HIKP_ARRAY_SIZE(g_qmm_reg_name_info_table); index++) {
 		if (g_qmm_reg_name_info_table[index].sub_cmd != g_roce_qmm_param.sub_cmd)

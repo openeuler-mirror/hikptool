@@ -176,7 +176,7 @@ struct sfp_a0_page {
 		uint8_t rsvd_dm : 1;
 	};
 	uint8_t enhanced_options;               /* reg 93: Enhanced Options */
-	uint8_t Sff_8472_compliance;            /* reg 94: SFF-8472 Compliance */
+	uint8_t sff_8472_compliance;            /* reg 94: SFF-8472 Compliance */
 	uint8_t cc_ext; /* reg 95: Check code for the Extended ID Fields (addresses 64 to 94) */
 
 	/* 96~255 */
@@ -247,7 +247,7 @@ struct sfp_page_info {
 #define QSFP_TRANS_OPTICAL_MAX  0x9
 
 struct qsfp_page0_lower {
-	uint8_t Identifier;             /* reg 0: Identifier (1 Byte) */
+	uint8_t identifier;             /* reg 0: Identifier (1 Byte) */
 	uint8_t revision_comp;          /* reg 1: Revision Compliance */
 	uint8_t status_indicator;       /* reg 2: Status Indicators */
 	uint8_t tx_rx_los;              /* reg 3: Latched Tx/Rx LOS indicator */

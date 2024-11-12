@@ -69,7 +69,7 @@ static int hikp_unic_cmd_ppp_feature_select(struct major_cmd_ctrl *self, const c
 	for (i = 0; i < feat_size; i++) {
 		if (strncmp(argv, g_unic_ppp_feature_cmd[i].feature_name,
 			    HIKP_UNIC_PPP_MAX_FEATURE_NAME_LEN) == 0) {
-			g_unic_ppp_param.feature_idx = i;
+			g_unic_ppp_param.feature_idx = (int)i;
 			return 0;
 		}
 	}
@@ -348,7 +348,7 @@ static void hikp_unic_ppp_show_ip_tbl(const void *data)
 	struct unic_ip_tbl *ip_tbl = (struct unic_ip_tbl *)data;
 	struct unic_ip_entry *entry;
 	uint16_t *ip_addr_tbl_str;
-	int i, j;
+	uint32_t i, j;
 
 	printf("ip_table_size = %u\n", ip_tbl->entry_size);
 	printf("index\t| func_id\t| ip_addr\n");

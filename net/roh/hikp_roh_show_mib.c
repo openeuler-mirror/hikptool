@@ -184,7 +184,7 @@ static int hikp_roh_fill_pmu_cnt(int round)
 
 	hikp_cmd_init(&req_header, ROH_MOD, HIKP_ROH_SHOW_MIB, CMD_SHOW_MIB_FILL_CNT);
 	req_data.bdf = roh_show_mib_param.target.bdf;
-	req_data.round = round;
+	req_data.round = (uint32_t)round;
 
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	ret = hikp_rsp_normal_check(cmd_ret);

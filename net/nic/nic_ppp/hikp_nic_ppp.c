@@ -519,13 +519,13 @@ out:
 static int hikp_nic_ppp_query_uc_mac_addr(struct hikp_cmd_header *req_header,
 					  struct nic_ppp_req_para *req_data,
 					  struct mac_vlan_uc_tbl *uc_tbl,
-					  uint16_t max_hw_entry_size)
+					  uint32_t max_hw_entry_size)
 {
 	struct mac_vlan_uc_entry *uc_entry = uc_tbl->entry;
 	struct nic_ppp_rsp_head rsp_head = {0};
 	uint32_t entry_size = 0;
 	size_t left_buf_len;
-	uint16_t idx = 0;
+	uint32_t idx = 0;
 	int ret = 0;
 
 	while (idx < max_hw_entry_size) {
@@ -561,13 +561,13 @@ static int hikp_nic_ppp_query_uc_mac_addr(struct hikp_cmd_header *req_header,
 static int hikp_nic_ppp_query_mc_mac_addr(struct hikp_cmd_header *req_header,
 					  struct nic_ppp_req_para *req_data,
 					  struct mac_vlan_mc_tbl *mc_tbl,
-					  uint16_t max_hw_entry_size)
+					  uint32_t max_hw_entry_size)
 {
 	struct mac_vlan_mc_entry *mc_entry = mc_tbl->entry;
 	struct nic_ppp_rsp_head rsp_head = {0};
 	uint32_t entry_size = 0;
 	size_t left_buf_len;
-	uint16_t idx = 0;
+	uint32_t idx = 0;
 	int ret = 0;
 
 	while (idx < max_hw_entry_size) {
@@ -1086,7 +1086,7 @@ static int hikp_nic_check_hw_res(struct hikp_nic_ppp_hw_resources *hw_res)
 		return -EINVAL;
 	}
 	if (hw_res->total_func_num == 0 || hw_res->total_func_num > HIKP_NIC_MAX_FUNC_NUM) {
-		HIKP_ERROR_PRINT("Total_func_num (%u）should be in [1, %u].\n",
+		HIKP_ERROR_PRINT("Total_func_num (%u) should be in [1, %u].\n",
 				 hw_res->total_func_num, HIKP_NIC_MAX_FUNC_NUM);
 		return -EINVAL;
 	}

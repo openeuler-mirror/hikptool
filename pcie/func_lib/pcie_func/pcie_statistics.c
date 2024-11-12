@@ -79,7 +79,7 @@ static int pcie_portid_serdes_relation(const struct pcie_macro_info *macro_info,
 	Info("\tndie_id: %s\n", g_global_ndie_name[ndie_id]);
 	for (i = 0; i < macro_num; i++) {
 		for (j = macro_info[i].lane_s; j <= macro_info[i].lane_e; j++)
-			Info("\t\tmacro %d \t lane: %d\n", macro_info[i].id, j);
+			Info("\t\tmacro %u \t lane: %u\n", macro_info[i].id, j);
 	}
 	return 0;
 }

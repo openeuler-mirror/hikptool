@@ -18,7 +18,7 @@
 
 #define TOOL_NAME "hikptool"
 
-#define TOOL_VER "1.1.2"
+#define TOOL_VER "1.1.3"
 
 #define HI_GET_BITFIELD(value, start, mask) (((value) >> (start)) & (mask))
 #define HI_SET_FIELD(origin, shift, val)	((origin) |= (val) << (shift))

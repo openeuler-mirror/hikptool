@@ -26,6 +26,8 @@ macro(get_header_dir_recurse HEADER_DIR_LIST)
     set(${HEADER_DIR_LIST} ${DIR_LIST})
 endmacro()
 
+option(ENABLE_STATIC "Make tool run as independently as possible" off)
+
 file(GLOB_RECURSE HIKPTOOL_SRC
 	${CMAKE_CURRENT_SOURCE_DIR}/cxl/*.c
 	${CMAKE_CURRENT_SOURCE_DIR}/net/*.c
@@ -38,13 +40,23 @@ file(GLOB_RECURSE HIKPTOOL_SRC
 	${CMAKE_CURRENT_SOURCE_DIR}/tool_lib/*.c
 	${CMAKE_CURRENT_SOURCE_DIR}/hikp_init_main.c
 	)
+
 add_subdirectory(libhikptdev)
 add_executable(hikptool ${HIKPTOOL_SRC})
 get_header_dir_recurse(HIKPTOOL_HEADER_DIR)
 target_include_directories(hikptool PRIVATE ${HIKPTOOL_HEADER_DIR})
 target_link_directories(hikptool PRIVATE ${CMAKE_INSTALL_PREFIX}/lib)
 target_link_libraries(hikptool PRIVATE KPTDEV_SO)
+if (ENABLE_STATIC)
+    # I don¡¯t know why, but once you add double quotes to these
+    # link parameters, an error will be reported.
+    set(EXT_LINK_FLAGS -static-libgcc -static-libstdc++ -static)
+    set_target_properties(hikptool PROPERTIES LINK_SEARCH_START_STATIC ON)
+    set_target_properties(hikptool PROPERTIES LINK_SEARCH_END_STATIC ON)
+else()
+    set(EXT_LINK_FLAGS "-fPIE")
+endif()
 target_link_options(hikptool PRIVATE
-	-Wl,-z,relro,-z,now -Wl,-z,noexecstack -fPIE -pie
+	-Wl,-z,relro,-z,now -Wl,-z,noexecstack -pie ${EXT_LINK_FLAGS}
 	-s -lpthread -ldl -lm -lrt -T ${CMAKE_CURRENT_SOURCE_DIR}/hikp_register.ld)
 install(TARGETS hikptool RUNTIME DESTINATION bin OPTIONAL)

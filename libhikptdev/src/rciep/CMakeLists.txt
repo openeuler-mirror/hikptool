@@ -13,7 +13,11 @@ cmake_minimum_required(VERSION 3.0.0)
 
 set(KPTDEV_SO_NAME hikptdev)
 
-add_library(KPTDEV_SO SHARED hikpt_rciep.c)
+if (ENABLE_STATIC)
+    add_library(KPTDEV_SO STATIC hikpt_rciep.c)
+else()
+    add_library(KPTDEV_SO SHARED hikpt_rciep.c)
+endif()
 
 target_include_directories(KPTDEV_SO PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
 

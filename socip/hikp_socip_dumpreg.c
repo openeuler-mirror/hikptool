@@ -143,14 +143,12 @@ static void hikp_socip_dumpreg_execute(struct major_cmd_ctrl *self)
 	if (!cmd_ret || cmd_ret->status != 0) {
 		self->err_no = -EINVAL;
 		HIKP_ERROR_PRINT("hikp_cmd_alloc\n");
-		free(cmd_ret);
-		cmd_ret = NULL;
+		hikp_cmd_free(&cmd_ret);
 		return;
 	}
 
 	dump_reg_info(&cmd_ret->rsp_data[0], cmd_ret->rsp_data_num);
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void cmd_socip_dump_reg_init(void)

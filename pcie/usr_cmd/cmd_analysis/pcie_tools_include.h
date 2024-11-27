@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __PCIE_TOOLS_INCLUDE_H_
-#define __PCIE_TOOLS_INCLUDE_H_
+#ifndef PCIE_TOOLS_INCLUDE_H
+#define PCIE_TOOLS_INCLUDE_H
 
 #include "hikptdev_plug.h"
 #include "tool_lib.h"
@@ -29,4 +29,4 @@ struct tool_pcie_cmd {
 	uint32_t read_module_val;
 };
 
-#endif
+#endif /* PCIE_TOOLS_INCLUDE_H */

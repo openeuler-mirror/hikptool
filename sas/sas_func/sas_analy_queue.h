@@ -11,13 +11,15 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __SAS_ANALY_DQ_H_
-#define __SAS_ANALY_DQ_H_
+#ifndef SAS_ANALY_DQ_H
+#define SAS_ANALY_DQ_H
 
 #include "sas_tools_include.h"
 
 #define REG_NUM_DQ 2
 #define REG_NUM_CQ 2
+#define REG_NUM_CQ_MAX 4
+#define REG_NUM_PTR_MAX 32
 #define CQE_NUM_BYTE 0
 #define DQE_NUM_REG 2
 #define CQ_COAL 1
@@ -33,4 +35,4 @@ struct sas_analy_para {
 
 int sas_analy_cmd(struct tool_sas_cmd *cmd);
 
-#endif
+#endif /* SAS_ANALY_DQ_H */

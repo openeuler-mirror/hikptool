@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROCE_GMV_H__
-#define __HIKP_ROCE_GMV_H__
+#ifndef HIKP_ROCE_GMV_H
+#define HIKP_ROCE_GMV_H
 
 #include "hikp_roce_ext_common.h"
 
@@ -38,4 +38,4 @@ enum roce_gmv_cmd_type {
 	GMV_SHOW = 0x0,
 };
 
-#endif /* __HIKP_ROCE_GMV_H__ */
+#endif /* HIKP_ROCE_GMV_H */

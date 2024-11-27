@@ -42,6 +42,8 @@ static int hikp_nic_query_ppp_by_entryid(struct hikp_cmd_header *req_header,
 #define NIC_PPP_VLAN_TBL_NAME   "vlan"
 #define NIC_PPP_MNG_TBL_NAME    "mng"
 
+#define HIKP_PPP_MAX_MAC_ID_NUM	8
+
 static const struct ppp_feature_cmd g_ppp_feature_cmd[] = {
 	{NIC_PPP_MAC_TBL_NAME, NIC_MAC_TBL_DUMP,  true,
 	 hikp_nic_query_ppp_by_entryid, hikp_nic_ppp_show_mac_tbl},
@@ -129,9 +131,9 @@ static void hikp_nic_ppp_get_overflow_mac(struct nic_mac_tbl *of_tbl, struct nic
 
 static void hikp_nic_ppp_show_key_mem(struct nic_mac_tbl *tbl, bool is_key_mem)
 {
+	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE] = {0};
 	struct mac_vlan_uc_tbl *uc_tbl = &tbl->uc_tbl;
 	struct mac_vlan_mc_tbl *mc_tbl = &tbl->mc_tbl;
-	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE];
 	struct mac_vlan_uc_entry *uc_entry;
 	struct mac_vlan_mc_entry *mc_entry;
 	uint32_t idx;
@@ -178,11 +180,11 @@ static void hikp_nic_ppp_show_key_mem(struct nic_mac_tbl *tbl, bool is_key_mem)
 static void hikp_nic_ppp_show_func_uc_mac_addr(struct mac_vlan_uc_tbl *uc_tbl,
 					       const struct bdf_t *bdf, uint16_t func_id)
 {
-	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE];
+	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE] = {0};
 	struct mac_vlan_uc_entry *uc_entry;
 	uint8_t pf_id;
 	uint8_t vf_id;
-	uint8_t i;
+	uint32_t i;
 
 	for (i = 0; i < uc_tbl->entry_size; i++) {
 		uc_entry = &uc_tbl->entry[i];
@@ -202,7 +204,7 @@ static void hikp_nic_ppp_show_func_uc_mac_addr(struct mac_vlan_uc_tbl *uc_tbl,
 static void hikp_nic_ppp_show_func_mc_mac_addr(struct mac_vlan_mc_tbl *mc_tbl,
 					       const struct bdf_t *bdf, uint16_t func_id)
 {
-	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE];
+	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE] = {0};
 	struct mac_vlan_mc_entry *mc_entry;
 	uint16_t abs_func_id;
 	uint8_t offset;
@@ -258,6 +260,9 @@ static void hikp_nic_ppp_show_mac_tbl(const void *data)
 	}
 
 	hikp_nic_ppp_show_key_mem((struct nic_mac_tbl *)data, true);
+
+	if (g_ppp_hw_res.overflow_cam_size == 0)
+		return;
 
 	of_uc_entry = (struct mac_vlan_uc_entry *)calloc(g_ppp_hw_res.overflow_cam_size,
 		      sizeof(struct mac_vlan_uc_entry));
@@ -326,8 +331,9 @@ static void hikp_nic_ppp_show_vf_vlan_info(const struct vf_vlan_tbl *vf_tbl, uin
 	offset = abs_func_id % HIKP_NIC_PPP_FUNC_BITMAP_SIZE;
 	hikp_nic_ppp_get_func_name(func_name, sizeof(func_name), func_id);
 	printf("%s_abs_func_id: %u\n", func_name,
-	       (uint32_t)(g_ppp_hw_res.abs_func_id_base + func_id - 1));
+	       (uint32_t)(hw_res->abs_func_id_base + func_id - 1));
 	printf("%s VLAN id:\n\t", func_name);
+
 	for (i = 0; i < vf_tbl->entry_size; i++) {
 		vf_entry = &vf_tbl->entry[i];
 		if (hikp_get_bit(vf_entry->func_bitmap[idx], offset) != 0) {
@@ -394,7 +400,7 @@ static void hikp_nic_ppp_show_vlan_tbl(const void *data)
 static void hikp_nic_ppp_show_manager_tbl(const void *data)
 {
 	struct nic_mng_tbl *tbl = (struct nic_mng_tbl *)data;
-	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE];
+	char mac_str[HIKP_NIC_ETH_ADDR_FMT_SIZE] = {0};
 	struct manager_entry *entry;
 	uint32_t i;
 
@@ -490,10 +496,11 @@ static int hikp_nic_ppp_get_blk(struct hikp_cmd_header *req_header,
 		goto out;
 
 	rsp = (struct nic_ppp_rsp *)cmd_ret->rsp_data;
-	if (rsp->rsp_head.cur_blk_size > buf_len) {
+	if (rsp->rsp_head.cur_blk_size > buf_len ||
+	    rsp->rsp_head.cur_blk_size > sizeof(rsp->rsp_data)) {
 		HIKP_ERROR_PRINT("nic_ppp block context copy size error, "
-				 "buffer size=%zu, data size=%u.\n",
-				 buf_len, rsp->rsp_head.cur_blk_size);
+				 "dst buffer size=%zu, src buffer size=%zu, data size=%u.\n",
+				 buf_len, sizeof(rsp->rsp_data), rsp->rsp_head.cur_blk_size);
 		ret = -EINVAL;
 		goto out;
 	}
@@ -505,20 +512,20 @@ static int hikp_nic_ppp_get_blk(struct hikp_cmd_header *req_header,
 	rsp_head->cur_blk_entry_cnt = rsp->rsp_head.cur_blk_entry_cnt;
 
 out:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 
 static int hikp_nic_ppp_query_uc_mac_addr(struct hikp_cmd_header *req_header,
 					  struct nic_ppp_req_para *req_data,
 					  struct mac_vlan_uc_tbl *uc_tbl,
-					  uint16_t max_hw_entry_size)
+					  uint32_t max_hw_entry_size)
 {
 	struct mac_vlan_uc_entry *uc_entry = uc_tbl->entry;
 	struct nic_ppp_rsp_head rsp_head = {0};
 	uint32_t entry_size = 0;
 	size_t left_buf_len;
-	uint16_t idx = 0;
+	uint32_t idx = 0;
 	int ret = 0;
 
 	while (idx < max_hw_entry_size) {
@@ -532,6 +539,17 @@ static int hikp_nic_ppp_query_uc_mac_addr(struct hikp_cmd_header *req_header,
 					 idx, ret);
 			return ret;
 		}
+		if (rsp_head.next_entry_idx <= idx) {
+			HIKP_ERROR_PRINT("Next entry index (%u) should be greater than current (%u).\n",
+					 rsp_head.next_entry_idx, idx);
+			return -EINVAL;
+		}
+		if (entry_size + rsp_head.cur_blk_entry_cnt > max_hw_entry_size) {
+			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
+					 "is over the maximum entry nubmer (%u) of unicast MAC table.\n",
+					 entry_size + rsp_head.cur_blk_entry_cnt, idx, max_hw_entry_size);
+			return -EINVAL;
+		}
 		entry_size += rsp_head.cur_blk_entry_cnt;
 		idx = rsp_head.next_entry_idx;
 	}
@@ -543,13 +561,13 @@ static int hikp_nic_ppp_query_uc_mac_addr(struct hikp_cmd_header *req_header,
 static int hikp_nic_ppp_query_mc_mac_addr(struct hikp_cmd_header *req_header,
 					  struct nic_ppp_req_para *req_data,
 					  struct mac_vlan_mc_tbl *mc_tbl,
-					  uint16_t max_hw_entry_size)
+					  uint32_t max_hw_entry_size)
 {
 	struct mac_vlan_mc_entry *mc_entry = mc_tbl->entry;
 	struct nic_ppp_rsp_head rsp_head = {0};
 	uint32_t entry_size = 0;
 	size_t left_buf_len;
-	uint16_t idx = 0;
+	uint32_t idx = 0;
 	int ret = 0;
 
 	while (idx < max_hw_entry_size) {
@@ -562,6 +580,17 @@ static int hikp_nic_ppp_query_mc_mac_addr(struct hikp_cmd_header *req_header,
 			HIKP_ERROR_PRINT("Fail to get the mc entry after idx=%u, ret=%d.\n",
 					 idx, ret);
 			return ret;
+		}
+		if (rsp_head.next_entry_idx <= idx) {
+			HIKP_ERROR_PRINT("Next entry index (%u) should be greater than current (%u).\n",
+					 rsp_head.next_entry_idx, idx);
+			return -EINVAL;
+		}
+		if (entry_size + rsp_head.cur_blk_entry_cnt > max_hw_entry_size) {
+			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
+					 "is over the maximum entry nubmer (%u) of multicast MAC table.\n",
+					 entry_size + rsp_head.cur_blk_entry_cnt, idx, max_hw_entry_size);
+			return -EINVAL;
 		}
 		entry_size += rsp_head.cur_blk_entry_cnt;
 		idx = rsp_head.next_entry_idx;
@@ -623,6 +652,17 @@ static int hikp_nic_ppp_query_vf_vlan_tbl(struct hikp_cmd_header *req_header,
 					 idx, ret);
 			return ret;
 		}
+		if (rsp_head.next_entry_idx <= idx) {
+			HIKP_ERROR_PRINT("Next entry index (%u) should be greater than current (%u).\n",
+					 rsp_head.next_entry_idx, idx);
+			return -EINVAL;
+		}
+		if (entry_size + rsp_head.cur_blk_entry_cnt > hw_entry_size) {
+			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
+					 "is over the maximum entry nubmer (%u) of VF VLAN table.\n",
+					 entry_size + rsp_head.cur_blk_entry_cnt, idx, hw_entry_size);
+			return -EINVAL;
+		}
 		entry_size += rsp_head.cur_blk_entry_cnt;
 		idx = rsp_head.next_entry_idx;
 	}
@@ -652,6 +692,17 @@ static int hikp_nic_ppp_query_port_vlan_tbl(struct hikp_cmd_header *req_header,
 			HIKP_ERROR_PRINT("Fail to get the port vlan entry after idx=%u, ret=%d.\n",
 					 idx, ret);
 			return ret;
+		}
+		if (rsp_head.next_entry_idx <= idx) {
+			HIKP_ERROR_PRINT("Next entry index (%u) should be greater than current (%u).\n",
+					 rsp_head.next_entry_idx, idx);
+			return -EINVAL;
+		}
+		if (entry_size + rsp_head.cur_blk_entry_cnt > hw_entry_size) {
+			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
+					 "is over the maximum entry nubmer (%u) of port VLAN table.\n",
+					 entry_size + rsp_head.cur_blk_entry_cnt, idx, hw_entry_size);
+			return -EINVAL;
 		}
 		entry_size += rsp_head.cur_blk_entry_cnt;
 		idx = rsp_head.next_entry_idx;
@@ -704,6 +755,17 @@ static int hikp_nic_query_mng_tbl(struct hikp_cmd_header *req_header,
 					 idx, ret);
 			return ret;
 		}
+		if (rsp_head.next_entry_idx <= idx) {
+			HIKP_ERROR_PRINT("Next entry index (%u) should be greater than current (%u).\n",
+					 rsp_head.next_entry_idx, idx);
+			return -EINVAL;
+		}
+		if (entry_size + rsp_head.cur_blk_entry_cnt > g_ppp_hw_res.mng_tbl_size) {
+			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
+					 "is over the maximum entry nubmer (%u) of manager table.\n",
+					 entry_size + rsp_head.cur_blk_entry_cnt, idx, g_ppp_hw_res.mng_tbl_size);
+			return -EINVAL;
+		}
 		entry_size += rsp_head.cur_blk_entry_cnt;
 		idx = rsp_head.next_entry_idx;
 	}
@@ -729,6 +791,24 @@ static int hikp_nic_query_ppp_by_entryid(struct hikp_cmd_header *req_header,
 		return hikp_nic_query_mng_tbl(req_header, &req_data, (struct nic_mng_tbl *)data);
 }
 
+static int hikp_nic_ppp_check_func_num(void *data)
+{
+	const struct ppp_feature_cmd *ppp_cmd;
+	uint16_t func_num = 0;
+
+	ppp_cmd = &g_ppp_feature_cmd[g_ppp_param.feature_idx];
+	if (ppp_cmd->sub_cmd_code == NIC_PROMISCUOUS_TBL_DUMP)
+		func_num = ((struct nic_promisc_tbl *)data)->func_num;
+	else if (ppp_cmd->sub_cmd_code == NIC_VLAN_OFFLOAD_DUMP)
+		func_num = ((struct nic_vlan_offload_cfg *)data)->func_num;
+
+	if (func_num > HIKP_NIC_MAX_FUNC_NUM) {
+		HIKP_ERROR_PRINT("Illegal function num(%u) from firmware.\n", func_num);
+		return -EINVAL;
+	}
+	return 0;
+}
+
 static int hikp_nic_query_ppp_by_blkid(struct hikp_cmd_header *req_header, const struct bdf_t *bdf,
 				       void *data, size_t len)
 {
@@ -752,6 +832,10 @@ static int hikp_nic_query_ppp_by_blkid(struct hikp_cmd_header *req_header, const
 	/* Copy the remaining block content if total block number is greater than 1. */
 	for (blk_id = 1; blk_id < total_blk_num; blk_id++) {
 		req_data.block_id = blk_id;
+		if (len <= total_blk_size) {
+			HIKP_ERROR_PRINT("No enough buffer to get block-%u context.\n", blk_id);
+			return -ENOMEM;
+		}
 		ret = hikp_nic_ppp_get_blk(req_header, &req_data, (uint8_t *)data + total_blk_size,
 					   len - total_blk_size, &rsp_head);
 		if (ret != 0) {
@@ -761,7 +845,7 @@ static int hikp_nic_query_ppp_by_blkid(struct hikp_cmd_header *req_header, const
 		total_blk_size += rsp_head.cur_blk_size;
 	}
 
-	return ret;
+	return hikp_nic_ppp_check_func_num(data);
 }
 
 static int hikp_nic_ppp_get_hw_resources(const struct bdf_t *bdf,
@@ -960,7 +1044,6 @@ static int hikp_nic_ppp_check_input_param(struct major_cmd_ctrl *self,
 }
 
 static int hikp_nic_check_func_id_valid(struct major_cmd_ctrl *self,
-					const struct ppp_feature_cmd *ppp_cmd,
 					const struct nic_ppp_param *ppp_param,
 					const struct hikp_nic_ppp_hw_resources *hw_res)
 {
@@ -970,6 +1053,46 @@ static int hikp_nic_check_func_id_valid(struct major_cmd_ctrl *self,
 			 hw_res->total_func_num);
 		self->err_no = -EINVAL;
 		return self->err_no;
+	}
+
+	return 0;
+}
+
+static int hikp_nic_check_hw_res(struct hikp_nic_ppp_hw_resources *hw_res)
+{
+	if (!g_ppp_feature_cmd[g_ppp_param.feature_idx].need_query_hw_res)
+		return 0;
+
+	if (hw_res->max_key_mem_size == 0) {
+		HIKP_ERROR_PRINT("Max key memory size should not be zero!\n");
+		return -EINVAL;
+	}
+	if (hw_res->port_vlan_tbl_size == 0) {
+		HIKP_ERROR_PRINT("PORT VLAN Table size should not be zero!\n");
+		return -EINVAL;
+	}
+	if (hw_res->vf_vlan_tbl_size == 0) {
+		HIKP_ERROR_PRINT("VF VLAN Table size should not be zero!\n");
+		return -EINVAL;
+	}
+	if (hw_res->mng_tbl_size == 0) {
+		HIKP_ERROR_PRINT("Manager Table size should not be zero!\n");
+		return -EINVAL;
+	}
+	if (hw_res->mac_id >= HIKP_PPP_MAX_MAC_ID_NUM) {
+		HIKP_ERROR_PRINT("MAC ID (%u) should be less than %u.\n",
+				 hw_res->mac_id, HIKP_PPP_MAX_MAC_ID_NUM);
+		return -EINVAL;
+	}
+	if (hw_res->total_func_num == 0 || hw_res->total_func_num > HIKP_NIC_MAX_FUNC_NUM) {
+		HIKP_ERROR_PRINT("Total_func_num (%u) should be in [1, %u].\n",
+				 hw_res->total_func_num, HIKP_NIC_MAX_FUNC_NUM);
+		return -EINVAL;
+	}
+	if (hw_res->abs_func_id_base >= HIKP_NIC_MAX_FUNC_NUM) {
+		HIKP_ERROR_PRINT("Function ID base (%u) should be less than %u.\n",
+				 hw_res->abs_func_id_base, HIKP_NIC_MAX_FUNC_NUM);
+		return -EINVAL;
 	}
 
 	return 0;
@@ -995,8 +1118,16 @@ static void hikp_nic_ppp_cmd_execute(struct major_cmd_ctrl *self)
 		return;
 	}
 
+	ret = hikp_nic_check_hw_res(&g_ppp_hw_res);
+	if (ret != 0) {
+		snprintf(self->err_str, sizeof(self->err_str),
+			 "ppp hardware resources obtained is invalid.");
+		self->err_no = ret;
+		return;
+	}
+
 	ppp_cmd = &g_ppp_feature_cmd[g_ppp_param.feature_idx];
-	ret = hikp_nic_check_func_id_valid(self, ppp_cmd, &g_ppp_param, &g_ppp_hw_res);
+	ret = hikp_nic_check_func_id_valid(self, &g_ppp_param, &g_ppp_hw_res);
 	if (ret != 0)
 		return;
 

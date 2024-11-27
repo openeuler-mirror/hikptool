@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_SERDES_H__
-#define __HIKP_SERDES_H__
+#ifndef HIKP_SERDES_H
+#define HIKP_SERDES_H
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -20,8 +20,6 @@
 #include <netinet/in.h>
 #include <linux/if.h>
 #include "tool_lib.h"
-
-#define __SERDES_DESC(x) 1
 
 enum serdes_cmd_type_e {
 	SERDES_SYS_RESERVE0        = 0,
@@ -212,4 +210,4 @@ struct hilink_brief_info {
 	uint32_t rsvd_1;
 };
 
-#endif
+#endif /* HIKP_SERDES_H */

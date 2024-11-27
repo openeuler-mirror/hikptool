@@ -69,4 +69,4 @@ int uda_unfcntl(const int *fd, const uint32_t operation);
 
 extern void record_syslog(const char *ident, const int priority, const char *logs);
 
-#endif
+#endif /* OSSL_USER_LINUX_H */

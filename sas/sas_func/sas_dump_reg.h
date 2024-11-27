@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __SAS_DUMP_REG_H_
-#define __SAS_DUMP_REG_H_
+#ifndef SAS_DUMP_REG_H
+#define SAS_DUMP_REG_H
 
 #include "sas_tools_include.h"
 
@@ -24,4 +24,4 @@ struct sas_dump_req_para {
 
 int sas_reg_dump(struct tool_sas_cmd *cmd);
 
-#endif
+#endif /* SAS_DUMP_REG_H */

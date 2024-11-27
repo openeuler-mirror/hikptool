@@ -58,14 +58,127 @@ static int hikp_roce_qmm_bank_get(struct major_cmd_ctrl *self, const char *argv)
 	return 0;
 }
 
+/* DON'T change the order of these arrays or add entries between! */
+static const char *g_qmm_top_reg_name[] = {
+	"ROCEE_QMM_SRQC_ALM",
+	"ROCEE_QMM_MPT_ALM",
+	"ROCEE_QMM_ECC_ERR",
+	"QMM_AXI_RESP_ERR",
+	"ROCEE_LPRC_RO",
+	"ROCEE_LPRC_RC",
+	"QMM_LPRC_EMPTY_RD",
+	"QPC_DMAE_EMPTY_RD",
+	"QMM_LPRC_FULL_WR",
+	"QPC_DMAE_FULL_WR",
+	"ROCEE_QMM_QPC_ALM",
+	"ROCEE_QMM_GMV_ALM",
+};
+
+static const char *g_qmm_cqc_reg_name[] = {
+	"ROCEE_CQC_SRH_REQ_RO_BK0",
+	"ROCEE_CQC_SRH_REQ_RO_BK1",
+	"ROCEE_CQC_ECC_ERR",
+	"ROCEE_CQC_RESP_ERR",
+	"CQC_RW_REQ_RO_BK0",
+	"CQC_RW_REQ_RO_BK1",
+	"ROCEE_QMM_CQC_ALM",
+};
+
+static const char *g_qmm_qpc_reg_name[] = {
+	"QMM_QPC_SRH_CNT_0",
+	"QMM_QPC_SRH_CNT_1",
+	"ROCEE_QPC_EMPTY_RD",
+	"ROCEE_QPC_FULL_WR",
+	"ROCEE_QPC_SRH_REQ_RO_0",
+	"ROCEE_QPC_SRH_REQ_RO_1",
+	"QMM_QPC_CLR_CNT0_0",
+	"QMM_QPC_CLR_CNT1_0",
+	"QMM_QPC_CLR_CNT2_0",
+	"QMM_QPC_CLR_CNT3_0",
+	"QMM_QPC_CLR_CNT0_1",
+	"QMM_QPC_CLR_CNT1_1",
+	"QMM_QPC_CLR_CNT2_1",
+	"QMM_QPC_CLR_CNT3_1",
+	"QPC_RW_REQ_RO_0",
+	"QPC_RW_REQ_RO_1",
+	"QPC_WQE_ECC_ERR",
+};
+
+static const char *g_qmm_top_ext_reg_name[] = {
+	"ROCEE_QMM_SRQC_CACHE_RO",
+	"ROCEE_QMM_SRQC_DMAE_RO",
+	"ROCEE_QMM_SRQC_SRH_DFX",
+	"ROCEE_QMM_SRQC_SRH_REQ_RO",
+	"ROCEE_QMM_SRQC_RW_REQ_RO",
+	"ROCEE_QMM_MPT_CACHE_RO",
+	"ROCEE_QMM_MPT_DMAE_RO",
+	"ROCEE_QMM_MPT_SRH_DFX",
+	"ROCEE_QMM_MPT_SRH_REQ_RO",
+	"QPC_DMAE_INTF_RO",
+};
+
+static const char *g_qmm_cqc_ext_reg_name[] = {
+	"ROCEE_CQC_SRH_DFX_BK0",
+	"ROCEE_CQC_SRH_DFX_BK1",
+	"ROCEE_CQC_EMPTY_RD",
+	"ROCEE_CQC_FULL_WR",
+	"ROCEE_CQC_CACHE_RO_BK0",
+	"ROCEE_CQC_CACHE_RO_BK1",
+	"ROCEE_CQC_DMAE_RO",
+};
+
+static const char *g_qmm_qpc_ext_reg_name[] = {
+	"ROCEE_QPC_SRH_DFX_0",
+	"ROCEE_QPC_SRH_DFX_1",
+	"ROCEE_QPC_SRH_REQ_RO_0",
+	"ROCEE_QPC_SRH_REQ_RO_1",
+	"ROCEE_QMM_QPC_CACHE_RO_0",
+	"ROCEE_QMM_QPC_CACHE_RO_0",
+	"QMM_WQE_CACHE_RO",
+	"IRRL_CACHE_RO",
+};
+
+static const struct reg_name_info {
+	enum roce_qmm_cmd_type sub_cmd;
+	const char **reg_name;
+	uint8_t arr_len;
+} g_qmm_reg_name_info_table[] = {
+	{QMM_SHOW_CQC, g_qmm_cqc_reg_name, HIKP_ARRAY_SIZE(g_qmm_cqc_reg_name)},
+	{QMM_SHOW_QPC, g_qmm_qpc_reg_name, HIKP_ARRAY_SIZE(g_qmm_qpc_reg_name)},
+	{QMM_SHOW_TOP, g_qmm_top_reg_name, HIKP_ARRAY_SIZE(g_qmm_top_reg_name)},
+	{QMM_SHOW_CQC_EXT, g_qmm_cqc_ext_reg_name, HIKP_ARRAY_SIZE(g_qmm_cqc_ext_reg_name)},
+	{QMM_SHOW_QPC_EXT, g_qmm_qpc_ext_reg_name, HIKP_ARRAY_SIZE(g_qmm_qpc_ext_reg_name)},
+	{QMM_SHOW_TOP_EXT, g_qmm_top_ext_reg_name, HIKP_ARRAY_SIZE(g_qmm_top_ext_reg_name)},
+};
+
 static void hikp_roce_qmm_print(struct roce_qmm_rsp_data *qmm_rsp)
 {
-	int index = 0;
+	const char **reg_name;
+	uint32_t index = 0;
+	uint8_t arr_len;
+
+	for (index = 0; index < HIKP_ARRAY_SIZE(g_qmm_reg_name_info_table); index++) {
+		if (g_qmm_reg_name_info_table[index].sub_cmd != g_roce_qmm_param.sub_cmd)
+			continue;
+		arr_len = g_qmm_reg_name_info_table[index].arr_len;
+		reg_name = g_qmm_reg_name_info_table[index].reg_name;
+		break;
+	}
+
+	if (index == HIKP_ARRAY_SIZE(g_qmm_reg_name_info_table)) {
+		printf("can't find reg name table for roce_qmm sub_cmd %u.\n",
+		       g_roce_qmm_param.sub_cmd);
+		return;
+	}
 
 	printf("**************QMM %s INFO*************\n",
 	       g_roce_qmm_param.sub_name);
+	printf("%-40s[addr_offset] : reg_data\n", "reg_name");
+	index = 0;
 	while (index < qmm_rsp->reg_num) {
-		printf("0x%08X : 0x%08X\n", qmm_rsp->qmm_content[index][0],
+		printf("%-40s[0x%08X] : 0x%08X\n",
+		       index < arr_len ? reg_name[index] : "",
+		       qmm_rsp->qmm_content[index][0],
 		       qmm_rsp->qmm_content[index][1]);
 		index++;
 	}
@@ -73,12 +186,26 @@ static void hikp_roce_qmm_print(struct roce_qmm_rsp_data *qmm_rsp)
 }
 
 static int hikp_roce_qmm_get_data(struct hikp_cmd_ret **cmd_ret,
-				  uint32_t block_id)
+				  uint32_t block_id,
+				  struct roce_ext_reg_name *reg_name)
 {
 	struct roce_qmm_req_para_ext req_data_ext;
 	struct hikp_cmd_header req_header = { 0 };
 	uint32_t req_size;
-	int ret;
+	int ret, i;
+
+	if (reg_name) {
+		for (i = 0; i < HIKP_ARRAY_SIZE(g_qmm_reg_name_info_table); i++) {
+			if (g_qmm_reg_name_info_table[i].sub_cmd != g_roce_qmm_param.sub_cmd)
+				continue;
+			reg_name->arr_len = g_qmm_reg_name_info_table[i].arr_len;
+			reg_name->reg_name = g_qmm_reg_name_info_table[i].reg_name;
+			break;
+		}
+
+		if (i == HIKP_ARRAY_SIZE(g_qmm_reg_name_info_table))
+			return -EINVAL;
+	}
 
 	req_data_ext.origin_param.bdf = g_roce_qmm_param.target.bdf;
 	req_data_ext.origin_param.bank_id = g_roce_qmm_param.bank_id;
@@ -103,7 +230,7 @@ static void hikp_roce_qmm_execute_origin(struct major_cmd_ctrl *self)
 	struct roce_qmm_rsp_data *roce_qmm_res;
 	struct hikp_cmd_ret *cmd_ret;
 
-	self->err_no = hikp_roce_qmm_get_data(&cmd_ret, 0);
+	self->err_no = hikp_roce_qmm_get_data(&cmd_ret, 0, NULL);
 	if (self->err_no) {
 		printf("hikptool roce_qmm get data failed.\n");
 		goto exec_error;
@@ -119,13 +246,12 @@ static void hikp_roce_qmm_execute_origin(struct major_cmd_ctrl *self)
 	hikp_roce_qmm_print(roce_qmm_res);
 
 exec_error:
-	if (cmd_ret)
-		free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void hikp_roce_qmm_execute(struct major_cmd_ctrl *self)
 {
-	const struct cmd_type_info {
+	static const struct cmd_type_info {
 		enum roce_qmm_cmd_type sub_cmd;
 		enum roce_qmm_cmd_type sub_ext_cmd;
 		const char *sub_name;

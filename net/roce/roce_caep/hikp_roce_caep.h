@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROCE_CAEP_H__
-#define __HIKP_ROCE_CAEP_H__
+#ifndef HIKP_ROCE_CAEP_H
+#define HIKP_ROCE_CAEP_H
 
 #include "hikp_roce_ext_common.h"
 
@@ -48,4 +48,4 @@ enum roce_caep_cmd_type {
 	CAEP_EXT,
 };
 
-#endif /* __HIKP_ROCE_CAEP_H__ */
+#endif /* HIKP_ROCE_CAEP_H */

@@ -40,7 +40,8 @@ static int hikp_roce_global_cfg_target(struct major_cmd_ctrl *self,
 }
 
 static int hikp_roce_global_cfg_get_data(struct hikp_cmd_ret **cmd_ret,
-					 uint32_t block_id)
+					 uint32_t block_id,
+					 struct roce_ext_reg_name *reg_name)
 {
 	struct hikp_cmd_header req_header = { 0 };
 	struct roce_global_cfg_req_param req_data;

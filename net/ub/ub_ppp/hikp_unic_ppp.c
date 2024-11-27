@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include "hikpt_rciep.h"
 #include "hikp_unic_ppp.h"
 
 static struct hikp_unic_ppp_hw_resources g_unic_ppp_hw_res = { 0 };
@@ -68,7 +69,7 @@ static int hikp_unic_cmd_ppp_feature_select(struct major_cmd_ctrl *self, const c
 	for (i = 0; i < feat_size; i++) {
 		if (strncmp(argv, g_unic_ppp_feature_cmd[i].feature_name,
 			    HIKP_UNIC_PPP_MAX_FEATURE_NAME_LEN) == 0) {
-			g_unic_ppp_param.feature_idx = i;
+			g_unic_ppp_param.feature_idx = (int)i;
 			return 0;
 		}
 	}
@@ -86,6 +87,7 @@ static int hikp_unic_ppp_get_blk(struct hikp_cmd_header *req_header,
 {
 	struct hikp_cmd_ret *cmd_ret;
 	struct unic_ppp_rsp *rsp;
+	uint32_t rsp_data_size;
 	int ret = 0;
 
 	cmd_ret = hikp_cmd_alloc(req_header, req_data, sizeof(*req_data));
@@ -95,10 +97,11 @@ static int hikp_unic_ppp_get_blk(struct hikp_cmd_header *req_header,
 	}
 
 	rsp = (struct unic_ppp_rsp *)cmd_ret->rsp_data;
-	if (rsp->rsp_head.cur_blk_size > buf_len) {
-		HIKP_ERROR_PRINT("unic_ppp block context copy size error, "
-				 "buffer size=%llu, data size=%u.\n",
-				 buf_len, rsp->rsp_head.cur_blk_size);
+	rsp_data_size = cmd_ret->rsp_data_num * REP_DATA_BLK_SIZE;
+	if (rsp_data_size - sizeof(rsp->rsp_head) < rsp->rsp_head.cur_blk_size ||
+	    buf_len < rsp->rsp_head.cur_blk_size) {
+		HIKP_ERROR_PRINT("block context copy size error, data size: %u, buffer size: %zu, blk size: %hhu.\n",
+				 rsp_data_size, buf_len, rsp->rsp_head.cur_blk_size);
 		ret = -EINVAL;
 		goto out;
 	}
@@ -106,7 +109,7 @@ static int hikp_unic_ppp_get_blk(struct hikp_cmd_header *req_header,
 	memcpy(rsp_head, &rsp->rsp_head, sizeof(struct unic_ppp_rsp_head));
 
 out:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 
@@ -123,17 +126,24 @@ static int hikp_unic_query_ppp_by_blkid(struct hikp_cmd_header *req_header, cons
 	req_data.block_id = blk_id;
 	ret = hikp_unic_ppp_get_blk(req_header, &req_data, data, len, &rsp_head);
 	if (ret != 0) {
-		HIKP_ERROR_PRINT("Fail to get block-%u context.\n", blk_id);
+		HIKP_ERROR_PRINT("Fail to get block-%hhu context.\n", blk_id);
 		return ret;
 	}
 	total_blk_size = rsp_head.cur_blk_size;
 
 	for (blk_id = 1; blk_id < rsp_head.total_blk_num; blk_id++) {
 		req_data.block_id = blk_id;
+		if (len < total_blk_size) {
+			HIKP_ERROR_PRINT("block-%hhu invalid total blk size, "
+					 "len: %zu, total blk size: %u",
+					 blk_id, len, total_blk_size);
+			return -EINVAL;
+		}
+
 		ret = hikp_unic_ppp_get_blk(req_header, &req_data, (uint8_t *)data + total_blk_size,
 					    len - total_blk_size, &rsp_head);
 		if (ret != 0) {
-			HIKP_ERROR_PRINT("Fail to get block-%u context.\n", blk_id);
+			HIKP_ERROR_PRINT("Fail to get block-%hhu context.\n", blk_id);
 			return ret;
 		}
 		total_blk_size += rsp_head.cur_blk_size;
@@ -175,7 +185,7 @@ static int hikp_unic_ppp_alloc_ip_tbl_entry(const struct hikp_unic_ppp_hw_resour
 static int hikp_unic_ppp_alloc_guid_tbl_entry(const struct hikp_unic_ppp_hw_resources *hw_res,
 					      struct unic_guid_tbl *guid_tbl)
 {
-	if (hw_res->uc_guid_tbl_size == 0 && hw_res->mc_guid_tbl_size == 0) {
+	if (hw_res->uc_guid_tbl_size == 0 || hw_res->mc_guid_tbl_size == 0) {
 		HIKP_ERROR_PRINT("guid tbl query is not supported\n");
 		return -EIO;
 	}
@@ -243,6 +253,12 @@ static int hikp_unic_query_ppp_ip_tbl(struct hikp_cmd_header *req_header, const 
 	max_ip_entry_size = g_unic_ppp_hw_res.ip_max_mem_size + g_unic_ppp_hw_res.ip_overflow_size;
 	req_data.bdf = *bdf;
 	while (index < max_ip_entry_size) {
+		if (max_ip_entry_size < entry_size) {
+			HIKP_ERROR_PRINT("invalid ip table entry size, max entry size: %u, entry size: %u\n",
+					 max_ip_entry_size, entry_size);
+			return -EINVAL;
+		}
+
 		req_data.cur_entry_idx = index;
 		left_buf_len = sizeof(struct unic_ip_entry) * (max_ip_entry_size - entry_size);
 		ret = hikp_unic_ppp_get_blk(req_header, &req_data, ip_tbl->entry + entry_size,
@@ -268,15 +284,22 @@ static int hikp_unic_query_ppp_guid_tbl(struct hikp_cmd_header *req_header,
 	struct unic_ppp_req_para req_data = { 0 };
 	uint32_t entry_size = 0;
 	size_t left_buf_len = 0;
+	uint32_t guid_tbl_size;
 	uint32_t index = 0;
 	int ret = -1;
 
 	req_data.bdf = *bdf;
 	req_data.is_unicast = 1;
-	while (index < g_unic_ppp_hw_res.uc_guid_tbl_size) {
+	guid_tbl_size = g_unic_ppp_hw_res.uc_guid_tbl_size;
+	while (index < guid_tbl_size) {
+		if (guid_tbl_size < entry_size) {
+			HIKP_ERROR_PRINT("invalid uc guid table entry size, uc guid tbl size: %u, entry size: %u\n",
+					 guid_tbl_size, entry_size);
+			return -EINVAL;
+		}
+
 		req_data.cur_entry_idx = index;
-		left_buf_len = sizeof(struct unic_guid_uc_entry) *
-				     (g_unic_ppp_hw_res.uc_guid_tbl_size - entry_size);
+		left_buf_len = sizeof(struct unic_guid_uc_entry) * (guid_tbl_size - entry_size);
 		ret = hikp_unic_ppp_get_blk(req_header, &req_data,
 					    guid_tbl->uc_tbl.entry + entry_size,
 					    left_buf_len, &unic_rsp_head);
@@ -294,11 +317,16 @@ static int hikp_unic_query_ppp_guid_tbl(struct hikp_cmd_header *req_header,
 	entry_size = 0;
 	index = 0;
 	req_data.is_unicast = 0;
+	guid_tbl_size = g_unic_ppp_hw_res.mc_guid_tbl_size;
+	while (index < guid_tbl_size) {
+		if (guid_tbl_size < entry_size) {
+			HIKP_ERROR_PRINT("invalid mc guid table entry size, mc guid tbl size: %u, entry size: %u\n",
+					 guid_tbl_size, entry_size);
+			return -EINVAL;
+		}
 
-	while (index < g_unic_ppp_hw_res.mc_guid_tbl_size) {
 		req_data.cur_entry_idx = index;
-		left_buf_len = sizeof(struct unic_guid_mc_entry) *
-				     (g_unic_ppp_hw_res.mc_guid_tbl_size - entry_size);
+		left_buf_len = sizeof(struct unic_guid_mc_entry) * (guid_tbl_size - entry_size);
 		ret = hikp_unic_ppp_get_blk(req_header, &req_data,
 					    guid_tbl->mc_tbl.entry + entry_size,
 					    left_buf_len, &unic_rsp_head);
@@ -320,7 +348,7 @@ static void hikp_unic_ppp_show_ip_tbl(const void *data)
 	struct unic_ip_tbl *ip_tbl = (struct unic_ip_tbl *)data;
 	struct unic_ip_entry *entry;
 	uint16_t *ip_addr_tbl_str;
-	int i, j;
+	uint32_t i, j;
 
 	printf("ip_table_size = %u\n", ip_tbl->entry_size);
 	printf("index\t| func_id\t| ip_addr\n");

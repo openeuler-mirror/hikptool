@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROCE_TSP_H__
-#define __HIKP_ROCE_TSP_H__
+#ifndef HIKP_ROCE_TSP_H
+#define HIKP_ROCE_TSP_H
 
 #include "hikp_roce_ext_common.h"
 
@@ -61,4 +61,4 @@ enum roce_tsp_sub_cmd_code {
 	TGP_TMP,
 };
 
-#endif /* __HIKP_ROCE_TSP_H__ */
+#endif /* HIKP_ROCE_TSP_H */

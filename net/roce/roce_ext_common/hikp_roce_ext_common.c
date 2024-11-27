@@ -26,12 +26,6 @@ static void hikp_roce_ext_reg_data_free(struct reg_data *reg)
 	}
 }
 
-static void hikp_roce_ext_cmd_ret_free(struct hikp_cmd_ret *cmd_ret)
-{
-	if (cmd_ret)
-		free(cmd_ret);
-}
-
 static const struct cmd_type_info {
 	enum roce_cmd_type cmd_type;
 	const char *cmd_name;
@@ -89,16 +83,19 @@ static int get_cmd_reg_array_length(enum roce_cmd_type cmd_type)
 
 static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 				 uint32_t block_id,
-				 struct roce_ext_head *res_head,
-				 struct reg_data *reg,
+				 struct roce_ext_res_output *output,
 				 int (*get_data)(struct hikp_cmd_ret **cmd_ret,
-						 uint32_t block_id))
+						 uint32_t block_id,
+						 struct roce_ext_reg_name *reg_name))
 {
 	int reg_array_length = get_cmd_reg_array_length(cmd_type);
+	struct roce_ext_reg_name *reg_name = &output->reg_name;
+	struct roce_ext_head *res_head = &output->res_head;
 	const char *cmd_name = get_cmd_name(cmd_type);
 	struct roce_ext_res_param *roce_ext_res;
+	struct reg_data *reg = &output->reg;
 	struct hikp_cmd_ret *cmd_ret;
-	size_t max_size;
+	uint32_t remain_block;
 	size_t cur_size;
 	int ret;
 
@@ -108,78 +105,94 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 	if (reg_array_length < 0)
 		return reg_array_length;
 
-	ret = get_data(&cmd_ret, block_id);
+	ret = get_data(&cmd_ret, block_id, reg_name);
 	if (ret) {
 		printf("hikptool roce_%s get data failed!\n", cmd_name);
 		goto get_data_error;
 	}
 
 	roce_ext_res = (struct roce_ext_res_param *)cmd_ret->rsp_data;
-	*res_head = roce_ext_res->head;
-	max_size = res_head->total_block_num * sizeof(uint32_t);
+	res_head->cur_block_num = roce_ext_res->head.cur_block_num;
 
 	if (block_id == 0) {
+		res_head->total_block_num = roce_ext_res->head.total_block_num;
+		if (!res_head->total_block_num) {
+			printf("hikptool roce_%s total_block_num error!\n",
+				cmd_name);
+			ret = -EINVAL;
+			goto get_data_error;
+		}
 		reg->offset = (uint32_t *)calloc(res_head->total_block_num, sizeof(uint32_t));
 		reg->data = (uint32_t *)calloc(res_head->total_block_num, sizeof(uint32_t));
 		if ((reg->offset == NULL) || (reg->data == NULL)) {
 			printf("hikptool roce_%s alloc log memmory 0x%zx failed!\n",
-				cmd_name, max_size);
+				cmd_name, res_head->total_block_num * sizeof(uint32_t));
 			ret = -ENOMEM;
 			hikp_roce_ext_reg_data_free(reg);
 			goto get_data_error;
 		}
 	}
 
-	cur_size = res_head->cur_block_num * sizeof(uint32_t);
-	if (!cur_size || cur_size > max_size) {
-		printf("hikptool roce_%s log data copy size error, data size: 0x%zx, max size: 0x%zx\n",
-		       cmd_name, cur_size, max_size);
+	remain_block = res_head->total_block_num - block_id;
+	if (!res_head->cur_block_num || res_head->cur_block_num > remain_block) {
+		printf("hikptool roce_%s block size error, cur: %u, total: %u, remain: %u.\n",
+		       cmd_name, res_head->cur_block_num,
+		       res_head->total_block_num, remain_block);
 		ret = -EINVAL;
 		hikp_roce_ext_reg_data_free(reg);
 		goto get_data_error;
 	}
 
+	cur_size = res_head->cur_block_num * sizeof(uint32_t);
 	memcpy(reg->offset + block_id,
 	       (uint32_t *)&roce_ext_res->reg_data, cur_size);
 	memcpy(reg->data + block_id,
 	       (uint32_t *)&roce_ext_res->reg_data + reg_array_length, cur_size);
 
 get_data_error:
-	hikp_roce_ext_cmd_ret_free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 
-static void hikp_roce_ext_print(const char *cmd_name, uint32_t total_block_num,
-				const uint32_t *offset, const uint32_t *data)
+static void hikp_roce_ext_print(enum roce_cmd_type cmd_type,
+				struct roce_ext_res_output *output)
 {
-	int i;
+	uint32_t total_block_num = output->res_head.total_block_num;
+	const char **reg_name = output->reg_name.reg_name;
+	const char *cmd_name = get_cmd_name(cmd_type);
+	uint8_t arr_len = output->reg_name.arr_len;
+	uint32_t *offset = output->reg.offset;
+	uint32_t *data = output->reg.data;
+	uint32_t i;
 
 	printf("**************%s INFO*************\n", cmd_name);
+	printf("%-40s[addr_offset] : reg_data\n", "reg_name");
 	for (i = 0; i < total_block_num; i++)
-		printf("[0x%08X] : 0x%08X\n", offset[i], data[i]);
+		printf("%-40s[0x%08X] : 0x%08X\n",
+		       i < arr_len ? reg_name[i] : "",
+		       offset[i], data[i]);
 	printf("************************************\n");
 }
 
 void hikp_roce_ext_execute(struct major_cmd_ctrl *self,
 			   enum roce_cmd_type cmd_type,
 			   int (*get_data)(struct hikp_cmd_ret **cmd_ret,
-					   uint32_t block_id))
+					   uint32_t block_id,
+					   struct roce_ext_reg_name *reg_name))
 {
+	struct roce_ext_res_output output = { 0 };
 	uint32_t queried_block_id = 0;
-	struct roce_ext_head res_head;
-	struct reg_data reg = { 0 };
 
 	do {
 		self->err_no = hikp_roce_ext_get_res(cmd_type, queried_block_id,
-						     &res_head, &reg, get_data);
+						     &output, get_data);
 		if (self->err_no)
 			return;
 
-		queried_block_id += res_head.cur_block_num;
-	} while (queried_block_id < res_head.total_block_num);
+		queried_block_id += output.res_head.cur_block_num;
+	} while (queried_block_id < output.res_head.total_block_num);
 
-	hikp_roce_ext_print(get_cmd_name(cmd_type), res_head.total_block_num,
-			    reg.offset, reg.data);
+	hikp_roce_ext_print(cmd_type, &output);
 
-	hikp_roce_ext_reg_data_free(&reg);
+	hikp_roce_ext_reg_data_free(&output.reg);
 }

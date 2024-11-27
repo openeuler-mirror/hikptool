@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_NIC_INFO_H__
-#define __HIKP_NIC_INFO_H__
+#ifndef HIKP_NIC_INFO_H
+#define HIKP_NIC_INFO_H
 
 #include "hikp_net_lib.h"
 
@@ -77,4 +77,4 @@ enum nic_info_mac_type {
 	MAC_TYPE_MAX,
 };
 
-#endif
+#endif /* HIKP_NIC_INFO_H */

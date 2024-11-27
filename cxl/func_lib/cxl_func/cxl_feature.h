@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __CXL_FEATURE_H_
-#define __CXL_FEATURE_H_
+#ifndef CXL_FEATURE_H
+#define CXL_FEATURE_H
 
 #include "tool_cmd.h"
 
@@ -28,6 +28,7 @@
 #define CXL_HDM_CNT_EACH_PORT 2
 #define CXL_DATA_UNIT_SIZE 2  // reg addr + data
 #define CXL_MEM_HEADER_LOG_UNIT 4
+#define CXL_DATA_OFFSET 2
 
 enum cxl_cmd_type {
 	CXL_CPA = 0,
@@ -407,4 +408,4 @@ union cxl_mem_error_ctrl {
 	uint32_t val;
 };
 
-#endif
+#endif /* CXL_FEATURE_H */

@@ -41,7 +41,7 @@ static void hikp_ub_bp_info_show(const struct ub_bp_rsp *info)
 {
 	int bp_val_offset;
 
-	printf("%-28s : %u\n", "mac id", info->mac_id);
+	printf("%-28s : %hhu\n", "mac id", info->mac_id);
 	printf("%-28s : ", "back pressure status");
 
 	for (bp_val_offset = MAX_VL_NUM; bp_val_offset >= 0; bp_val_offset--) {
@@ -49,7 +49,6 @@ static void hikp_ub_bp_info_show(const struct ub_bp_rsp *info)
 	}
 	printf("\n");
 }
-
 
 static int hikp_ub_query_bp(const struct bdf_t *bdf)
 {
@@ -62,16 +61,14 @@ static int hikp_ub_query_bp(const struct bdf_t *bdf)
 	hikp_cmd_init(&header, UB_MOD, GET_UB_BP_INFO_CMD, UB_BP_INFO_DUMP);
 	cmd_ret = hikp_cmd_alloc(&header, &req, sizeof(req));
 	if (cmd_ret == NULL || cmd_ret->status != 0) {
-		free(cmd_ret);
-		cmd_ret = NULL;
+		hikp_cmd_free(&cmd_ret);
 		return -EIO;
 	}
 
 	rsp = (struct ub_bp_rsp *)cmd_ret->rsp_data;
 	hikp_ub_bp_info_show(rsp);
 
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 	return 0;
 }
 

@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROCE_TIMER_H__
-#define __HIKP_ROCE_TIMER_H__
+#ifndef HIKP_ROCE_TIMER_H
+#define HIKP_ROCE_TIMER_H
 
 #include "hikp_roce_ext_common.h"
 
@@ -40,4 +40,4 @@ struct roce_timer_rsp_data {
 	uint32_t timer_content[ROCE_HIKP_TIMER_REG_NUM][2];
 };
 
-#endif /* __HIKP_ROCE_TIMER_H__ */
+#endif /* HIKP_ROCE_TIMER_H */

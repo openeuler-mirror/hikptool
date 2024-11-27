@@ -10,8 +10,8 @@
  *
  * See the Mulan PSL v2 for more details.
  */
-#ifndef __HIKP_NET_LIB_H__
-#define __HIKP_NET_LIB_H__
+#ifndef HIKP_NET_LIB_H
+#define HIKP_NET_LIB_H
 
 #include "ossl_user_linux.h"
 #include "tool_cmd.h"
@@ -138,4 +138,4 @@ int get_vf_dev_info_by_pf_dev_name(const char *pf_dev_name,
 int get_pf_dev_info_by_vf_dev_name(const char *vf_dev_name, struct tool_target *pf_target);
 void hikp_ether_format_addr(char *buf, uint16_t size, const uint8_t *mac_addr, uint8_t mac_len);
 
-#endif
+#endif /* HIKP_NET_LIB_H */

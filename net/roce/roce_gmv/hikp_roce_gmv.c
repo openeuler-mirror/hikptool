@@ -58,14 +58,28 @@ static int hikp_roce_gmv_idxget(struct major_cmd_ctrl *self, const char *argv)
 	return 0;
 }
 
+/* DON'T change the order of this array or add entries between! */
+static const char *g_gmv_reg_name[] = {
+	"ROCEE_VF_GMV_RO0",
+	"ROCEE_VF_GMV_RO1",
+	"ROCEE_VF_GMV_RO2",
+	"ROCEE_VF_GMV_RO3",
+	"ROCEE_VF_GMV_RO4",
+	"ROCEE_VF_GMV_RO5",
+	"ROCEE_VF_GMV_RO6",
+};
+
 static void hikp_roce_gmv_print(uint32_t reg_num, struct roce_gmv_rsp_data *gmv_rsp)
 {
+	uint8_t arr_len = HIKP_ARRAY_SIZE(g_gmv_reg_name);
 	uint32_t i;
 
 	printf("*******************GMV INFO****************\n");
-	printf("addr_offset         :              reg_data\n");
+	printf("%-40s[addr_offset] : reg_data\n", "reg_name");
 	for (i = 0; i < reg_num; i++)
-		printf("0x%08X : 0x%08X\n", gmv_rsp->reg_offset[i], gmv_rsp->reg_data[i]);
+		printf("%-40s[0x%08X] : 0x%08X\n",
+		       i < arr_len ? g_gmv_reg_name[i] : "",
+		       gmv_rsp->reg_offset[i], gmv_rsp->reg_data[i]);
 	printf("*******************************************\n");
 }
 
@@ -99,8 +113,7 @@ static void hikp_roce_gmv_execute(struct major_cmd_ctrl *self)
 	gmv_rsp = (struct roce_gmv_rsp_data *)(cmd_ret->rsp_data);
 	hikp_roce_gmv_print(reg_num, gmv_rsp);
 exec_error:
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void cmd_roce_gmv_init(void)

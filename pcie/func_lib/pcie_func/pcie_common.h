@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __PCIE_COMMON_H_
-#define __PCIE_COMMON_H_
+#ifndef PCIE_COMMON_H
+#define PCIE_COMMON_H
 
 /* PCIe command code */
 enum pcie_cmd_type {
@@ -48,4 +48,4 @@ enum pcie_reg_read_cmd_type {
 	REGRD_READ = 1,
 };
 
-#endif
+#endif /* PCIE_COMMON_H */

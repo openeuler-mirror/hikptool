@@ -60,7 +60,7 @@ static int pcie_port_set(struct major_cmd_ctrl *self, const char *argv)
 
 static int dump_level_set(struct major_cmd_ctrl *self, const char *argv)
 {
-	uint32_t val;
+	uint32_t val = 0;
 	int ret;
 
 	ret = string_toui(argv, &val);

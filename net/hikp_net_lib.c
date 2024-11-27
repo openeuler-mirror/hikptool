@@ -25,7 +25,7 @@
 
 static int hikp_read_net_pci_info(const char *file_path, char *content, size_t len)
 {
-	char path[PATH_MAX + 1] = { 0 };
+	char path[PATH_MAX] = { 0 }; /* PATH_MAX includes the \0 so +1 is not required */
 	int ret;
 	int fd;
 
@@ -35,8 +35,11 @@ static int hikp_read_net_pci_info(const char *file_path, char *content, size_t l
 	if (len > MAX_PCI_ID_LEN + 1 || len < 1)
 		return -EINVAL;
 
-	if (strlen(file_path) > PATH_MAX || realpath(file_path, path) == NULL)
+	if (strlen(file_path) > PATH_MAX)
 		return -ENOENT;
+
+	if (!realpath(file_path, path))
+		return -errno;
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0)
@@ -44,13 +47,14 @@ static int hikp_read_net_pci_info(const char *file_path, char *content, size_t l
 
 	ret = pread(fd, content, len - 1, 0);
 	if (ret < 0) {
-		close(fd);
-		return -EIO;
+		ret = -errno;
+	} else {
+		content[ret] = '\0'; // The invoker ensures that the bounds are not crossed.
+		ret = 0;
 	}
-	content[len - 1] = '\0'; // The invoker ensures that the bounds are not crossed.
-	close(fd);
 
-	return 0;
+	close(fd);
+	return ret;
 }
 
 int hikp_net_creat_sock(void)
@@ -138,7 +142,8 @@ static bool check_dev_name_and_get_bdf(int sockfd, struct tool_target *target)
 	ifr.ifr_data = (char *)&drvinfo;
 	drvinfo.cmd = ETHTOOL_GDRVINFO;
 
-	strncpy(ifr.ifr_name, target->dev_name, IFNAMSIZ - 1);
+	strncpy(ifr.ifr_name, target->dev_name, IFNAMSIZ);
+	ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 
 	if (ioctl(sockfd, SIOCETHTOOL, &ifr) < 0)
 		return false;
@@ -235,13 +240,17 @@ int get_revision_id_by_bdf(const struct bdf_t *bdf, char *revision_id, size_t id
 
 static int hikp_get_dir_name_of_device(const char *path, size_t len, char *dir_name)
 {
+	char file_path[PATH_MAX] = { 0 }; /* PATH_MAX includes the \0 so +1 is not required */
 	struct dirent *ptr;
 	DIR *dir = NULL;
 
-	if (len > PCI_MAX_DIR_NAME_LEN)
+	if (len > PCI_MAX_DIR_NAME_LEN || strlen(path) > PATH_MAX)
 		return -EINVAL;
 
-	dir = opendir(path);
+	if (!realpath(path, file_path))
+		return -errno;
+
+	dir = opendir(file_path);
 	if (dir == NULL) {
 		HIKP_ERROR_PRINT("read path %s fail.\n", path);
 		return -EINVAL;
@@ -359,7 +368,12 @@ int get_numvfs_by_bdf(const struct bdf_t *bdf, uint8_t *numvfs)
 	if (ret != 0)
 		return ret;
 
+	errno = 0;
 	ret = (int)strtol(numvf, NULL, 0);
+	if (errno) {
+		HIKP_ERROR_PRINT("get numvfs by bdf failed, ret=%d\n", -errno);
+		return -errno;
+	}
 	if ((ret > UCHAR_MAX) || (ret < 0)) {
 		HIKP_ERROR_PRINT("get numvfs by bdf fail.\n");
 		return -EINVAL;

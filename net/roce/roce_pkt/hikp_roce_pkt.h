@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROCE_PKT_H__
-#define __HIKP_ROCE_PKT_H__
+#ifndef HIKP_ROCE_PKT_H
+#define HIKP_ROCE_PKT_H
 
 #include "hikp_roce_ext_common.h"
 
@@ -39,4 +39,4 @@ struct roce_pkt_res_param {
 	struct roce_pkt_res reg_data;
 };
 
-#endif /* __HIKP_ROCE_PKT_H__ */
+#endif /* HIKP_ROCE_PKT_H */

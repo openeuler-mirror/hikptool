@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __KPT_RCIEP_H__
-#define __KPT_RCIEP_H__
+#ifndef KPT_RCIEP_H
+#define KPT_RCIEP_H
 
 #include <stdint.h>
 #include "hikptdev_plug.h"
@@ -43,6 +43,7 @@
 #define WAIT_CPL_MAX_MS 8000
 
 #define REP_DATA_BLK_SIZE		sizeof(uint32_t)
+#define HIKP_RSP_DATA_SIZE_MAX		(HIKP_RSP_ALL_DATA_MAX * REP_DATA_BLK_SIZE)
 
 enum {
 	HIKP_RESOURCE_DIR,
@@ -103,4 +104,4 @@ union hikp_space_req {
 };
 #pragma pack()
 
-#endif
+#endif /* KPT_RCIEP_H */

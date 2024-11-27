@@ -40,7 +40,7 @@ static int mac_dump_module_reg(struct major_cmd_ctrl *self, uint32_t cur_blk_id,
 		return self->err_no;
 	}
 	if (cmd_ret->status != 0) {
-		free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		self->err_no = -EINVAL;
 		return self->err_no;
 	}
@@ -53,7 +53,7 @@ static int mac_dump_module_reg(struct major_cmd_ctrl *self, uint32_t cur_blk_id,
 		rsp_data++;
 	}
 
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return 0;
 }
@@ -156,13 +156,13 @@ static int mac_cmd_get_dump_blk_num(struct major_cmd_ctrl *self)
 	if (cmd_ret->status != 0 || cmd_ret->rsp_data_num < MOD_ID_MAX) {
 		HIKP_ERROR_PRINT("nic_mac reg blk num error, rsp_num:%u\n", cmd_ret->rsp_data_num);
 		self->err_no = -EINVAL;
-		free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		return self->err_no;
 	}
 
 	memcpy(g_dump_reg_info.blk_num, cmd_ret->rsp_data, sizeof(g_dump_reg_info.blk_num));
 
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return 0;
 }

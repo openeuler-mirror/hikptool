@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROH_CMD_H__
-#define __HIKP_ROH_CMD_H__
+#ifndef HIKP_ROH_CMD_H
+#define HIKP_ROH_CMD_H
 
 #include "hikp_net_lib.h"
 
@@ -35,4 +35,4 @@ enum roh_show_bp_subcmd {
 };
 
 int hikp_roh_get_mac_type(struct major_cmd_ctrl *self, struct bdf_t bdf);
-#endif /* __HIKP_ROH_CMD_H__ */
+#endif /* HIKP_ROH_CMD_H */

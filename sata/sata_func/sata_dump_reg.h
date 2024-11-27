@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __SATA_DUMP_REG_H_
-#define __SATA_DUMP_REG_H_
+#ifndef SATA_DUMP_REG_H
+#define SATA_DUMP_REG_H
 
 #include "sata_tools_include.h"
 
@@ -24,4 +24,4 @@ struct sata_dump_req_para {
 
 int sata_reg_dump(struct tool_sata_cmd *cmd);
 
-#endif
+#endif /* SATA_DUMP_REG_H */

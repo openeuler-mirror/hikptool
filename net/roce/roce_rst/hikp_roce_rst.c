@@ -37,7 +37,8 @@ static int hikp_roce_rst_target(struct major_cmd_ctrl *self, const char *argv)
 }
 
 static int hikp_roce_rst_get_data(struct hikp_cmd_ret **cmd_ret,
-				  uint32_t block_id)
+				  uint32_t block_id,
+				  struct roce_ext_reg_name *reg_name)
 {
 	struct hikp_cmd_header req_header = { 0 };
 	struct roce_rst_req_param req_data;

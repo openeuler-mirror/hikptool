@@ -79,4 +79,4 @@ extern void cmd_option_register(const char *little, const char *large, uint8_t h
 extern void command_parse_and_excute(const int argc, const char **argv);
 extern struct major_cmd_ctrl *get_major_cmd(void);
 
-#endif
+#endif /* TOOL_CMD_H */

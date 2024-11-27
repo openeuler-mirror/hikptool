@@ -503,7 +503,7 @@ static void hikp_nic_show_fd_rules(const void *data)
 	struct nic_fd_rule_info *rule;
 	uint16_t max_key_bytes;
 	size_t one_rule_size;
-	uint16_t i;
+	uint32_t i;
 
 	key_cfg = &g_fd_hw_info.key_cfg[stage_no];
 	stage_rules = &rules[stage_no];
@@ -550,7 +550,7 @@ static void hikp_nic_show_fd_counter(const void *data)
 
 static int hikp_nic_fd_get_blk(struct hikp_cmd_header *req_header,
 			       const struct nic_fd_req_para *req_data,
-			       void *buf, uint32_t buf_len, struct nic_fd_rsp_head *rsp_head)
+			       void *buf, size_t buf_len, struct nic_fd_rsp_head *rsp_head)
 {
 	struct hikp_cmd_ret *cmd_ret;
 	struct nic_fd_rsp *rsp;
@@ -563,10 +563,12 @@ static int hikp_nic_fd_get_blk(struct hikp_cmd_header *req_header,
 	}
 
 	rsp = (struct nic_fd_rsp *)cmd_ret->rsp_data;
-	if (rsp->rsp_head.cur_blk_size > buf_len) {
+	if (rsp->rsp_head.cur_blk_size > buf_len ||
+	    rsp->rsp_head.cur_blk_size > sizeof(rsp->rsp_data)) {
 		HIKP_ERROR_PRINT("nic_fd block context copy size error, "
-				 "buffer size=%u, data size=%u.\n",
-				 buf_len, rsp->rsp_head.cur_blk_size);
+				 "dst buffer size=%zu, src buffer size=%zu, "
+				 "data size=%u.\n", buf_len, sizeof(rsp->rsp_data),
+				 rsp->rsp_head.cur_blk_size);
 		ret = -EINVAL;
 		goto out;
 	}
@@ -577,7 +579,7 @@ static int hikp_nic_fd_get_blk(struct hikp_cmd_header *req_header,
 	rsp_head->cur_blk_entry_cnt = rsp->rsp_head.cur_blk_entry_cnt;
 
 out:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return ret;
 }
 
@@ -628,7 +630,7 @@ static int hikp_nic_query_fd_rules(struct hikp_cmd_header *req_header, const str
 	uint16_t max_key_bytes;
 	uint32_t left_buf_len;
 	size_t one_rule_size;
-	uint16_t idx;
+	uint32_t idx;
 	int ret = 0;
 
 	if (stage >= NIC_FD_STAGE_NUM) {
@@ -657,7 +659,19 @@ static int hikp_nic_query_fd_rules(struct hikp_cmd_header *req_header, const str
 					 idx, ret);
 			return ret;
 		}
+		if (rsp_head.cur_blk_entry_cnt + entry_cnt > g_fd_hw_info.alloc.stage_entry_num[stage]) {
+			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
+					 "is over the maximum entry nubmer (%u) of this stage.",
+					 rsp_head.cur_blk_entry_cnt + entry_cnt, idx,
+					 g_fd_hw_info.alloc.stage_entry_num[stage]);
+			return -EINVAL;
+		}
 		entry_cnt += rsp_head.cur_blk_entry_cnt;
+		if (rsp_head.next_entry_idx <= idx) {
+			HIKP_ERROR_PRINT("The next entry index (%u) is less than or equal with the curent(%u).\n",
+					 rsp_head.next_entry_idx, idx);
+			return -EINVAL;
+		}
 		idx = rsp_head.next_entry_idx;
 		if (req_data.query_single_entry == 1)
 			break;
@@ -702,7 +716,19 @@ static int hikp_nic_query_fd_counter(struct hikp_cmd_header *req_header, const s
 					 idx, ret);
 			return ret;
 		}
+		if (rsp_head.cur_blk_entry_cnt + entry_size > g_fd_hw_info.alloc.stage_counter_num[stage]) {
+			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
+					 "is over the maximum counter nubmer (%u) of this stage.",
+					 rsp_head.cur_blk_entry_cnt + entry_size, idx,
+					 g_fd_hw_info.alloc.stage_counter_num[stage]);
+			return -EINVAL;
+		}
 		entry_size += rsp_head.cur_blk_entry_cnt;
+		if (rsp_head.next_entry_idx <= idx) {
+			HIKP_ERROR_PRINT("The next entry index (%u) is less than or equal with the curent(%u).\n",
+					 rsp_head.next_entry_idx, idx);
+			return -EINVAL;
+		}
 		idx = rsp_head.next_entry_idx;
 		if (req_data.query_single_entry == 1)
 			break;
@@ -808,6 +834,11 @@ static int hikp_nic_check_fd_hw_info(const struct nic_fd_hw_info *hw_info,
 	uint16_t i;
 
 	if (strcmp(fd_cmd->feature_name, NIC_FD_RULES_NAME) == 0) {
+		/* Stage2 does not support query. So only stage1 is verified. */
+		if(hw_info->alloc.stage_entry_num[NIC_FD_STAGE_1] == 0) {
+			HIKP_ERROR_PRINT("The stage1's entry number is zero.\n");
+			return -EINVAL;
+		}
 		if (hw_info->mode > FD_MODE_DEPTH_2K_WIDTH_200B_STAGE_2)
 			HIKP_WARN_PRINT("Unknown fd mode(%u), "
 					"unsupport for displaying meta data info.\n",
@@ -821,6 +852,11 @@ static int hikp_nic_check_fd_hw_info(const struct nic_fd_hw_info *hw_info,
 						 i + 1, hw_info->key_cfg[i].key_select);
 				return -EOPNOTSUPP;
 			}
+		}
+	} else if (strcmp(fd_cmd->feature_name, NIC_FD_COUNTER_NAME) == 0) {
+		if (hw_info->alloc.stage_counter_num[NIC_FD_STAGE_1] == 0) {
+			HIKP_ERROR_PRINT("The stage1's counter number is zero.\n");
+			return -EINVAL;
 		}
 	}
 
@@ -893,7 +929,6 @@ static void hikp_nic_fd_cmd_execute(struct major_cmd_ctrl *self)
 	const struct fd_feature_cmd *fd_cmd;
 	union nic_fd_feature_info *fd_data;
 	struct hikp_cmd_header req_header = {0};
-	uint8_t stage_no;
 	int ret;
 
 	ret = hikp_nic_fd_check_input_param(self, &g_fd_param);
@@ -931,7 +966,6 @@ static void hikp_nic_fd_cmd_execute(struct major_cmd_ctrl *self)
 	/* The 'hw_info' cmd no need to input stage number,
 	 * because it queries all stages information.
 	 */
-	stage_no = fd_cmd->sub_cmd_code == NIC_FD_HW_INFO_DUMP ? 0 : g_fd_param.stage_no - 1;
 	hikp_cmd_init(&req_header, NIC_MOD, GET_FD_INFO_CMD, fd_cmd->sub_cmd_code);
 	ret = fd_cmd->query(&req_header, bdf, g_fd_param.stage_no - 1, fd_data, sizeof(*fd_data));
 	if (ret != 0) {

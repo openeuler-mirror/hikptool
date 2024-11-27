@@ -37,11 +37,11 @@ static int hikp_ub_crd_target(struct major_cmd_ctrl *self, const char *argv)
 	return 0;
 }
 
-static int hikp_ub_show_crd(uint32_t off, struct ub_crd_rsp *crd_rsp, uint32_t num_rows,
-			    char const *crds[][2])
+static uint32_t hikp_ub_show_crd(uint32_t off, struct ub_crd_rsp *crd_rsp, uint32_t num_rows,
+				 char const *crds[][2])
 {
-	int reg_index;
-	int i;
+	uint32_t reg_index;
+	uint32_t i;
 
 	for (i = 0; i < num_rows; i++) {
 		union cut_reg reg;
@@ -63,7 +63,7 @@ static int hikp_ub_query_crd(void)
 	struct ub_crd_req_para req_data = { 0 };
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	struct ub_crd_rsp *crd_rsp = NULL;
-	int offset;
+	uint32_t offset;
 
 	char const *init_crds[][2] = {
 		{"CFG_REMOTE_ICRD", "CFG_REMOTE_LCRD"},
@@ -85,8 +85,7 @@ static int hikp_ub_query_crd(void)
 	req_data.bdf = g_ub_crd_param.target.bdf;
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	if (cmd_ret == NULL || cmd_ret->status != 0) {
-		free(cmd_ret);
-		cmd_ret = NULL;
+		hikp_cmd_free(&cmd_ret);
 		return -EIO;
 	}
 
@@ -101,8 +100,7 @@ static int hikp_ub_query_crd(void)
 	printf("-------------------  TEMP CREDIT END  --------------------\n");
 	printf("********************* CREDIT CNT END *********************\n");
 
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 	return 0;
 }
 

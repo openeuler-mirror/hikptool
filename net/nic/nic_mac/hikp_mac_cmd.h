@@ -62,4 +62,4 @@ enum mac_dump_xsfp_sub_cmd {
 	NIC_XSFP_GET_EEPROM_DATA,
 };
 
-#endif
+#endif /* HIKP_MAC_CMD_H */

@@ -72,8 +72,7 @@ static void nic_ncsi_cmd_execute(struct major_cmd_ctrl *self)
 	nic_ncsi_cmd_print_dfx_info((struct nic_ncsi_cmd_resp *)cmd_resp->rsp_data);
 
 ERR_OUT:
-	free(cmd_resp);
-	cmd_resp = NULL;
+	hikp_cmd_free(&cmd_resp);
 }
 
 static int nic_ncsi_cmd_get_port_info(struct major_cmd_ctrl *self, const char *argv)

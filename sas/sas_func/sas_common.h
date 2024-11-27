@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __SAS_COMMON_H_
-#define __SAS_COMMON_H_
+#ifndef SAS_COMMON_H
+#define SAS_COMMON_H
 
 #define RESP_MAX_NUM 60
 #define SAS_MAX_PHY_NUM 7
@@ -22,6 +22,10 @@
 #define IPTT_ICT_STATUS 29
 #define LINK_SPEED_OFFSET 8
 #define LINK_SPEED_WIDTH 4
+#define REG_NUM_DEV_LINK_MAX 3
+#define REG_NUM_DQE_MAX 8
+#define REG_NUM_ERR_CODE_ALL_MAX 32
+#define REG_NUM_ERR_CODE_MAX 8
 
 #define DWS_LOST 0
 #define RESET_PROB 1
@@ -80,4 +84,4 @@ enum sas_dqe_cmd_type {
 	DQE_UNKNOWN_TYPE,
 };
 
-#endif
+#endif /* SAS_COMMON_H */

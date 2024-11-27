@@ -129,6 +129,9 @@ struct pcie_dumpreg_info g_reg_table_mac[] = {
 	{0, "MAC_LEAVE_L0_INFO"},
 	{0, "DFX_APB_LANE_ERROR_STATUS_0"},
 	{0, "DFX_APB_LANE_ERROR_STATUS_1"},
+	{0, "MAC_REG_PHY_RXDATA_TS_REG"},
+	{0, "MAC_LTSSM_TRACER_CFG0_REG"},
+	{0, "MAC_POWERDOWN_VALUE_REG"},
 };
 
 struct pcie_dumpreg_info g_reg_table_pcs[] = {
@@ -141,6 +144,8 @@ struct pcie_dumpreg_info g_reg_table_pcs[] = {
 	HIKP_PCIE_PCS_LANE_TBL_ENTRY(LANE_INTR_STATUS),
 	HIKP_PCIE_PCS_LANE_TBL_ENTRY(M_PCS_RPT_REG),
 	HIKP_PCIE_PCS_LANE_TBL_ENTRY(MSG_BUS_DFX),
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(DETECT_CLK_FLG_REG),
+	HIKP_PCIE_PCS_LANE_TBL_ENTRY(SDS_CFG_REG_REG),
 };
 
 struct pcie_dumpreg_info g_reg_table_iob_tx[] = {
@@ -364,6 +369,8 @@ struct pcie_dumpreg_info g_reg_table_core_glb[] = {
 	{0, "CORE_INT_FE_RO_2"},
 	{0, "PORT07_LINK_MODE"},
 	{0, "PORT815_LINK_MODE"},
+	{0, "PCIE_LINK_DOWN_CLR_PORT_EN_REG"},
+	{0, "CORE_CLK_FLG_REG"},
 };
 
 struct pcie_dumpreg_info g_reg_table_core_tl[] = {
@@ -409,7 +416,7 @@ static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
 	/* Add write permission to the file */
 	fd_file = open(file_name, O_RDWR | O_SYNC | O_CREAT, 0600);
 	if (fd_file < 0) {
-		Err("PCIe DUMPREG", "open %s failed.\n", file_name);
+		Err("open %s failed.\n", file_name);
 		return -EPERM;
 	}
 	g_pcie_dumpreg_fd = fd_file;
@@ -437,11 +444,11 @@ static void pcie_dumpreg_write_value_to_file(const char *reg_name, uint32_t val)
 
 	ret = snprintf(str, sizeof(str), "    %-40s : 0x%x\n", reg_name, val);
 	if (ret < 0 || ret >= sizeof(str)) {
-		Err("PCIe DUMPREG", "pcie dumpreg write info to logfile failed.\n");
+		Err("pcie dumpreg write info to logfile failed.\n");
 	} else {
 		wr_ret = write(g_pcie_dumpreg_fd, str, strlen(str));
 		if (wr_ret == -1)
-			Err("PCIe DUMPREG", "write info to logfile failed.\n");
+			Err("write info to logfile failed.\n");
 	}
 }
 
@@ -485,13 +492,13 @@ static int pcie_dumpreg_write_header_to_file(uint32_t version,
 	ret = snprintf(str, sizeof(str), "Command Version[%u], dump_level[%u], port_id[%u]\n\n",
 		version, req_data->level, req_data->port_id);
 	if (ret < 0) {
-		Err("PCIe DUMPREG", "pcie dumpreg write header to logfile failed.\n");
+		Err("pcie dumpreg write header to logfile failed.\n");
 		return -EIO;
 	}
 
 	wr_ret = write(g_pcie_dumpreg_fd, str, strlen(str));
 	if (wr_ret == -1) {
-		Err("PCIe DUMPREG", "write header to logfile failed.\n");
+		Err("write header to logfile failed.\n");
 		return -EIO;
 	}
 
@@ -506,7 +513,9 @@ static int pcie_dumpreg_save_log(uint32_t *data, uint32_t data_num,
 	uint32_t i;
 	int ret;
 
-	(void)pcie_dumpreg_write_header_to_file(version, req_data);
+	ret = pcie_dumpreg_write_header_to_file(version, req_data);
+	if (ret < 0)
+		return ret;
 
 	switch (req_data->level) {
 	case DUMP_GLOBAL_LEVEL:
@@ -520,7 +529,7 @@ static int pcie_dumpreg_save_log(uint32_t *data, uint32_t data_num,
 		}
 		break;
 	default:
-		Err("PCIe DUMPREG", "check dump level failed.\n");
+		Err("check dump level failed.\n");
 		return -EINVAL;
 	}
 
@@ -528,7 +537,7 @@ static int pcie_dumpreg_save_log(uint32_t *data, uint32_t data_num,
 		for (i = 0; i < data_num; i++) {
 			ret = snprintf(reg_name, sizeof(reg_name), "REG_%03u", i);
 			if (ret < 0)
-				Err("PCIe DUMPREG", "save log snprintf failed.\n");
+				Err("save log snprintf failed.\n");
 			pcie_dumpreg_write_value_to_file(reg_name, data[i]);
 		}
 	} else if (req_data->level == DUMP_GLOBAL_LEVEL) {
@@ -549,7 +558,7 @@ int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level)
 	struct pcie_dump_req_para req_data = { 0 };
 	int ret = 0;
 
-	Info("PCIe DUMPREG", "pcie reg dump start.\n");
+	Info("pcie reg dump start.\n");
 
 	req_data.port_id = port_id;
 	req_data.level = dump_level;
@@ -557,7 +566,7 @@ int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level)
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	ret = hikp_rsp_normal_check(cmd_ret);
 	if (ret) {
-		Err("PCIe DUMPREG", "pcie dump cmd_ret check failed, ret: %d.\n", ret);
+		Err("pcie dump cmd_ret check failed, ret: %d.\n", ret);
 		goto free_cmd_ret;
 	}
 	ret = pcie_create_dumpreg_log_file(port_id, dump_level);
@@ -567,15 +576,15 @@ int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level)
 	ret = pcie_dumpreg_save_log(cmd_ret->rsp_data,
 				    cmd_ret->rsp_data_num, cmd_ret->version, &req_data);
 	if (ret) {
-		Err("PCIe DUMPREG", "pcie dump save log failed, ret: %d.\n", ret);
+		Err("pcie dump save log failed, ret: %d.\n", ret);
 		goto close_file_ret;
 	}
 
-	Info("PCIe DUMPREG", "pcie reg dump finish.\n");
+	Info("pcie reg dump finish.\n");
 close_file_ret:
 	(void)pcie_close_dumpreg_log_file();
 free_cmd_ret:
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }

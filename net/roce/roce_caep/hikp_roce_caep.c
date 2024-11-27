@@ -40,7 +40,8 @@ static int hikp_roce_caep_target(struct major_cmd_ctrl *self, const char *argv)
 }
 
 static int hikp_roce_caep_get_data(struct hikp_cmd_ret **cmd_ret,
-				   uint32_t block_id)
+				   uint32_t block_id,
+				   struct roce_ext_reg_name *reg_name)
 {
 	struct roce_caep_req_param_ext req_data_ext;
 	struct hikp_cmd_header req_header = { 0 };
@@ -80,7 +81,7 @@ static void hikp_roce_caep_execute_origin(struct major_cmd_ctrl *self)
 	struct roce_caep_res_param *roce_caep_res;
 	struct hikp_cmd_ret *cmd_ret;
 
-	self->err_no = hikp_roce_caep_get_data(&cmd_ret, 0);
+	self->err_no = hikp_roce_caep_get_data(&cmd_ret, 0, NULL);
 	if (self->err_no) {
 		printf("hikptool roce_caep get data failed.\n");
 		goto exec_error;
@@ -98,8 +99,7 @@ static void hikp_roce_caep_execute_origin(struct major_cmd_ctrl *self)
 			     roce_caep_res->reg_data.data);
 
 exec_error:
-	if (cmd_ret)
-		free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void hikp_roce_caep_execute(struct major_cmd_ctrl *self)

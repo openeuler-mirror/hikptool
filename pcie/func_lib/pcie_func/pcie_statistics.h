@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __PCIE_STATISTICS_H_
-#define __PCIE_STATISTICS_H_
+#ifndef PCIE_STATISTICS_H
+#define PCIE_STATISTICS_H
 
 #include "pcie_common_api.h"
 
@@ -127,4 +127,4 @@ int pcie_port_distribution_get(uint32_t chip_id);
 int pcie_error_state_get(uint32_t port_id);
 int pcie_error_state_clear(uint32_t port_id);
 
-#endif
+#endif /* PCIE_STATISTICS_H */

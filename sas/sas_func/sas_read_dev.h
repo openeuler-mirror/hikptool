@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __SAS_DEV_H_
-#define __SAS_DEV_H_
+#ifndef SAS_DEV_H
+#define SAS_DEV_H
 
 #include "sas_tools_include.h"
 
@@ -48,4 +48,4 @@ struct hikp_sas_itct {
 
 int sas_dev(const struct tool_sas_cmd *cmd);
 
-#endif
+#endif /* SAS_DEV_H */

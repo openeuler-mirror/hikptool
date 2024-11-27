@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROCE_TRP_H__
-#define __HIKP_ROCE_TRP_H__
+#ifndef HIKP_ROCE_TRP_H
+#define HIKP_ROCE_TRP_H
 
 #include "hikp_roce_ext_common.h"
 
@@ -70,4 +70,4 @@ enum roce_trp_type {
 	COMMON,
 };
 
-#endif /* __HIKP_ROCE_TRP_H__ */
+#endif /* HIKP_ROCE_TRP_H */

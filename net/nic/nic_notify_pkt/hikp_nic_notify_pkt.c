@@ -33,14 +33,13 @@ static int hikp_nic_notify_pkt_query(struct major_cmd_ctrl *self, const struct b
 	self->err_no = hikp_rsp_normal_check(cmd_resp);
 	if (self->err_no) {
 		snprintf(self->err_str, sizeof(self->err_str), "get notify pkt failed.");
-		if (cmd_resp)
-			free(cmd_resp);
+		hikp_cmd_free(&cmd_resp);
 		return self->err_no;
 	}
 
 	rsp = (struct nic_notify_pkt_rsp *)cmd_resp->rsp_data;
 	*info = *(struct nic_notify_pkt_info *)rsp->data;
-	free(cmd_resp);
+	hikp_cmd_free(&cmd_resp);
 
 	return 0;
 }
@@ -74,7 +73,7 @@ static void hikp_nic_notify_pkt_show(const struct nic_notify_pkt_info *info)
 static void hikp_nic_notify_pkt_cmd_execute(struct major_cmd_ctrl *self)
 {
 	struct bdf_t *bdf = &g_notify_pkt_target.bdf;
-	struct nic_notify_pkt_info info;
+	struct nic_notify_pkt_info info = {0};
 
 	self->err_no = hikp_nic_notify_pkt_query(self, bdf, &info);
 	if (self->err_no)

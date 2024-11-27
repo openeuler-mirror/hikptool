@@ -25,29 +25,38 @@ static bool g_record = true;
 static bool g_log_info;
 static char g_input_buf[OP_LOG_FILE_W_MAXSIZE + 1] = {0};
 
-static void op_log_write(const char *log_data)
+static int op_log_write(const char *log_data)
 {
 	size_t w_size;
 	FILE *fd;
 
 	if (strlen(g_op_log) == 0)
-		return;
+		return -EINVAL;
 
 	if (!is_file_exist(g_op_log))
-		return;
+		return -EPERM;
 
 	fd = fopen(g_op_log, "a");
 	if (fd == NULL) {
 		HIKP_ERROR_PRINT("Can not open operation log file[%s], errno is %d\n",
 				 g_op_log, errno);
-		return;
+		return -errno;
 	}
-	(void)chmod(g_op_log, 0640);
-	w_size = fwrite((void *)log_data, 1U, strlen(log_data), fd);
-	if (strlen(log_data) > ((uint32_t)w_size))
-		HIKP_ERROR_PRINT("Error data size write to file, errno is %d\n", errno);
 
-	(void)fclose(fd);
+	if (chmod(g_op_log, 0640)) {
+		HIKP_ERROR_PRINT("Can not chmod log file[%s], errno is %d\n", g_op_log, errno);
+		(void)fclose(fd);
+		return -errno;
+	}
+
+	w_size = fwrite((void *)log_data, 1U, strlen(log_data), fd);
+	if (strlen(log_data) > ((uint32_t)w_size)) {
+		HIKP_ERROR_PRINT("Error data size write to file, errno is %d\n", errno);
+		(void)fclose(fd);
+		return -errno;
+	}
+
+	return fclose(fd);
 }
 
 static int op_log_write_buffer(const char *log_data, const char *log_dir)
@@ -57,7 +66,7 @@ static int op_log_write_buffer(const char *log_data, const char *log_dir)
 	int ret;
 
 	sigfillset(&sigset);
-	sigprocmask(SIG_BLOCK, &sigset, NULL);
+	(void)sigprocmask(SIG_BLOCK, &sigset, NULL);
 	ret = tool_flock(OP_LOG_LOCK_NAME, UDA_FLOCK_BLOCK, &op_lock_fd, log_dir);
 	if (ret == -ENOENT) {
 		HIKP_ERROR_PRINT("Folder or file required by the operation is not exist.\n");
@@ -70,11 +79,13 @@ static int op_log_write_buffer(const char *log_data, const char *log_dir)
 		return ret;
 	}
 
-	op_log_write(log_data);
+	ret = op_log_write(log_data);
+	if (ret == 0)
+		g_log_info = true;
+
 	tool_unlock(&op_lock_fd, UDA_FLOCK_BLOCK);
-	g_log_info = true;
-	sigprocmask(SIG_UNBLOCK, &sigset, NULL);
-	return 0;
+	(void)sigprocmask(SIG_UNBLOCK, &sigset, NULL);
+	return ret;
 }
 
 void op_log_on(void)
@@ -104,13 +115,13 @@ static double op_log_diff_timeval(const struct timeval *now, const struct timeva
 static int op_log_add_time_to_log(char *log_base, int *offset, uint32_t flag)
 {
 	static struct timeval g_tv;
-	struct timeval tv;
-	struct tm ptm;
+	struct timeval tv = {0};
+	struct tm ptm = {0};
 	int len = 0;
 	int ret;
 
 	(void)gettimeofday(&tv, NULL);
-	localtime_r(&tv.tv_sec, &ptm);
+	(void)localtime_r(&tv.tv_sec, &ptm);
 	if (flag == LOG_FLAG_DATE_TIME) {
 		g_tv = tv;
 		len = (int)strftime(log_base + *offset, (OP_LOG_FILE_W_MAXSIZE + 1 - *offset),
@@ -186,9 +197,7 @@ static int op_log_file_rollback(const char *op_log_backup, const char *log_dir)
 	snprintf(rollback_log + offset,
 		 (uint32_t)(OP_LOG_FILE_W_MAXSIZE + 1 - offset), OP_LOG_ITEM_END);
 
-	op_log_write_buffer(rollback_log, log_dir);
-
-	return ret;
+	return op_log_write_buffer(rollback_log, log_dir);
 }
 
 static int op_log_dir_mk(const char *log_path)

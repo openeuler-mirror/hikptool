@@ -130,21 +130,102 @@ static int hikp_roce_tsp_get_data(struct hikp_cmd_ret **cmd_ret,
 	ret = hikp_rsp_normal_check(*cmd_ret);
 	if (ret) {
 		printf("hikptool roce_tsp get cmd data failed, ret: %d\n", ret);
-		free(*cmd_ret);
-		*cmd_ret = NULL;
+		hikp_cmd_free(cmd_ret);
 	}
 
 	return ret;
 }
 
+/* DON'T change the order of these arrays or add entries between! */
+static const char *g_tsp_common_reg_name[] = {
+	"ROCEE_TPP_ECC_ERR",
+	"ROCEE_TWP_STA",
+	"ROCEE_TWP_ALM",
+	"ROCEE_TWP_STA1",
+	"TSP_INDRECT_RW_STA",
+	"TSP_INDRECT_RD_CTRL",
+	"TSP_INDRECT_RD_DATA",
+	"ROCEE_TSP_OVF",
+};
+
+static const char *g_tsp_tdp_reg_name[] = {
+	"TDP_M_MEM_INIT_DONE",
+	"TDP_M_ECC1B",
+	"TDP_M_ECC2B",
+	"TDP_M_ECC_ERR_INFO",
+	"TDP_M_ALM",
+	"ROCEE_TDP_CNT_CFG0",
+	"ROCEE_TDP_CNT_CFG1",
+	"ROCEE_TDP_IN_CNT_ENB",
+	"ROCEE_TDP_TWP_CNT0_CFG",
+	"ROCEE_TDP_TWP_CNT1_CFG",
+	"ROCEE_TDP_TRP_CNT",
+	"ROCEE_TDP_MDB_CNT",
+	"ROCEE_TDP_LP_CNT",
+	"ROCEE_TDP_QMM_CNT",
+	"ROCEE_TDP_TWP_CNT0",
+	"ROCEE_TDP_TWP_CNT1",
+	"TDP_V_ECC1B",
+	"TDP_V_ECC2B",
+	"TDP_V_ECC_ERR_INFO",
+	"TDP_V_ALM",
+	"TDP_V_STA",
+	"ROCEE_TSP_OOO_ERR",
+	"TDP_M_STA",
+	"TDP_M_STA1",
+};
+
+static const char *g_tsp_tgp_tmp_reg_name[] = {
+	"ROCEE_TGP_ALM0",
+	"ROCEE_TGP_ALM1",
+	"ROCEE_TGP_STA0",
+	"ROCEE_TGP_STA1",
+	"TGP_INDRECT_RD_CTRL",
+	"TGP_INDRECT_RD_STA",
+	"TGP_INDRECT_RD_DATA",
+	"ROCEE_TMP_ALM0",
+	"ROCEE_TMP_ALM1",
+	"ROCEE_TMP_STA0",
+	"ROCEE_TMP_STA1",
+};
+
+static const struct reg_name_info {
+	enum roce_tsp_sub_cmd_code sub_cmd;
+	const char **reg_name;
+	uint8_t arr_len;
+} g_tsp_reg_name_info_table[] = {
+	{COMMON, g_tsp_common_reg_name, HIKP_ARRAY_SIZE(g_tsp_common_reg_name)},
+	{TDP, g_tsp_tdp_reg_name, HIKP_ARRAY_SIZE(g_tsp_tdp_reg_name)},
+	{TGP_TMP, g_tsp_tgp_tmp_reg_name, HIKP_ARRAY_SIZE(g_tsp_tgp_tmp_reg_name)},
+};
+
 static void hikp_roce_tsp_print(uint32_t total_block_num,
 				const uint32_t *offset, const uint32_t *data)
 {
+	const char **reg_name;
+	uint8_t arr_len;
 	uint32_t i;
 
+	for (i = 0; i < HIKP_ARRAY_SIZE(g_tsp_reg_name_info_table); i++) {
+		if (g_tsp_reg_name_info_table[i].sub_cmd != g_roce_tsp_param_t.sub_cmd_code)
+			continue;
+		arr_len = g_tsp_reg_name_info_table[i].arr_len;
+		reg_name = g_tsp_reg_name_info_table[i].reg_name;
+		break;
+	}
+
+	if (i == HIKP_ARRAY_SIZE(g_tsp_reg_name_info_table)) {
+		printf("can't find reg name table for roce_tsp sub_cmd %u.\n",
+		       g_roce_tsp_param_t.sub_cmd_code);
+		return;
+	}
+
 	printf("**************TSP INFO*************\n");
+	printf("%-40s[addr_offset] : reg_data\n", "reg_name");
 	for (i = 0; i < total_block_num; i++)
-		printf("[0x%08X] : 0x%08X\n", offset[i], data[i]);
+		printf("%-40s[0x%08X] : 0x%08X\n",
+		       i < arr_len ? reg_name[i] : "",
+		       offset[i], data[i]);
 	printf("***********************************\n");
 }
 
@@ -190,8 +271,7 @@ static void hikp_roce_tsp_execute(struct major_cmd_ctrl *self)
 	hikp_roce_tsp_print(roce_tsp_res->total_block_num,
 			    roce_tsp_res->reg_data.offset, roce_tsp_res->reg_data.data);
 
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void cmd_roce_tsp_init(void)

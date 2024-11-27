@@ -106,7 +106,9 @@ static int hikp_nic_get_first_blk_info(uint32_t *total_blk_num,
 
 	log_rsp = (struct nic_log_rsp_data *)(cmd_ret->rsp_data);
 	log_size = (uint32_t)(log_rsp->total_blk_num * MAX_LOG_DATA_NUM * sizeof(uint32_t));
-	if (log_size < log_rsp->cur_blk_size) {
+	if (log_rsp->cur_blk_size == 0 ||
+	    log_size < log_rsp->cur_blk_size ||
+	    log_rsp->cur_blk_size > sizeof(log_rsp->log_data)) {
 		HIKP_ERROR_PRINT("log size must bigger than current block size.\n");
 		ret = -EINVAL;
 		goto err_out;
@@ -122,8 +124,7 @@ static int hikp_nic_get_first_blk_info(uint32_t *total_blk_num,
 	*cur_blk_size = (uint32_t)log_rsp->cur_blk_size;
 	memcpy(*log_data, log_rsp->log_data, log_rsp->cur_blk_size);
 err_out:
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }
@@ -142,15 +143,15 @@ static int hikp_nic_get_log_info(uint32_t blk_id, uint32_t *cur_blk_size, uint8_
 	log_rsp = (struct nic_log_rsp_data *)(cmd_ret->rsp_data);
 	*cur_blk_size = (uint32_t)log_rsp->cur_blk_size;
 	*blk_num = (uint32_t)log_rsp->total_blk_num;
-	if (max_log_size < *cur_blk_size) {
+	if (max_log_size < *cur_blk_size ||
+	    *cur_blk_size > sizeof(log_rsp->log_data)) {
 		HIKP_ERROR_PRINT("log size must bigger than current block(%u) size.\n", blk_id);
 		ret = -EINVAL;
 		goto err_out;
 	}
 	memcpy(log_data, log_rsp->log_data, log_rsp->cur_blk_size);
 err_out:
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 
 	return ret;
 }

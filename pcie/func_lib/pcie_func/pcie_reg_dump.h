@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __PCIE_REG_DUMP_H_
-#define __PCIE_REG_DUMP_H_
+#ifndef PCIE_REG_DUMP_H
+#define PCIE_REG_DUMP_H
 
 #include "pcie_common_api.h"
 
@@ -56,4 +56,4 @@ struct pcie_dumpreg_table {
 
 int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level);
 
-#endif
+#endif /* PCIE_REG_DUMP_H */

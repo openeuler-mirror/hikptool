@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __CXL_TOOL_INCLUDE_H_
-#define __CXL_TOOL_INCLUDE_H_
+#ifndef CXL_TOOL_INCLUDE_H
+#define CXL_TOOL_INCLUDE_H
 
 #include <stdint.h>
 
@@ -21,4 +21,4 @@ struct tool_cxl_cmd {
 	uint32_t port_id;
 };
 
-#endif
+#endif /* CXL_TOOL_INCLUDE_H */

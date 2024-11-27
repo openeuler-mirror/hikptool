@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_NIC_LOG_H__
-#define __HIKP_NIC_LOG_H__
+#ifndef HIKP_NIC_LOG_H
+#define HIKP_NIC_LOG_H
 
 #include "hikp_net_lib.h"
 
@@ -38,4 +38,4 @@ struct log_param {
 	struct tool_target target;
 };
 
-#endif
+#endif /* HIKP_NIC_LOG_H */

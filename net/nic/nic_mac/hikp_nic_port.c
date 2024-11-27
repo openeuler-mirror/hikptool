@@ -148,8 +148,7 @@ static int mac_cmd_get_dfx_cfg(uint32_t sub_cmd, struct hikp_cmd_ret **cmd_ret)
 		return -ENOSPC;
 
 	if ((*cmd_ret)->status != 0) {
-		free(*cmd_ret);
-		*cmd_ret = NULL;
+		hikp_cmd_free(cmd_ret);
 		return -EAGAIN;
 	}
 
@@ -207,8 +206,7 @@ static void mac_cmd_show_eth_mac(struct major_cmd_ctrl *self)
 
 	mac_dfx = (struct mac_cmd_mac_dfx *)(cmd_ret->rsp_data);
 	mac_cmd_disp_eth_mac_info(mac_dfx);
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void mac_cmd_disp_roh_mac_info(const struct mac_cmd_roh_mac_dfx *mac_dfx)
@@ -240,8 +238,7 @@ static void mac_cmd_show_roh_mac(struct major_cmd_ctrl *self)
 
 	mac_dfx = (struct mac_cmd_roh_mac_dfx *)(cmd_ret->rsp_data);
 	mac_cmd_disp_roh_mac_info(mac_dfx);
-	free(cmd_ret);
-	cmd_ret = NULL;
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void mac_cmd_show_mac(struct major_cmd_ctrl *self)
@@ -263,8 +260,7 @@ static void mac_cmd_show_mac(struct major_cmd_ctrl *self)
 	else
 		mac_cmd_show_eth_mac(self);
 
-	free(hw_cmd_ret);
-	hw_cmd_ret = NULL;
+	hikp_cmd_free(&hw_cmd_ret);
 }
 
 static void mac_cmd_disp_link_info(struct mac_cmd_link_dfx *link_dfx)
@@ -304,7 +300,7 @@ static void mac_cmd_show_link(struct major_cmd_ctrl *self)
 
 	link_dfx = (struct mac_cmd_link_dfx *)(cmd_ret->rsp_data);
 	mac_cmd_disp_link_info(link_dfx);
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void mac_cmd_disp_phy_reg(const uint16_t *reg, uint32_t num)
@@ -372,13 +368,13 @@ static void mac_cmd_show_phy(struct major_cmd_ctrl *self)
 	if (ret != 0) {
 		printf("hikp_data_proc get phy dfx failed.\n");
 		self->err_no = -ENOSPC;
-		free(phy_cfg_ret);
+		hikp_cmd_free(&phy_cfg_ret);
 		return;
 	}
 	phy_dfx = (struct mac_cmd_phy_dfx *)(phy_dfx_ret->rsp_data);
 	mac_cmd_disp_phy_info(phy_cfg, phy_dfx);
-	free(phy_cfg_ret);
-	free(phy_dfx_ret);
+	hikp_cmd_free(&phy_cfg_ret);
+	hikp_cmd_free(&phy_dfx_ret);
 }
 
 static void mac_cmd_disp_port_param(const char *label, const struct mac_port_param *port)
@@ -442,7 +438,7 @@ static void mac_cmd_show_arb(struct major_cmd_ctrl *self)
 
 	arb_dfx = (struct mac_cmd_arb_dfx *)(cmd_ret->rsp_data);
 	mac_cmd_disp_arb_info(arb_dfx);
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void mac_cmd_show_hot_plug_card(struct major_cmd_ctrl *self)
@@ -460,7 +456,7 @@ static void mac_cmd_show_hot_plug_card(struct major_cmd_ctrl *self)
 
 	hpc_dfx = (struct cmd_hot_plug_card_info *)(cmd_ret->rsp_data);
 	mac_cmd_disp_hot_plug_card_info(hpc_dfx);
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void mac_cmd_print_cdr_dfx(struct mac_cmd_cdr_dfx *cdr_dfx, struct mac_port_cdr_dfx *info)
@@ -498,8 +494,15 @@ static void mac_cmd_print_cdr_dfx(struct mac_cmd_cdr_dfx *cdr_dfx, struct mac_po
 
 static void mac_cmd_disp_cdr_info(struct mac_cmd_cdr_dfx *cdr_dfx)
 {
+	uint8_t cdr_max_num = HIKP_ARRAY_SIZE(cdr_dfx->wire_cdr.dfx);
+
 	if (!cdr_dfx->cdr_num)
 		return;
+
+	if (cdr_dfx->cdr_num > cdr_max_num) {
+		printf("the cdr_num(%u) exceeds %u\n", cdr_dfx->cdr_num, cdr_max_num);
+		return;
+	}
 
 	printf("\n======================== PORT CDR INFO =======================\n");
 	printf("direct\t|addr     |lane    |type     |mode     |status   \n");
@@ -527,7 +530,7 @@ static void mac_cmd_show_cdr(struct major_cmd_ctrl *self)
 
 	cdr_dfx = (struct mac_cmd_cdr_dfx *)(cmd_ret->rsp_data);
 	mac_cmd_disp_cdr_info(cdr_dfx);
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 }
 
 static void mac_cmd_show_port_dfx(struct major_cmd_ctrl *self, uint32_t mask)
@@ -561,8 +564,7 @@ static int mac_cmd_get_port_dfx_cap(uint32_t *cap)
 	if (ret == 0) {
 		dfx_cap = (struct mac_cmd_port_dfx_cap *)dfx_cap_resp->rsp_data;
 		*cap = dfx_cap->cap_bit_map;
-		free(dfx_cap_resp);
-		dfx_cap_resp = NULL;
+		hikp_cmd_free(&dfx_cap_resp);
 		return ret;
 	}
 
@@ -578,8 +580,7 @@ static int mac_cmd_get_port_dfx_cap(uint32_t *cap)
 	    port_hw->port_type == HIKP_PORT_TYPE_PHY_SDS)
 		*cap |= MAC_LSPORT_PHY;
 
-	free(hw_cmd_ret);
-	hw_cmd_ret = NULL;
+	hikp_cmd_free(&hw_cmd_ret);
 	return ret;
 }
 

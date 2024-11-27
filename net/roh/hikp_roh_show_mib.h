@@ -11,8 +11,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef __HIKP_ROH_SHOW_MIB_H__
-#define __HIKP_ROH_SHOW_MIB_H__
+#ifndef HIKP_ROH_SHOW_MIB_H
+#define HIKP_ROH_SHOW_MIB_H
 
 #include "hikp_net_lib.h"
 
@@ -83,4 +83,4 @@ enum target_addr {
 #define ROH_CMD_SHOW_MIB (1 << 0)
 #define RESPONSE_MIB_NUMBER_MAX 15
 
-#endif /* __HIKP_ROH_SHOW_MIB_H__ */
+#endif /* HIKP_ROH_SHOW_MIB_H */

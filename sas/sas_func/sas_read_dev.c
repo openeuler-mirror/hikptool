@@ -33,16 +33,16 @@ static int sas_get_dev(const struct tool_sas_cmd *cmd, uint32_t *reg_save, uint3
 
 	hikp_cmd_init(&req_header, SAS_MOD, SAS_DEV, cmd->sas_cmd_type);
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
-	if (cmd_ret == NULL || cmd_ret->status != 0) {
+	if (cmd_ret == NULL || cmd_ret->status != 0 || cmd_ret->rsp_data_num > RESP_MAX_NUM) {
 		printf("sas_dqe excutes hikp_cmd_alloc err\n");
-		free(cmd_ret);
+		hikp_cmd_free(&cmd_ret);
 		return -EINVAL;
 	}
 	*reg_num = cmd_ret->rsp_data_num;
 	for (i = 0; i < *reg_num; i++)
 		reg_save[i] = cmd_ret->rsp_data[i];
 
-	free(cmd_ret);
+	hikp_cmd_free(&cmd_ret);
 	return 0;
 }
 
@@ -78,7 +78,7 @@ static void print_dev_link(const uint32_t *reg_save, uint32_t reg_num)
 
 static void sas_print_dev(const uint32_t *reg_save, uint32_t reg_num, uint32_t cmd_type)
 {
-	if (reg_num == 0) {
+	if (reg_num < REG_NUM_DEV_LINK_MAX) {
 		printf("SAS device is failed\n");
 		return;
 	}

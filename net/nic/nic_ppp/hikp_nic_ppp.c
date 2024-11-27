@@ -762,7 +762,7 @@ static int hikp_nic_query_mng_tbl(struct hikp_cmd_header *req_header,
 		}
 		if (entry_size + rsp_head.cur_blk_entry_cnt > g_ppp_hw_res.mng_tbl_size) {
 			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
-					 "is over the maximum entry nubmer (%u) of manager table.\n",
+					 "is over the maximum entry number (%u) of manager table.\n",
 					 entry_size + rsp_head.cur_blk_entry_cnt, idx, g_ppp_hw_res.mng_tbl_size);
 			return -EINVAL;
 		}

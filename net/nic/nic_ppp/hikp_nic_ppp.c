@@ -546,7 +546,7 @@ static int hikp_nic_ppp_query_uc_mac_addr(struct hikp_cmd_header *req_header,
 		}
 		if (entry_size + rsp_head.cur_blk_entry_cnt > max_hw_entry_size) {
 			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
-					 "is over the maximum entry nubmer (%u) of unicast MAC table.\n",
+					 "is over the maximum entry number (%u) of unicast MAC table.\n",
 					 entry_size + rsp_head.cur_blk_entry_cnt, idx, max_hw_entry_size);
 			return -EINVAL;
 		}
@@ -588,7 +588,7 @@ static int hikp_nic_ppp_query_mc_mac_addr(struct hikp_cmd_header *req_header,
 		}
 		if (entry_size + rsp_head.cur_blk_entry_cnt > max_hw_entry_size) {
 			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
-					 "is over the maximum entry nubmer (%u) of multicast MAC table.\n",
+					 "is over the maximum entry number (%u) of multicast MAC table.\n",
 					 entry_size + rsp_head.cur_blk_entry_cnt, idx, max_hw_entry_size);
 			return -EINVAL;
 		}
@@ -659,7 +659,7 @@ static int hikp_nic_ppp_query_vf_vlan_tbl(struct hikp_cmd_header *req_header,
 		}
 		if (entry_size + rsp_head.cur_blk_entry_cnt > hw_entry_size) {
 			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
-					 "is over the maximum entry nubmer (%u) of VF VLAN table.\n",
+					 "is over the maximum entry number (%u) of VF VLAN table.\n",
 					 entry_size + rsp_head.cur_blk_entry_cnt, idx, hw_entry_size);
 			return -EINVAL;
 		}
@@ -700,7 +700,7 @@ static int hikp_nic_ppp_query_port_vlan_tbl(struct hikp_cmd_header *req_header,
 		}
 		if (entry_size + rsp_head.cur_blk_entry_cnt > hw_entry_size) {
 			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
-					 "is over the maximum entry nubmer (%u) of port VLAN table.\n",
+					 "is over the maximum entry number (%u) of port VLAN table.\n",
 					 entry_size + rsp_head.cur_blk_entry_cnt, idx, hw_entry_size);
 			return -EINVAL;
 		}

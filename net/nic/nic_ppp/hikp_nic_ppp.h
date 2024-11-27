@@ -40,7 +40,7 @@ struct hikp_nic_ppp_hw_resources {
 	uint32_t rsv1[10];
 };
 
-/* struct mac_vlan_uc_entry::e_vport field defination:
+/* struct mac_vlan_uc_entry::e_vport field definition:
  * bit[0-2]: pf_id
  * bit[3-10]: vf_id
  */

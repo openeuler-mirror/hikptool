@@ -661,7 +661,7 @@ static int hikp_nic_query_fd_rules(struct hikp_cmd_header *req_header, const str
 		}
 		if (rsp_head.cur_blk_entry_cnt + entry_cnt > g_fd_hw_info.alloc.stage_entry_num[stage]) {
 			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
-					 "is over the maximum entry nubmer (%u) of this stage.",
+					 "is over the maximum entry number (%u) of this stage.",
 					 rsp_head.cur_blk_entry_cnt + entry_cnt, idx,
 					 g_fd_hw_info.alloc.stage_entry_num[stage]);
 			return -EINVAL;
@@ -718,7 +718,7 @@ static int hikp_nic_query_fd_counter(struct hikp_cmd_header *req_header, const s
 		}
 		if (rsp_head.cur_blk_entry_cnt + entry_size > g_fd_hw_info.alloc.stage_counter_num[stage]) {
 			HIKP_ERROR_PRINT("The sum of entry number (%u) after block-%u "
-					 "is over the maximum counter nubmer (%u) of this stage.",
+					 "is over the maximum counter number (%u) of this stage.",
 					 rsp_head.cur_blk_entry_cnt + entry_size, idx,
 					 g_fd_hw_info.alloc.stage_counter_num[stage]);
 			return -EINVAL;

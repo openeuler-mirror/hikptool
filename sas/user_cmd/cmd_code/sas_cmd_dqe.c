@@ -26,7 +26,7 @@ static int sas_dqe_help(struct major_cmd_ctrl *self, const char *argv)
 	printf("    %s, %-25s %s\n", "-q", "--queue", "please input queue id[x]  first\n");
 	printf("\n  Options:\n\n");
 	printf("    %s, %-25s %s\n", "-h", "--help", "display this help and exit\n");
-	printf("    %s, %-25s %s\n", "-i", "--info", "dispaly the dqe detail information\n");
+	printf("    %s, %-25s %s\n", "-i", "--info", "display the dqe detail information\n");
 	printf("\n");
 
 	return 0;

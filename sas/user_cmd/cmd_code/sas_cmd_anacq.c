@@ -25,8 +25,8 @@ static int sas_anacq_help(struct major_cmd_ctrl *self, const char *argv)
 	printf("    %s, %-25s %s\n", "-d", "--dieid", "please input die id[x]  first\n");
 	printf("\n  Options:\n\n");
 	printf("    %s, %-25s %s\n", "-h", "--help", "display this help and exit\n");
-	printf("    %s, %-25s %s\n", "-p", "--pointer", "dispaly cq queue read/write pointer\n");
-	printf("    %s, %-25s %s\n", "-s", "--number", "dispaly cq number\n");
+	printf("    %s, %-25s %s\n", "-p", "--pointer", "display cq queue read/write pointer\n");
+	printf("    %s, %-25s %s\n", "-s", "--number", "display cq number\n");
 	printf("\n");
 
 	return 0;

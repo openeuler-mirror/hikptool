@@ -44,6 +44,7 @@ enum cmd_module_type {
 	DPDK_MOD = 9,
 	CXL_MOD = 10,
 	UB_MOD = 11,
+	HCCS_MOD = 16
 };
 
 void hikp_unlock(void);

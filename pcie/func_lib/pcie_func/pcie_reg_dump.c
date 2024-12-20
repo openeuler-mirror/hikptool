@@ -64,10 +64,8 @@ struct pcie_dumpreg_info g_reg_table_tl[] = {
 	{0, "TL_RX_NONPOST_CNT"},
 	{0, "TL_RX_CPL_CNT"},
 	{0, "TL_RX_LOC_TLP_CNT"},
-	{0, "TL_RX_ERR_STATUS"},
 	{0, "TL_CFGSPACE_BDF"},
 	{0, "TL_TX_UR_CNT"},
-	{0, "TL_RX_ERR_STATUS"},
 };
 
 struct pcie_dumpreg_info g_reg_table_dl[] = {
@@ -126,7 +124,6 @@ struct pcie_dumpreg_info g_reg_table_mac[] = {
 	{0, "MAC_REG_DEBUG_PIPE9"},
 	{0, "MAC_REG_DEBUG_PIPE10"},
 	{0, "MAC_REG_DEBUG_PIPE11"},
-	{0, "MAC_LEAVE_L0_INFO"},
 	{0, "DFX_APB_LANE_ERROR_STATUS_0"},
 	{0, "DFX_APB_LANE_ERROR_STATUS_1"},
 	{0, "MAC_REG_PHY_RXDATA_TS_REG"},
@@ -255,7 +252,6 @@ struct pcie_dumpreg_info g_reg_table_iob_rx[] = {
 	{0, "DFX_IOB_RX_CNT_RESP_RX"},
 	{0, "DFX_IOB_RX_CNT_RESP_LOC"},
 	{0, "DFX_IOB_RX_CNT_RESP_RECV"},
-	{0, "IOB_RX_INT_STATUS"},
 	{0, "DFX_IOB_RX_AMB_WR_CNT_0"},
 	{0, "DFX_IOB_RX_AMB_WR_CNT_1"},
 	{0, "DFX_IOB_RX_AMB_RD_CNT_0"},
@@ -369,8 +365,8 @@ struct pcie_dumpreg_info g_reg_table_core_glb[] = {
 	{0, "CORE_INT_FE_RO_2"},
 	{0, "PORT07_LINK_MODE"},
 	{0, "PORT815_LINK_MODE"},
-	{0, "PCIE_LINK_DOWN_CLR_PORT_EN_REG"},
-	{0, "CORE_CLK_FLG_REG"},
+	{0, "PCIE_LINK_DOWN_CLR_PORT_EN"},
+	{0, "CORE_CLK_FLG"},
 };
 
 struct pcie_dumpreg_info g_reg_table_core_tl[] = {

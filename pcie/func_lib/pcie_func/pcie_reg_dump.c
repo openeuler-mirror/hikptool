@@ -131,20 +131,6 @@ struct pcie_dumpreg_info g_reg_table_mac[] = {
 	{0, "MAC_POWERDOWN_VALUE_REG"},
 };
 
-struct pcie_dumpreg_info g_reg_table_pcs[] = {
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(SERDES_STATUS_RPT),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(EBUF_STATUS),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(GEN3_DEC_ENC_STATUS),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(WAKE_STATUS),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(RECV_DET_OR_PWR_CHAGE),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(EQEVAL_STATUS),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(LANE_INTR_STATUS),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(M_PCS_RPT_REG),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(MSG_BUS_DFX),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(DETECT_CLK_FLG_REG),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(SDS_CFG_REG_REG),
-};
-
 struct pcie_dumpreg_info g_reg_table_iob_tx[] = {
 	{0, "IOB_TX_ECAM_CONTROL0"},
 	{0, "IOB_TX_ECAM_CONTROL1"},
@@ -456,7 +442,6 @@ struct pcie_dumpreg_table g_dump_info_glb[] = {
 	{HIKP_ARRAY_SIZE(g_reg_table_iob_rx), g_reg_table_iob_rx},
 	{HIKP_ARRAY_SIZE(g_reg_table_ap_glb), g_reg_table_ap_glb},
 	{HIKP_ARRAY_SIZE(g_reg_table_core_glb), g_reg_table_core_glb},
-	{HIKP_ARRAY_SIZE(g_reg_table_pcs), g_reg_table_pcs},
 	{HIKP_ARRAY_SIZE(g_reg_table_core_tl), g_reg_table_core_tl},
 	{HIKP_ARRAY_SIZE(g_reg_table_dfx_core_tl), g_reg_table_dfx_core_tl},
 };

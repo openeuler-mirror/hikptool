@@ -22,16 +22,6 @@
 #define PCIE_DUMPREG_LOGFILE_NAME "pcie_dumpreg"
 #define LOG_FILE_PATH_MAX_LEN	512
 
-#define HIKP_PCIE_PCS_LANE_TBL_ENTRY(name) \
-	{0, STR(CONTACT(name, _00))}, {0, STR(CONTACT(name, _01))}, \
-	{0, STR(CONTACT(name, _02))}, {0, STR(CONTACT(name, _03))}, \
-	{0, STR(CONTACT(name, _04))}, {0, STR(CONTACT(name, _05))}, \
-	{0, STR(CONTACT(name, _06))}, {0, STR(CONTACT(name, _07))}, \
-	{0, STR(CONTACT(name, _08))}, {0, STR(CONTACT(name, _09))}, \
-	{0, STR(CONTACT(name, _10))}, {0, STR(CONTACT(name, _11))}, \
-	{0, STR(CONTACT(name, _12))}, {0, STR(CONTACT(name, _13))}, \
-	{0, STR(CONTACT(name, _14))}, {0, STR(CONTACT(name, _15))}
-
 enum pcie_dump_level {
 	DUMP_GLOBAL_LEVEL = 1,
 	DUMP_PORT_LEVEL = 2,

@@ -22,7 +22,7 @@
 #include "pcie_common.h"
 #include "pcie_reg_dump.h"
 
-int g_pcie_dumpreg_fd;
+FILE *g_pcie_dumpreg_fd = NULL;
 char dumpreg_log_file[MAX_LOG_NAME_LEN + 1] = {0};
 
 struct pcie_dumpreg_info g_reg_table_tl[] = {
@@ -381,7 +381,7 @@ static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
 {
 	char file_name[MAX_LOG_NAME_LEN + 1] = { 0 };
 	char info_str[MAX_LOG_NAME_LEN + 1] = { 0 };
-	int fd_file;
+	FILE *fd_file = NULL;
 	int ret;
 
 	ret = snprintf(info_str, sizeof(info_str), "%s_port%u_level%u",
@@ -399,8 +399,8 @@ static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
 
 	(void)remove((const char *)file_name);
 	/* Add write permission to the file */
-	fd_file = open(file_name, O_RDWR | O_SYNC | O_CREAT, 0600);
-	if (fd_file < 0) {
+	fd_file = fopen(file_name, "w+");
+	if (fd_file == NULL) {
 		Err("open %s failed.\n", file_name);
 		return -EPERM;
 	}
@@ -409,30 +409,26 @@ static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
 	return 0;
 }
 
-static int pcie_close_dumpreg_log_file(void)
+static void pcie_close_dumpreg_log_file(void)
 {
-	int ret;
-
-	ret = fchmod(g_pcie_dumpreg_fd, 0400);
-	close(g_pcie_dumpreg_fd);
+	fclose(g_pcie_dumpreg_fd);
 	/* Revoke write permission of file  */
-	g_pcie_dumpreg_fd = -1;
-
-	return ret;
+	chmod(dumpreg_log_file, 0400);
+	g_pcie_dumpreg_fd = NULL;
 }
 
 static void pcie_dumpreg_write_value_to_file(const char *reg_name, uint32_t val)
 {
 	char str[MAX_STR_LEN] = { 0 };
-	ssize_t wr_ret;
+	size_t wr_ret;
 	int ret;
 
 	ret = snprintf(str, sizeof(str), "    %-40s : 0x%x\n", reg_name, val);
 	if (ret < 0 || ret >= MAX_STR_LEN) {
 		Err("pcie dumpreg write info to logfile failed.\n");
 	} else {
-		wr_ret = write(g_pcie_dumpreg_fd, str, strlen(str));
-		if (wr_ret == -1)
+		wr_ret = fwrite(str, 1, strlen(str), g_pcie_dumpreg_fd);
+		if (wr_ret != strlen(str))
 			Err("write info to logfile failed.\n");
 	}
 }
@@ -470,7 +466,7 @@ static int pcie_dumpreg_write_header_to_file(uint32_t version,
 					     const struct pcie_dump_req_para *req_data)
 {
 	char str[MAX_STR_LEN] = {0};
-	ssize_t wr_ret;
+	size_t wr_ret;
 	int ret;
 
 	ret = snprintf(str, sizeof(str), "Command Version[%u], dump_level[%u], port_id[%u]\n\n",
@@ -480,8 +476,8 @@ static int pcie_dumpreg_write_header_to_file(uint32_t version,
 		return -EIO;
 	}
 
-	wr_ret = write(g_pcie_dumpreg_fd, str, strlen(str));
-	if (wr_ret == -1) {
+	wr_ret = fwrite(str, 1, strlen(str), g_pcie_dumpreg_fd);
+	if (wr_ret != strlen(str)) {
 		Err("write header to logfile failed.\n");
 		return -EIO;
 	}
@@ -566,7 +562,7 @@ int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level)
 
 	Info("pcie reg dump finish.\n");
 close_file_ret:
-	(void)pcie_close_dumpreg_log_file();
+	pcie_close_dumpreg_log_file();
 free_cmd_ret:
 	hikp_cmd_free(&cmd_ret);
 

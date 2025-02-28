@@ -108,6 +108,15 @@ static int info_collect_socip(struct major_cmd_ctrl *self, const char *argv)
 	return 0;
 }
 
+static int info_collect_sdma(struct major_cmd_ctrl *self, const char *argv)
+{
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
+	set_info_collect_type(COLLECT_SDMA);
+	return 0;
+}
+
 static int info_collect_all(struct major_cmd_ctrl *self, const char *argv)
 {
 	HIKP_SET_USED(self);
@@ -128,12 +137,13 @@ static void collect_all_log(void)
 	collect_sata_log();
 	collect_serdes_log();
 	collect_socip_log();
+	collect_sdma_log();
 }
 
 static int info_collect_excute_funs_call(uint32_t collect_type)
 {
 	const char *type_name[] = {"acc", "imp", "nic", "pcie", "roce", "sas",
-		"sata", "serdes", "socip", "all"};
+		"sata", "serdes", "socip", "sdma", "all"};
 	int ret;
 
 	if (collect_type == COLLECT_UNKNOWN_TYPE)
@@ -173,6 +183,9 @@ static int info_collect_excute_funs_call(uint32_t collect_type)
 	case COLLECT_SOCIP:
 		collect_socip_log();
 		break;
+	case COLLECT_SDMA:
+		collect_sdma_log();
+		break;
 	case COLLECT_ALL:
 		collect_all_log();
 		break;
@@ -199,6 +212,7 @@ static void info_collect_execute(struct major_cmd_ctrl *self)
 		"collect sata info success.",
 		"collect serdes info success.",
 		"collect socip info success.",
+		"collect sdma info success.",
 		"collect all info success.",
 	};
 	const char *err_msg[] = {
@@ -211,6 +225,7 @@ static void info_collect_execute(struct major_cmd_ctrl *self)
 		"collect sata info error.",
 		"collect serdes info error.",
 		"collect socip info error.",
+		"collect sdma info error.",
 		"collect all info error.",
 		"collect info failed, unknown type.",
 	};
@@ -245,6 +260,7 @@ static int info_collect_help(struct major_cmd_ctrl *self, const char *argv)
 	printf("    %s, %-25s %s\n", "-sata", "--sata", "collect sata info\n");
 	printf("    %s, %-25s %s\n", "-serdes", "--serdes", "collect serdes info\n");
 	printf("    %s, %-25s %s\n", "-socip", "--socip", "collect socip info\n");
+	printf("    %s, %-25s %s\n", "-sdma", "--sdma", "collect sdma info\n");
 	printf("    %s, %-25s %s\n", "-all", "--all", "collect all info\n");
 	printf("\n");
 
@@ -268,6 +284,7 @@ static void cmd_info_collect_init(void)
 	cmd_option_register("-sata", "--sata", false, info_collect_sata);
 	cmd_option_register("-serdes", "--serdes", false, info_collect_serdes);
 	cmd_option_register("-socip", "--socip", false, info_collect_socip);
+	cmd_option_register("-sdma", "--sdma", false, info_collect_sdma);
 	cmd_option_register("-all", "--all", false, info_collect_all);
 }
 

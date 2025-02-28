@@ -24,6 +24,7 @@
 #define GROUP_IMP "imp"
 #define GROUP_COMMON "common"
 #define GROUP_SERDES "serdes"
+#define GROUP_SDMA "sdma"
 
 enum info_collect_type {
 	COLLECT_ACC,
@@ -35,6 +36,7 @@ enum info_collect_type {
 	COLLECT_SATA,
 	COLLECT_SERDES,
 	COLLECT_SOCIP,
+	COLLECT_SDMA,
 	COLLECT_ALL,
 	COLLECT_UNKNOWN_TYPE,
 };
@@ -49,5 +51,6 @@ void collect_roce_log(void);
 void collect_pcie_info(void);
 void collect_imp_log(void);
 void collect_serdes_log(void);
+void collect_sdma_log(void);
 
 #endif /* HIKP_COLLECT_H */

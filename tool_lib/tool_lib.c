@@ -245,7 +245,7 @@ int tool_flock(const char *name, uint32_t operation, int *fd, const char *log_di
 	}
 
 	ret = snprintf(lock_file, sizeof(lock_file), "%s", log_dir);
-	if (ret < 0 || ret >= sizeof(lock_file)) {
+	if (ret < 0 || (size_t)ret >= sizeof(lock_file)) {
 		HIKP_ERROR_PRINT("generate flock [%s] folder name failed, errno is %d\n",
 				 log_dir, errno);
 		return -errno;

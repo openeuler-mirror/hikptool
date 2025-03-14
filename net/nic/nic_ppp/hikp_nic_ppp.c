@@ -66,6 +66,8 @@ void hikp_nic_ppp_set_cmd_param(int feature_idx)
 
 static int hikp_nic_ppp_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <device>");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");
@@ -787,6 +789,8 @@ static int hikp_nic_query_ppp_by_entryid(struct hikp_cmd_header *req_header,
 {
 	const struct ppp_feature_cmd *ppp_cmd;
 	struct nic_ppp_req_para req_data = {0};
+
+	HIKP_SET_USED(len);
 
 	req_data.bdf = *bdf;
 	ppp_cmd = &g_ppp_feature_cmd[g_ppp_param.feature_idx];

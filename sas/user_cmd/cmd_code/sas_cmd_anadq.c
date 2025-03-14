@@ -19,6 +19,8 @@
 
 static int sas_anadq_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s\n", self->cmd_ptr->name);
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("    %s, %-25s %s\n", "-c", "--chipid", "please input chip id[x]  first\n");
@@ -34,11 +36,17 @@ static int sas_anadq_help(struct major_cmd_ctrl *self, const char *argv)
 
 static int sas_anadq_prt(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	return sas_set_cmd_type(ANADQ_PRT);
 }
 
 static int sas_anadq_num(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	return sas_set_cmd_type(ANADQ_NUM);
 }
 

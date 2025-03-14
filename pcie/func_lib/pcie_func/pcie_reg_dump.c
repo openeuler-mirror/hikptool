@@ -446,7 +446,7 @@ static void pcie_dumpreg_write_value_to_file(const char *reg_name, uint32_t val)
 	int ret;
 
 	ret = snprintf(str, sizeof(str), "    %-40s : 0x%x\n", reg_name, val);
-	if (ret < 0 || ret >= sizeof(str)) {
+	if (ret < 0 || ret >= MAX_STR_LEN) {
 		Err("pcie dumpreg write info to logfile failed.\n");
 	} else {
 		wr_ret = write(g_pcie_dumpreg_fd, str, strlen(str));

@@ -313,7 +313,7 @@ static void sfp_print_dom_info(const struct sfp_page_info *info)
 	       (int8_t)info->page_a2.temperature[0], info->page_a2.temperature[1]);
 }
 
-static void hikp_show_sfp_info(const uint8_t *data, uint32_t size)
+static void hikp_show_sfp_info(const uint8_t *data)
 {
 	struct sfp_page_info *sfp_data = (struct sfp_page_info *)data;
 
@@ -412,7 +412,7 @@ static void qsfp_print_dom_info(const struct qsfp_page0_info *info)
 	       (int8_t)info->page_lower.temperature_msb, info->page_lower.temperature_lsb);
 }
 
-static void hikp_show_qsfp_info(const uint8_t *data, uint32_t size)
+static void hikp_show_qsfp_info(const uint8_t *data)
 {
 	struct qsfp_page0_info *qsfp_data = (struct qsfp_page0_info *)(data);
 
@@ -554,7 +554,7 @@ static void cmis_print_dom_info(const struct cmis_page_info *info)
 		       info->page0_lower.module_temp[1]);
 }
 
-static void hikp_show_cmis_info(const uint8_t *data, uint32_t size)
+static void hikp_show_cmis_info(const uint8_t *data)
 {
 	struct cmis_page_info *cmis_data = (struct cmis_page_info *)data;
 
@@ -567,17 +567,17 @@ static void hikp_show_cmis_info(const uint8_t *data, uint32_t size)
 static void hikp_xsfp_parse_info(const uint8_t *data, uint32_t size)
 {
 	if (data[SFF_ID_OFFSET] == ID_SFP) {
-		hikp_show_sfp_info(data, size);
+		hikp_show_sfp_info(data);
 	} else if (data[SFF_ID_OFFSET] == ID_QSFP ||
 		   data[SFF_ID_OFFSET] == ID_QSFP_PLUS ||
 		   data[SFF_ID_OFFSET] == ID_QSFP28) {
-		hikp_show_qsfp_info(data, size);
+		hikp_show_qsfp_info(data);
 	} else if (data[SFF_ID_OFFSET] == ID_QSFP_DD ||
 		   data[SFF_ID_OFFSET] == ID_SFP_DD ||
 		   data[SFF_ID_OFFSET] == ID_QSFP_P_CMIS ||
 		   data[SFF_ID_OFFSET] == ID_SFP_DD_CMIS ||
 		   data[SFF_ID_OFFSET] == ID_SFP_P_CMIS) {
-		hikp_show_cmis_info(data, size);
+		hikp_show_cmis_info(data);
 	} else {
 		/* unknown type just dump hex data */
 		hikp_xsfp_dump_hex(data, size);
@@ -702,6 +702,8 @@ ERR_OUT:
 
 static int hikp_xsfp_show_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface> [-d]");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");
@@ -729,6 +731,9 @@ static int hikp_xsfp_get_target(struct major_cmd_ctrl *self, const char *argv)
 
 static int hikp_xsfp_dump_raw_data(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_xsfp_dump.dump_param |= XSFP_RAW_DATA_BIT;
 
 	return 0;

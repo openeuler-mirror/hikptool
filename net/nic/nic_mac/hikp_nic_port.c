@@ -619,6 +619,8 @@ static int mac_cmd_get_port_target(struct major_cmd_ctrl *self, const char *argv
 
 static int mac_cmd_port_show_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");

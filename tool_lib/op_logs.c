@@ -246,7 +246,7 @@ int op_log_initialise(const char *log_dir)
 	memset(log_path, '\0', OP_LOG_FILE_PATH_MAXLEN);
 	memset(g_op_log, '\0', OP_LOG_FILE_PATH_MAXLEN);
 	ret = snprintf(log_path, sizeof(log_path), "%s", log_dir);
-	if (ret < 0 || ret >= sizeof(log_path))
+	if (ret < 0 || (size_t)ret >= sizeof(log_path))
 		return -EINVAL;
 
 	if (!is_dir_exist(log_path)) {
@@ -275,22 +275,17 @@ int op_log_initialise(const char *log_dir)
 void op_log_record_input(const int argc, const char **argv)
 {
 	char input_str[OP_LOG_FILE_W_MAXSIZE + 1] = {0};
-	struct op_log_print_t log_info[] = {
-		{"%s", g_cmd_exec_time},
-		{"[%s]", input_str},
-	};
-	size_t i, arr_size;
 	int offset = 0;
 	char *arg;
 	int ret;
 
 	memset(g_input_buf, 0, sizeof(g_input_buf));
 
-	if (argv == NULL || argc == 0)
+	if (argv == NULL || argc <= 0)
 		return;
 
 	arg = input_str;
-	for (i = 0; i < argc; i++) {
+	for (int i = 0; i < argc; i++) {
 		ret = snprintf(arg, (sizeof(input_str) - (arg - input_str)), "%s ", argv[i]);
 		if (ret < 0 || ret >= (int)(sizeof(input_str) - (arg - input_str)))
 			return;
@@ -299,15 +294,18 @@ void op_log_record_input(const int argc, const char **argv)
 	}
 	input_str[strlen(input_str) - 1] = 0;
 
-	arr_size = HIKP_ARRAY_SIZE(log_info);
-	for (i = 0; i < arr_size; i++) {
-		ret = snprintf(g_input_buf + offset, (OP_LOG_FILE_W_MAXSIZE + 1 - offset),
-			log_info[i].format, log_info[i].str);
-		if (ret < 0 || ret >= (OP_LOG_FILE_W_MAXSIZE + 1 - offset))
-			return;
-
-		offset += ret;
+	ret = snprintf(g_input_buf + offset, (OP_LOG_FILE_W_MAXSIZE + 1 - offset),
+		       "%s", g_cmd_exec_time);
+	if (ret < 0 || ret >= (OP_LOG_FILE_W_MAXSIZE + 1 - offset)) {
+		printf("snprintf exec time failed, ret 0x%x\n", ret);
+		return;
 	}
+
+	offset += ret;
+	ret = snprintf(g_input_buf + offset, (OP_LOG_FILE_W_MAXSIZE + 1 - offset),
+		       "[%s]", input_str);
+	if (ret < 0 || ret >= (OP_LOG_FILE_W_MAXSIZE + 1 - offset))
+		printf("snprintf exec cmd failed, ret 0x%x\n", ret);
 }
 
 void op_log_record_result(int ret, const char *tool_name, const char *log_dir)
@@ -393,7 +391,7 @@ static int signal_fcntl(const char *name, uint32_t operation, int *fd)
 	return uda_fcntl(lock_file, operation, fd);
 }
 
-void signal_op_log_write(int signal_code)
+static void signal_op_log_write(int signal_code)
 {
 	char log_str[] = "[00:00:00] [KILLED<00>].\r\n";
 	int op_log_fd;

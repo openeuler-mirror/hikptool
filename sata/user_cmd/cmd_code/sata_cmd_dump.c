@@ -26,6 +26,8 @@ struct tool_sata_cmd g_sata_dump_cmd = {
 
 static int sata_dump_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s\n", self->cmd_ptr->name);
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("    %s, %-25s %s\n", "-c", "--chipid", "please input chip id[x]  first\n");
@@ -56,16 +58,25 @@ static int sata_set_id(struct major_cmd_ctrl *self, const char *argv, uint32_t *
 
 static int sata_set_chip_id(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	return sata_set_id(self, argv, &g_sata_dump_cmd.chip_id);
 }
 
 static int sata_set_die_id(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	return sata_set_id(self, argv, &g_sata_dump_cmd.die_id);
 }
 
 static int sata_dump_global(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_sata_dump_cmd.sata_cmd_type = DUMP_GLOBAL;
 	return 0;
 }

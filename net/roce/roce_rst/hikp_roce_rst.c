@@ -23,6 +23,8 @@ int hikp_roce_set_rst_bdf(char *nic_name)
 
 static int hikp_roce_rst_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -50,6 +52,8 @@ static int hikp_roce_rst_get_data(struct hikp_cmd_ret **cmd_ret,
 	struct roce_rst_req_param req_data;
 	uint32_t req_size;
 	int ret;
+
+	HIKP_SET_USED(reg_name);
 
 	req_data.bdf = g_roce_rst_param.target.bdf;
 	req_data.block_id = block_id;

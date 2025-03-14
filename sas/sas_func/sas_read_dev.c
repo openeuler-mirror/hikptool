@@ -22,7 +22,7 @@
 
 static int sas_get_dev(const struct tool_sas_cmd *cmd, uint32_t *reg_save, uint32_t *reg_num)
 {
-	int i;
+	uint32_t i;
 	struct hikp_cmd_header req_header;
 	struct hikp_cmd_ret *cmd_ret;
 	struct sas_dev_req_para req_data = { 0 };
@@ -46,7 +46,7 @@ static int sas_get_dev(const struct tool_sas_cmd *cmd, uint32_t *reg_save, uint3
 	return 0;
 }
 
-static void print_dev_link(const uint32_t *reg_save, uint32_t reg_num)
+static void print_dev_link(const uint32_t *reg_save)
 {
 	uint32_t i;
 	uint32_t index, index1;
@@ -84,7 +84,7 @@ static void sas_print_dev(const uint32_t *reg_save, uint32_t reg_num, uint32_t c
 	}
 	switch (cmd_type) {
 	case DEV_LINK:
-		print_dev_link(reg_save, reg_num);
+		print_dev_link(reg_save);
 		break;
 	default:
 		printf("cmd_type is error\n");

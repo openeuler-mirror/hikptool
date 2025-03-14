@@ -89,6 +89,8 @@ static int nic_ncsi_cmd_get_port_info(struct major_cmd_ctrl *self, const char *a
 
 static int nic_ncsi_cmd_show_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");

@@ -46,7 +46,7 @@ static int sas_get_res(const struct tool_sas_cmd *cmd, uint32_t *reg_save, uint3
 		return -EINVAL;
 	}
 	*reg_num = cmd_ret->rsp_data_num;
-	for (int i = 0; i < *reg_num; i++)
+	for (uint32_t i = 0; i < *reg_num; i++)
 		reg_save[i] = cmd_ret->rsp_data[i];
 
 	hikp_cmd_free(&cmd_ret);

@@ -32,6 +32,8 @@ struct tool_pcie_cmd g_regread_cmd = {
 
 static int pcie_reg_read_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s\n", self->cmd_ptr->name);
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("    %s, %-25s %s\n", "-i", "--interface", "please input port[x] first\n");
@@ -50,6 +52,8 @@ static int pcie_port_set(struct major_cmd_ctrl *self, const char *argv)
 	uint32_t val;
 	int ret;
 
+	HIKP_SET_USED(self);
+
 	ret = string_toui(argv, &val);
 	if (ret) {
 		printf("info set port id err %d.\n", ret);
@@ -64,6 +68,8 @@ static int read_module_set(struct major_cmd_ctrl *self, const char *argv)
 {
 	uint32_t val;
 	int ret;
+
+	HIKP_SET_USED(self);
 
 	ret = pcie_read_name2module_id(argv, &val);
 	if (ret) {
@@ -80,6 +86,8 @@ static int read_offset_set(struct major_cmd_ctrl *self, const char *argv)
 	uint32_t val;
 	int ret;
 
+	HIKP_SET_USED(self);
+
 	ret = string_toui(argv, &val);
 	if (ret) {
 		printf("info set offset err %d.\n", ret);
@@ -92,6 +100,9 @@ static int read_offset_set(struct major_cmd_ctrl *self, const char *argv)
 
 static int pcie_reg_read_exe(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_regread_cmd.cmd_type = REGRD_READ;
 
 	return 0;

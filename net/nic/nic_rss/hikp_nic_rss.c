@@ -139,6 +139,8 @@ void hikp_nic_rss_cmd_set_feature_idx(int feature_idx)
 
 static int hikp_nic_rss_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <device>");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");

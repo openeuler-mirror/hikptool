@@ -27,6 +27,8 @@ static char g_log_path[OP_LOG_FILE_PATH_MAXLEN] = {0};
 
 static int hikp_nic_cmd_log_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");

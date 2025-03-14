@@ -25,6 +25,8 @@ struct tool_cxl_cmd g_cxl_rcrb_cmd = {
 
 static int cxl_rcrb_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("  Usage: %s\n", self->cmd_ptr->name);
 	printf("         %s\n", self->cmd_ptr->help_info);
 	printf("    %s, %-25s %s\n", "-i", "--interface", "please input port[x]  first");
@@ -43,6 +45,8 @@ static int cxl_rcrb_port_id_set(struct major_cmd_ctrl *self, const char *argv)
 	uint32_t val;
 	int ret;
 
+	HIKP_SET_USED(self);
+
 	ret = string_toui(argv, &val);
 	if (ret) {
 		printf("cxl rcrb set port id err %d\n", ret);
@@ -55,6 +59,9 @@ static int cxl_rcrb_port_id_set(struct major_cmd_ctrl *self, const char *argv)
 
 static int cxl_rcrb_link_status(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_rcrb_cmd.cmd_type = CXL_RCRB_LINK;
 
 	return 0;
@@ -62,6 +69,9 @@ static int cxl_rcrb_link_status(struct major_cmd_ctrl *self, const char *argv)
 
 static int cxl_rcrb_header_info(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_rcrb_cmd.cmd_type = CXL_RCRB_HDR;
 
 	return 0;
@@ -69,6 +79,9 @@ static int cxl_rcrb_header_info(struct major_cmd_ctrl *self, const char *argv)
 
 static int cxl_rcrb_dump(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_rcrb_cmd.cmd_type = CXL_RCRB_DUMP;
 
 	return 0;

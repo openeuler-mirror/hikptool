@@ -29,6 +29,8 @@ void hikp_roce_set_mdb_mode(uint8_t mode)
 
 static int hikp_roce_mdb_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -54,6 +56,9 @@ static int hikp_roce_mdb_target(struct major_cmd_ctrl *self, const char *argv)
 
 static int hikp_roce_mdb_clear_set(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_roce_mdb_param.flag |= ROCE_MDB_CMD_CLEAR;
 
 	return 0;
@@ -182,6 +187,9 @@ void hikp_roce_mdb_execute(struct major_cmd_ctrl *self)
 
 static int hikp_roce_mdb_ext_set(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_roce_mdb_param.flag |= ROCE_MDB_CMD_EXT;
 
 	return 0;

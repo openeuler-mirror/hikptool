@@ -31,6 +31,8 @@ static void hikp_serdes_dump_print(struct cmd_serdes_param *cmd);
 
 static int cmd_serdes_maininfo_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name,
 	       "-i <chipid> -s <start_lane_id> -n <lane_num> [-k]");
 	printf("\n         %s, e.g. hikptool serdes_info -i 0 -s m3d0 -n 4 -k\n",
@@ -119,6 +121,9 @@ static int cmd_serdes_lane_num(struct major_cmd_ctrl *self, const char *argv)
 
 static int cmd_serdes_key_info_pro(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_serdes_param.sub_cmd = 1;
 	return 0;
 }
@@ -379,6 +384,8 @@ static void cmd_serdes_maininfo_init(void)
 
 static int cmd_serdes_dump_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name,
 	       "-c <subcmd> -i <chipid> -s <start_lane_id>");
 	printf("\n         %s, e.g. hikptool serdes_dump -c cs -i 0 -s m0d0\n",

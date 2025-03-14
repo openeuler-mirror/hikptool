@@ -118,6 +118,8 @@ void hikp_nic_set_fd_idx(int feature_idx, int stage_no)
 
 static int hikp_nic_fd_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <device>");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");
@@ -640,6 +642,8 @@ static int hikp_nic_query_fd_rules(struct hikp_cmd_header *req_header, const str
 	uint32_t idx;
 	int ret = 0;
 
+	HIKP_SET_USED(len);
+
 	if (stage >= NIC_FD_STAGE_NUM) {
 		HIKP_ERROR_PRINT("The fd stage number(%d) is error!\n", stage + 1);
 		return -EIO;
@@ -700,6 +704,8 @@ static int hikp_nic_query_fd_counter(struct hikp_cmd_header *req_header, const s
 	uint16_t idx;
 	int ret = 0;
 
+	HIKP_SET_USED(len);
+
 	if (stage >= NIC_FD_STAGE_NUM) {
 		HIKP_ERROR_PRINT("The fd stage number(%d) is error!\n", stage + 1);
 		return -EIO;
@@ -757,7 +763,7 @@ static int hikp_nic_get_fd_hw_info(const struct bdf_t *bdf, struct nic_fd_hw_inf
 					 sizeof(*hw_info));
 }
 
-static int hikp_nic_fd_alloc_rules_buf(struct nic_fd_rules *rules, uint8_t stage_num,
+static int hikp_nic_fd_alloc_rules_buf(struct nic_fd_rules *rules,
 				       struct nic_fd_hw_info *hw_info, uint16_t stage_no)
 {
 	uint16_t max_key_bytes;
@@ -775,7 +781,7 @@ static int hikp_nic_fd_alloc_rules_buf(struct nic_fd_rules *rules, uint8_t stage
 	return 0;
 }
 
-static int hikp_nic_fd_alloc_counter_buf(struct nic_fd_counter *counter, uint8_t stage_num,
+static int hikp_nic_fd_alloc_counter_buf(struct nic_fd_counter *counter,
 					 struct nic_fd_hw_info *hw_info, uint16_t stage_no)
 {
 	counter[stage_no].entry =
@@ -789,8 +795,7 @@ static int hikp_nic_fd_alloc_counter_buf(struct nic_fd_counter *counter, uint8_t
 	return 0;
 }
 
-static union nic_fd_feature_info *hikp_nic_fd_data_alloc(const struct fd_feature_cmd *fd_cmd,
-							 const struct nic_fd_hw_info *hw_cfg)
+static union nic_fd_feature_info *hikp_nic_fd_data_alloc(const struct fd_feature_cmd *fd_cmd)
 {
 	uint16_t stage_no = g_fd_param.stage_no - 1;
 	union nic_fd_feature_info *fd_data;
@@ -803,11 +808,9 @@ static union nic_fd_feature_info *hikp_nic_fd_data_alloc(const struct fd_feature
 	}
 
 	if (strcmp(fd_cmd->feature_name, NIC_FD_RULES_NAME) == 0)
-		ret = hikp_nic_fd_alloc_rules_buf(fd_data->rules, NIC_FD_STAGE_NUM,
-						  &g_fd_hw_info, stage_no);
+		ret = hikp_nic_fd_alloc_rules_buf(fd_data->rules, &g_fd_hw_info, stage_no);
 	else if (strcmp(fd_cmd->feature_name, NIC_FD_COUNTER_NAME) == 0)
-		ret = hikp_nic_fd_alloc_counter_buf(fd_data->counter, NIC_FD_STAGE_NUM,
-						    &g_fd_hw_info, stage_no);
+		ret = hikp_nic_fd_alloc_counter_buf(fd_data->counter, &g_fd_hw_info, stage_no);
 	if (ret != 0)
 		goto out;
 
@@ -884,7 +887,7 @@ static int hikp_nic_fd_check_entry_index_valid(struct major_cmd_ctrl *self,
 		hw_entry_size = fd_cmd->sub_cmd_code == NIC_FD_RULES_INFO_DUMP ?
 				hw_info->alloc.stage_entry_num[stage_no] :
 				hw_info->alloc.stage_counter_num[stage_no];
-		if (fd_param->id >= hw_entry_size) {
+		if ((uint32_t)fd_param->id >= hw_entry_size) {
 			snprintf(self->err_str, sizeof(self->err_str),
 				 "entry id(%d) must be less than hardware specifications(%u).",
 				 fd_param->id, hw_entry_size);
@@ -963,7 +966,7 @@ void hikp_nic_fd_cmd_execute(struct major_cmd_ctrl *self)
 	if (ret != 0)
 		return;
 
-	fd_data = hikp_nic_fd_data_alloc(fd_cmd, &g_fd_hw_info);
+	fd_data = hikp_nic_fd_data_alloc(fd_cmd);
 	if (fd_data == NULL) {
 		HIKP_ERROR_PRINT("Fail to alloc fd data memory.\n");
 		self->err_no = -ENOMEM;

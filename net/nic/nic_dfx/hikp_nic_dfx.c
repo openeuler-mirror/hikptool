@@ -424,6 +424,8 @@ static void dfx_help_info(const struct major_cmd_ctrl *self)
 
 static int hikp_cmd_dfx_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	dfx_help_info(self);
 	return 0;
 }

@@ -29,6 +29,8 @@ void hikp_roce_set_gmv_index(uint32_t gmv_index)
 
 static int hikp_roce_gmv_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -102,6 +104,8 @@ void hikp_roce_gmv_execute(struct major_cmd_ctrl *self)
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	uint32_t reg_num;
 	int ret;
+
+	HIKP_SET_USED(self);
 
 	req_data.bdf = g_roce_gmv_param.target.bdf;
 	req_data.gmv_index = g_roce_gmv_param.gmv_index;

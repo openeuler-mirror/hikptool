@@ -36,6 +36,8 @@ void hikp_roce_set_scc_submodule(uint32_t module)
 
 static int hikp_roce_scc_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -82,6 +84,9 @@ static int hikp_roce_scc_module_select(struct major_cmd_ctrl *self, const char *
 
 static int hikp_roce_scc_clear_set(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_roce_scc_param_t.reset_flag = 1;
 
 	return 0;

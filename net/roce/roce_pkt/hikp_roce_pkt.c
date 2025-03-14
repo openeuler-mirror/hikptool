@@ -23,6 +23,8 @@ int hikp_roce_set_pkt_bdf(char *nic_name)
 
 static int hikp_roce_pkt_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -47,6 +49,9 @@ static int hikp_roce_pkt_target(struct major_cmd_ctrl *self, const char *argv)
 
 static int hikp_roce_pkt_clear_set(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_roce_pkt_param_t.reset_flag = 1;
 	return 0;
 }

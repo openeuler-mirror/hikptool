@@ -34,6 +34,8 @@ void hikp_roce_set_qmm_bankid(uint32_t bank_id)
 
 static int hikp_roce_qmm_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -208,7 +210,8 @@ static int hikp_roce_qmm_get_data(struct hikp_cmd_ret **cmd_ret,
 	struct roce_qmm_req_para_ext req_data_ext;
 	struct hikp_cmd_header req_header = { 0 };
 	uint32_t req_size;
-	int ret, i;
+	size_t i;
+	int ret;
 
 	if (reg_name) {
 		for (i = 0; i < HIKP_ARRAY_SIZE(g_qmm_reg_name_info_table); i++) {
@@ -277,7 +280,7 @@ void hikp_roce_qmm_execute(struct major_cmd_ctrl *self)
 		{QMM_SHOW_TOP, QMM_SHOW_TOP_EXT, "TOP"},
 	};
 
-	for (int i = 0; i < HIKP_ARRAY_SIZE(sub_cmd_info_table); i++) {
+	for (size_t i = 0; i < HIKP_ARRAY_SIZE(sub_cmd_info_table); i++) {
 		g_roce_qmm_param.sub_name = sub_cmd_info_table[i].sub_name;
 		if (g_roce_qmm_param.ext_flag) {
 			g_roce_qmm_param.sub_cmd = sub_cmd_info_table[i].sub_ext_cmd;
@@ -298,6 +301,9 @@ void hikp_roce_qmm_execute(struct major_cmd_ctrl *self)
 
 static int hikp_roce_qmm_ext_set(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_roce_qmm_param.ext_flag = true;
 
 	return 0;

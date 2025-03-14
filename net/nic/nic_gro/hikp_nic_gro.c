@@ -71,6 +71,8 @@ void hikp_nic_gro_cmd_execute(struct major_cmd_ctrl *self)
 
 static int hikp_nic_gro_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <device>");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");

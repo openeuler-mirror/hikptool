@@ -19,6 +19,8 @@
 
 static int sas_dev_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s\n", self->cmd_ptr->name);
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("    %s, %-25s %s\n", "-c", "--chipid", "please input chip id[x]  first\n");
@@ -33,6 +35,9 @@ static int sas_dev_help(struct major_cmd_ctrl *self, const char *argv)
 
 static int sas_dev_link(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	return sas_set_cmd_type(DEV_LINK);
 }
 

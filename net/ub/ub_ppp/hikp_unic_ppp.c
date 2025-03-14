@@ -39,6 +39,8 @@ static const struct unic_ppp_feature_cmd g_unic_ppp_feature_cmd[] = {
 
 static int hikp_unic_ppp_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");
@@ -209,8 +211,7 @@ static int hikp_unic_ppp_alloc_guid_tbl_entry(const struct hikp_unic_ppp_hw_reso
 }
 
 static union unic_ppp_feature_info*
-hikp_unic_ppp_data_alloc(const struct unic_ppp_feature_cmd *unic_ppp_cmd,
-			 const struct hikp_unic_ppp_hw_resources *hw_res)
+hikp_unic_ppp_data_alloc(const struct hikp_unic_ppp_hw_resources *hw_res)
 {
 	union unic_ppp_feature_info *unic_ppp_data;
 	int ret = -1;
@@ -461,7 +462,7 @@ static void hikp_unic_ppp_cmd_execute(struct major_cmd_ctrl *self)
 	}
 
 	unic_ppp_cmd = &g_unic_ppp_feature_cmd[g_unic_ppp_param.feature_idx];
-	unic_ppp_data = hikp_unic_ppp_data_alloc(unic_ppp_cmd, &g_unic_ppp_hw_res);
+	unic_ppp_data = hikp_unic_ppp_data_alloc(&g_unic_ppp_hw_res);
 	if (unic_ppp_data == NULL) {
 		snprintf(self->err_str, sizeof(self->err_str),
 			 "failed to allocate unic_ppp_data memory!");

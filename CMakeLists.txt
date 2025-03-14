@@ -11,7 +11,15 @@
 
 project(hikptool C)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -fPIC -fPIE -Wall -Werror -fno-common -std=gnu11")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
+ -O2 -fPIC -fPIE -Wall -Werror -Wextra -Wuninitialized -Wundef -Wunused -Wdate-time \
+ -Wshadow -Wvla -Wdisabled-optimization -Wempty-body -Wignored-qualifiers \
+ -Wimplicit-fallthrough=3 -Wtype-limits -Wshift-negative-value -Wswitch-default \
+ -Wframe-larger-than=8192 -Wshift-overflow=2 -Wwrite-strings -Wmissing-format-attribute \
+ -Wformat-nonliteral -Wduplicated-cond -Wtrampolines -Wlogical-op -Wsuggest-attribute=format \
+ -Wduplicated-branches -Wmissing-include-dirs -Wmissing-declarations \
+ -Wreturn-local-addr -Wredundant-decls -Wfloat-conversion -Wmissing-prototypes \
+ -Wno-discarded-qualifiers -Wstrict-prototypes -fno-common -std=gnu11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wfloat-equal -fstack-protector-strong -D_FORTIFY_SOURCE=2")
 set(CMAKE_SKIP_RPATH TRUE)
 

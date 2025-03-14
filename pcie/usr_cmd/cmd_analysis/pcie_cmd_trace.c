@@ -27,6 +27,8 @@ struct tool_pcie_cmd g_trace_cmd = {
 
 static int pcie_trace_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s\n", self->cmd_ptr->name);
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("    %s, %-25s %s\n", "-i", "--interface", "please input port[x]  first\n");
@@ -45,6 +47,9 @@ static int pcie_trace_help(struct major_cmd_ctrl *self, const char *argv)
 
 static int pcie_trace_clear(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_trace_cmd.cmd_type = TRACE_CLEAR;
 
 	return 0;
@@ -53,6 +58,9 @@ static int pcie_trace_clear(struct major_cmd_ctrl *self, const char *argv)
 
 static int pcie_trace_show(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_trace_cmd.cmd_type = TRACE_SHOW;
 
 	return 0;
@@ -60,6 +68,9 @@ static int pcie_trace_show(struct major_cmd_ctrl *self, const char *argv)
 
 static int pcie_pm_show(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_trace_cmd.cmd_type = TRACE_PM;
 
 	return 0;
@@ -69,6 +80,8 @@ static int pcie_trace_mode_set(struct major_cmd_ctrl *self, const char *argv)
 {
 	int ret;
 	uint32_t val = 0;
+
+	HIKP_SET_USED(self);
 
 	g_trace_cmd.cmd_type = TRACE_MODE;
 	ret = string_toui(argv, &val);
@@ -83,6 +96,9 @@ static int pcie_trace_mode_set(struct major_cmd_ctrl *self, const char *argv)
 
 static int pcie_link_information_get(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_trace_cmd.cmd_type = TRACE_INFO;
 	return 0;
 }
@@ -91,6 +107,8 @@ static int pcie_port_id_set(struct major_cmd_ctrl *self, const char *argv)
 {
 	uint32_t val;
 	int ret;
+
+	HIKP_SET_USED(self);
 
 	ret = string_toui(argv, &val);
 	if (ret) {

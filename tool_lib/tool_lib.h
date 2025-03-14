@@ -90,6 +90,10 @@ struct type_trans {
 #define HIKP_WARN_PRINT(x, args...) HIKP_LOG_PRINT("[ WARN ] " x, ##args)
 #define HIKP_INFO_PRINT(x, args...) HIKP_LOG_PRINT("[ INFO ] " x, ##args)
 #define HIKP_DBG_PRINT(x, args...) HIKP_LOG_PRINT("[ DBG ] " x, ##args)
+
+/* definition to mark a variable or function parameter as used so
+ * as to avoid a compiler warning
+ */
 #define HIKP_SET_USED(x) (void)(x)
 
 #define MIDR_EL1_PATH "/sys/devices/system/cpu/cpu0/regs/identification/midr_el1"

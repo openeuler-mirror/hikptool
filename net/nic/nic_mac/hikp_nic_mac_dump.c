@@ -217,6 +217,8 @@ int mac_cmd_dump_reg_target(struct major_cmd_ctrl *self, const char *argv)
 
 static int mac_cmd_dump_reg_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface> -m <module>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -235,6 +237,8 @@ static int mac_cmd_dump_reg_help(struct major_cmd_ctrl *self, const char *argv)
 
 int mac_cmd_dump_module_cfg(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+
 	g_dump_reg_info.module_name = argv;
 
 	return 0;

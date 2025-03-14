@@ -28,6 +28,8 @@ void hikp_roce_set_caep_mode(uint32_t mode)
 
 static int hikp_roce_caep_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -58,6 +60,8 @@ static int hikp_roce_caep_get_data(struct hikp_cmd_ret **cmd_ret,
 	struct hikp_cmd_header req_header = { 0 };
 	uint32_t req_size;
 	int ret;
+
+	HIKP_SET_USED(reg_name);
 
 	req_data_ext.origin_param.bdf = g_roce_caep_param_t.target.bdf;
 	req_data_ext.block_id = block_id;
@@ -124,6 +128,9 @@ void hikp_roce_caep_execute(struct major_cmd_ctrl *self)
 
 static int hikp_roce_caep_ext_set(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_roce_caep_param_t.sub_cmd = CAEP_EXT;
 
 	return 0;

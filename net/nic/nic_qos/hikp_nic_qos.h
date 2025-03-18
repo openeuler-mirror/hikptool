@@ -118,9 +118,9 @@ struct nic_qos_req_para {
 };
 
 enum nic_pfc_dir {
-	NIC_RX_QUEUE = 0,
-	NIC_TX_QUEUE,
-	NIC_QUEUE_DIR_NONE,
+	NIC_RX_QOS = 0,
+	NIC_TX_QOS,
+	NIC_QOS_DIR_NONE,
 };
 
 struct nic_qos_param {
@@ -137,4 +137,8 @@ struct qos_feature_cmd {
 	void (*show)(const void *data);
 };
 
+int hikp_nic_cmd_get_qos_target(struct major_cmd_ctrl *self, const char *argv);
+void hikp_nic_qos_cmd_execute(struct major_cmd_ctrl *self);
+void hikp_nic_qos_set_cmd_feature_idx(int feature_idx);
+void hikp_nic_qos_set_cmd_direction(enum nic_pfc_dir dir);
 #endif /* HIKP_NIC_QOS_H */

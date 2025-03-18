@@ -59,5 +59,6 @@ int pcie_ltssm_trace_clear(uint32_t port_id);
 int pcie_ltssm_trace_mode_set(uint32_t port_id, uint32_t mode);
 int pcie_ltssm_link_status_get(uint32_t port_id);
 int pcie_pm_trace(uint32_t port_id);
+int pcie_get_ltssm_trace(uint32_t port_id, uint64_t *ltssm_status, uint32_t *ltssm_num);
 
 #endif /* PCIE_LINK_LTSSM_H */

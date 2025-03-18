@@ -48,4 +48,8 @@ enum roce_caep_cmd_type {
 	CAEP_EXT,
 };
 
+int hikp_roce_set_caep_bdf(char *nic_name);
+void hikp_roce_set_caep_mode(uint32_t mode);
+void hikp_roce_caep_execute(struct major_cmd_ctrl *self);
+
 #endif /* HIKP_ROCE_CAEP_H */

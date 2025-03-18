@@ -17,6 +17,8 @@ static struct ub_crd_param g_ub_crd_param = { 0 };
 
 static int hikp_ub_crd_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");

@@ -549,4 +549,10 @@ struct hikp_xsfp_ctrl {
 	uint32_t dump_param;
 };
 
+struct nic_xsfp_collect_param {
+	const char *net_dev_name;
+};
+
+int hikp_info_collect_nic_xsfp(void *data);
+
 #endif /* HIKP_NIC_XSFP_H */

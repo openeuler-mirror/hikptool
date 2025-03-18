@@ -51,4 +51,9 @@ enum roce_qmm_cmd_type {
 	QMM_SHOW_TOP_EXT,
 };
 
+int hikp_roce_set_qmm_bdf(char *nic_name);
+void hikp_roce_set_qmm_ext_flag(bool ext_flag);
+void hikp_roce_set_qmm_bankid(uint32_t bank_id);
+void hikp_roce_qmm_execute(struct major_cmd_ctrl *self);
+
 #endif /* HIKP_ROCE_QMM_H */

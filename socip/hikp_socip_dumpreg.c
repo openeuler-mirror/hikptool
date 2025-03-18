@@ -39,6 +39,8 @@ static struct dump_reg_param_t g_dump_reg_param[SOCIP_DUMP_REG_PARAM_NUM] = {0};
 
 static int cmd_socip_dump_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name,
 	       "-c <chipid> -d <dieid> -m <module_id> -i <controller_id>");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
@@ -105,7 +107,7 @@ static bool check_socip_dumpreg_param(void)
 	return ret;
 }
 
-static void dump_reg_info(const uint32_t *reg_data, uint32_t data_num)
+void dump_reg_info(const uint32_t *reg_data, uint32_t data_num)
 {
 #define ONE_LINE_PRINT_DATA_NUM 4
 	uint32_t i;

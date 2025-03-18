@@ -309,7 +309,7 @@ int get_vf_dev_info_by_pf_dev_name(const char *pf_dev_name,
 
 	ret = snprintf(dev_name_dir, sizeof(dev_name_dir), "%s%s%s%u%s", HIKP_NET_DEV_PATH,
 		       pf_dev_name, HIKP_VIRTFN_PATH, vf_id, HIKP_NET_PATH);
-	if (ret < 0 || ret >= sizeof(dev_name_dir)) {
+	if (ret < 0 || ret >= MAX_BUS_PCI_DIR_LEN) {
 		HIKP_ERROR_PRINT("get vf dev_name dir fail.\n");
 		return -EIO;
 	}
@@ -333,7 +333,7 @@ int get_pf_dev_info_by_vf_dev_name(const char *vf_dev_name, struct tool_target *
 
 	ret = snprintf(dev_name_dir, sizeof(dev_name_dir), "%s%s%s", HIKP_NET_DEV_PATH,
 		       vf_dev_name, HIKP_PHYSFN_PATH);
-	if (ret < 0 || ret >= sizeof(dev_name_dir)) {
+	if (ret < 0 || ret >= MAX_BUS_PCI_DIR_LEN) {
 		HIKP_ERROR_PRINT("get vf dev_name dir fail.\n");
 		return -EIO;
 	}

@@ -526,27 +526,35 @@ static void hikp_munmap(void)
 	g_hikp_rsp = NULL;
 }
 
+static int hikp_dev_set_iep_fd(char *iep)
+{
+	char path[PATH_MAX + 1] = { 0 };
+
+	if (strlen(iep) > PATH_MAX || realpath(iep, path) == NULL)
+		return -ENOENT;
+
+	g_iep_fd = open(path, O_RDWR | O_SYNC);
+	if (g_iep_fd < 0) {
+		printf("failed to open %s.\n", iep);
+		return -errno;
+	}
+
+	return 0;
+}
+
 int hikp_dev_init(void)
 {
 	size_t i, len;
 	int ret = 0;
 	char *iep;
-	char path[PATH_MAX + 1] = { 0 };
 
 	iep = hikp_get_iep_dir(HIKP_RESOURCE_DIR);
 	if (iep == NULL)
 		return -ENOENT;
 
-	if (strlen(iep) > PATH_MAX || realpath(iep, path) == NULL) {
-		ret = -ENOENT;
+	ret = hikp_dev_set_iep_fd(iep);
+	if (ret)
 		goto out_free_iep;
-	}
-	g_iep_fd = open(path, O_RDWR | O_SYNC);
-	if (g_iep_fd < 0) {
-		printf("failed to open %s.\n", iep);
-		ret = -errno;
-		goto out_free_iep;
-	}
 
 	g_hikp_req = (union hikp_space_req *)mmap(0, sizeof(union hikp_space_req),
 		     PROT_READ | PROT_WRITE, MAP_SHARED, g_iep_fd, 0);

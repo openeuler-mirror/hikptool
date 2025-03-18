@@ -51,4 +51,6 @@ struct nic_port_fault_status {
 	uint8_t hilink_ref_status;
 };
 
+int hikp_nic_port_fault_get_target(struct major_cmd_ctrl *self, const char *argv);
+void hikp_nic_port_fault_cmd_execute(struct major_cmd_ctrl *self);
 #endif /* HIKP_NIC_PORT_FAULT_H */

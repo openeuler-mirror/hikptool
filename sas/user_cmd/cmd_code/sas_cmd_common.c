@@ -23,7 +23,7 @@ static struct tool_sas_cmd g_sas_cmd = {
 	.dqe_id = (uint32_t)(-1),
 };
 
-int sas_set_id(struct major_cmd_ctrl *self, const char *argv, uint32_t *id)
+static int sas_set_id(struct major_cmd_ctrl *self, const char *argv, uint32_t *id)
 {
 	int ret;
 	uint32_t val = 0;

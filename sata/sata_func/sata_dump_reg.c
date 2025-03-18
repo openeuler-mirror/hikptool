@@ -46,7 +46,7 @@ static int sata_get_reg(const struct tool_sata_cmd *cmd, uint32_t *reg_save, uin
 	return 0;
 }
 
-static void sata_print_reg(uint32_t cmd_type, const uint32_t *reg_save, uint32_t reg_num)
+static void sata_print_reg(const uint32_t *reg_save, uint32_t reg_num)
 {
 	uint32_t i;
 
@@ -72,7 +72,7 @@ int sata_reg_dump(struct tool_sata_cmd *cmd)
 	if (ret)
 		return ret;
 
-	sata_print_reg(cmd->sata_cmd_type, sata_reg_save, sata_reg_num);
+	sata_print_reg(sata_reg_save, sata_reg_num);
 
 	return 0;
 }

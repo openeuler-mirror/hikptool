@@ -60,4 +60,15 @@ struct cmd_mac_dump {
 	uint32_t blk_num[MOD_ID_MAX];
 	const char *module_name;
 };
+
+struct nic_mac_collect_param {
+	const char *net_dev_name;
+	const char *module_name;
+};
+
+int hikp_info_collect_nic_mac(void *data);
+
+int mac_cmd_dump_module_cfg(struct major_cmd_ctrl *self, const char *argv);
+int mac_cmd_dump_reg_target(struct major_cmd_ctrl *self, const char *argv);
+void mac_cmd_dump_execute(struct major_cmd_ctrl *self);
 #endif /* HIKP_NIC_MAC_DUMP_H */

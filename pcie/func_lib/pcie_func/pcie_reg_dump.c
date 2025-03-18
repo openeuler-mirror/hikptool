@@ -17,13 +17,13 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include "tool_lib.h"
 #include "hikptdev_plug.h"
 #include "os_common.h"
 #include "pcie_common.h"
 #include "pcie_reg_dump.h"
 
-int g_pcie_dumpreg_fd;
+FILE *g_pcie_dumpreg_fd = NULL;
+char dumpreg_log_file[MAX_LOG_NAME_LEN + 1] = {0};
 
 struct pcie_dumpreg_info g_reg_table_tl[] = {
 	{0, "TL_ASPM_IDLE_CNT"},
@@ -64,10 +64,8 @@ struct pcie_dumpreg_info g_reg_table_tl[] = {
 	{0, "TL_RX_NONPOST_CNT"},
 	{0, "TL_RX_CPL_CNT"},
 	{0, "TL_RX_LOC_TLP_CNT"},
-	{0, "TL_RX_ERR_STATUS"},
 	{0, "TL_CFGSPACE_BDF"},
 	{0, "TL_TX_UR_CNT"},
-	{0, "TL_RX_ERR_STATUS"},
 };
 
 struct pcie_dumpreg_info g_reg_table_dl[] = {
@@ -126,26 +124,11 @@ struct pcie_dumpreg_info g_reg_table_mac[] = {
 	{0, "MAC_REG_DEBUG_PIPE9"},
 	{0, "MAC_REG_DEBUG_PIPE10"},
 	{0, "MAC_REG_DEBUG_PIPE11"},
-	{0, "MAC_LEAVE_L0_INFO"},
 	{0, "DFX_APB_LANE_ERROR_STATUS_0"},
 	{0, "DFX_APB_LANE_ERROR_STATUS_1"},
 	{0, "MAC_REG_PHY_RXDATA_TS_REG"},
 	{0, "MAC_LTSSM_TRACER_CFG0_REG"},
 	{0, "MAC_POWERDOWN_VALUE_REG"},
-};
-
-struct pcie_dumpreg_info g_reg_table_pcs[] = {
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(SERDES_STATUS_RPT),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(EBUF_STATUS),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(GEN3_DEC_ENC_STATUS),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(WAKE_STATUS),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(RECV_DET_OR_PWR_CHAGE),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(EQEVAL_STATUS),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(LANE_INTR_STATUS),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(M_PCS_RPT_REG),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(MSG_BUS_DFX),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(DETECT_CLK_FLG_REG),
-	HIKP_PCIE_PCS_LANE_TBL_ENTRY(SDS_CFG_REG_REG),
 };
 
 struct pcie_dumpreg_info g_reg_table_iob_tx[] = {
@@ -255,7 +238,6 @@ struct pcie_dumpreg_info g_reg_table_iob_rx[] = {
 	{0, "DFX_IOB_RX_CNT_RESP_RX"},
 	{0, "DFX_IOB_RX_CNT_RESP_LOC"},
 	{0, "DFX_IOB_RX_CNT_RESP_RECV"},
-	{0, "IOB_RX_INT_STATUS"},
 	{0, "DFX_IOB_RX_AMB_WR_CNT_0"},
 	{0, "DFX_IOB_RX_AMB_WR_CNT_1"},
 	{0, "DFX_IOB_RX_AMB_RD_CNT_0"},
@@ -369,8 +351,8 @@ struct pcie_dumpreg_info g_reg_table_core_glb[] = {
 	{0, "CORE_INT_FE_RO_2"},
 	{0, "PORT07_LINK_MODE"},
 	{0, "PORT815_LINK_MODE"},
-	{0, "PCIE_LINK_DOWN_CLR_PORT_EN_REG"},
-	{0, "CORE_CLK_FLG_REG"},
+	{0, "PCIE_LINK_DOWN_CLR_PORT_EN"},
+	{0, "CORE_CLK_FLG"},
 };
 
 struct pcie_dumpreg_info g_reg_table_core_tl[] = {
@@ -399,7 +381,7 @@ static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
 {
 	char file_name[MAX_LOG_NAME_LEN + 1] = { 0 };
 	char info_str[MAX_LOG_NAME_LEN + 1] = { 0 };
-	int fd_file;
+	FILE *fd_file = NULL;
 	int ret;
 
 	ret = snprintf(info_str, sizeof(info_str), "%s_port%u_level%u",
@@ -412,10 +394,13 @@ static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
 	if (ret)
 		return -EINVAL;
 
+	memset(dumpreg_log_file, 0, sizeof(dumpreg_log_file));
+	(void)strncpy((char *)dumpreg_log_file, file_name, MAX_LOG_NAME_LEN + 1);
+
 	(void)remove((const char *)file_name);
 	/* Add write permission to the file */
-	fd_file = open(file_name, O_RDWR | O_SYNC | O_CREAT, 0600);
-	if (fd_file < 0) {
+	fd_file = fopen(file_name, "w+");
+	if (fd_file == NULL) {
 		Err("open %s failed.\n", file_name);
 		return -EPERM;
 	}
@@ -424,30 +409,26 @@ static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
 	return 0;
 }
 
-static int pcie_close_dumpreg_log_file(void)
+static void pcie_close_dumpreg_log_file(void)
 {
-	int ret;
-
-	ret = fchmod(g_pcie_dumpreg_fd, 0400);
-	close(g_pcie_dumpreg_fd);
+	fclose(g_pcie_dumpreg_fd);
 	/* Revoke write permission of file  */
-	g_pcie_dumpreg_fd = -1;
-
-	return ret;
+	chmod(dumpreg_log_file, 0400);
+	g_pcie_dumpreg_fd = NULL;
 }
 
 static void pcie_dumpreg_write_value_to_file(const char *reg_name, uint32_t val)
 {
 	char str[MAX_STR_LEN] = { 0 };
-	ssize_t wr_ret;
+	size_t wr_ret;
 	int ret;
 
 	ret = snprintf(str, sizeof(str), "    %-40s : 0x%x\n", reg_name, val);
-	if (ret < 0 || ret >= sizeof(str)) {
+	if (ret < 0 || ret >= MAX_STR_LEN) {
 		Err("pcie dumpreg write info to logfile failed.\n");
 	} else {
-		wr_ret = write(g_pcie_dumpreg_fd, str, strlen(str));
-		if (wr_ret == -1)
+		wr_ret = fwrite(str, 1, strlen(str), g_pcie_dumpreg_fd);
+		if (wr_ret != strlen(str))
 			Err("write info to logfile failed.\n");
 	}
 }
@@ -457,7 +438,6 @@ struct pcie_dumpreg_table g_dump_info_glb[] = {
 	{HIKP_ARRAY_SIZE(g_reg_table_iob_rx), g_reg_table_iob_rx},
 	{HIKP_ARRAY_SIZE(g_reg_table_ap_glb), g_reg_table_ap_glb},
 	{HIKP_ARRAY_SIZE(g_reg_table_core_glb), g_reg_table_core_glb},
-	{HIKP_ARRAY_SIZE(g_reg_table_pcs), g_reg_table_pcs},
 	{HIKP_ARRAY_SIZE(g_reg_table_core_tl), g_reg_table_core_tl},
 	{HIKP_ARRAY_SIZE(g_reg_table_dfx_core_tl), g_reg_table_dfx_core_tl},
 };
@@ -486,7 +466,7 @@ static int pcie_dumpreg_write_header_to_file(uint32_t version,
 					     const struct pcie_dump_req_para *req_data)
 {
 	char str[MAX_STR_LEN] = {0};
-	ssize_t wr_ret;
+	size_t wr_ret;
 	int ret;
 
 	ret = snprintf(str, sizeof(str), "Command Version[%u], dump_level[%u], port_id[%u]\n\n",
@@ -496,8 +476,8 @@ static int pcie_dumpreg_write_header_to_file(uint32_t version,
 		return -EIO;
 	}
 
-	wr_ret = write(g_pcie_dumpreg_fd, str, strlen(str));
-	if (wr_ret == -1) {
+	wr_ret = fwrite(str, 1, strlen(str), g_pcie_dumpreg_fd);
+	if (wr_ret != strlen(str)) {
 		Err("write header to logfile failed.\n");
 		return -EIO;
 	}
@@ -558,7 +538,7 @@ int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level)
 	struct pcie_dump_req_para req_data = { 0 };
 	int ret = 0;
 
-	Info("pcie reg dump start.\n");
+	Info("hikptool pcie_dumpreg -i %u -l %u -d\n", port_id, dump_level);
 
 	req_data.port_id = port_id;
 	req_data.level = dump_level;
@@ -582,7 +562,7 @@ int pcie_dumpreg_do_dump(uint32_t port_id, uint32_t dump_level)
 
 	Info("pcie reg dump finish.\n");
 close_file_ret:
-	(void)pcie_close_dumpreg_log_file();
+	pcie_close_dumpreg_log_file();
 free_cmd_ret:
 	hikp_cmd_free(&cmd_ret);
 

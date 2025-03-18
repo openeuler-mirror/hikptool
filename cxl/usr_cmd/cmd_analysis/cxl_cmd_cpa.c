@@ -25,6 +25,8 @@ struct tool_cxl_cmd g_cxl_cpa_cmd = {
 
 static int cxl_cpa_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("  Usage: %s\n", self->cmd_ptr->name);
 	printf("         %s\n", self->cmd_ptr->help_info);
 	printf("    %s, %-25s %s\n", "-i", "--interface", "please input port[x]  first");
@@ -44,6 +46,8 @@ static int cxl_port_id_set(struct major_cmd_ctrl *self, const char *argv)
 	uint32_t val;
 	int ret;
 
+	HIKP_SET_USED(self);
+
 	ret = string_toui(argv, &val);
 	if (ret) {
 		printf("cxl cpa set port id err %d\n", ret);
@@ -56,6 +60,9 @@ static int cxl_port_id_set(struct major_cmd_ctrl *self, const char *argv)
 
 static int cxl_cpa_err_status_show(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_cpa_cmd.cmd_type = CPA_ERR;
 
 	return 0;
@@ -63,6 +70,9 @@ static int cxl_cpa_err_status_show(struct major_cmd_ctrl *self, const char *argv
 
 static int cxl_cpa_mmrg_show(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_cpa_cmd.cmd_type = CPA_MMRG;
 
 	return 0;
@@ -70,6 +80,9 @@ static int cxl_cpa_mmrg_show(struct major_cmd_ctrl *self, const char *argv)
 
 static int cxl_cpa_dump(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_cpa_cmd.cmd_type = CPA_DUMP;
 
 	return 0;
@@ -77,6 +90,9 @@ static int cxl_cpa_dump(struct major_cmd_ctrl *self, const char *argv)
 
 static int cxl_cpa_config(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_cpa_cmd.cmd_type = CPA_CONFIG;
 
 	return 0;

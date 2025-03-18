@@ -16,8 +16,21 @@
 
 static struct cmd_roce_mdb_param g_roce_mdb_param = { 0 };
 
+int hikp_roce_set_mdb_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_mdb_param.target);
+}
+
+void hikp_roce_set_mdb_mode(uint8_t mode)
+{
+	g_roce_mdb_param.flag = mode;
+}
+
 static int hikp_roce_mdb_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -43,6 +56,9 @@ static int hikp_roce_mdb_target(struct major_cmd_ctrl *self, const char *argv)
 
 static int hikp_roce_mdb_clear_set(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_roce_mdb_param.flag |= ROCE_MDB_CMD_CLEAR;
 
 	return 0;
@@ -155,7 +171,7 @@ exec_error:
 	hikp_cmd_free(&cmd_ret);
 }
 
-static void hikp_roce_mdb_execute(struct major_cmd_ctrl *self)
+void hikp_roce_mdb_execute(struct major_cmd_ctrl *self)
 {
 	if (g_roce_mdb_param.flag & ROCE_MDB_CMD_EXT) {
 		g_roce_mdb_param.sub_cmd = (g_roce_mdb_param.flag & ROCE_MDB_CMD_CLEAR) ?
@@ -171,6 +187,9 @@ static void hikp_roce_mdb_execute(struct major_cmd_ctrl *self)
 
 static int hikp_roce_mdb_ext_set(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_roce_mdb_param.flag |= ROCE_MDB_CMD_EXT;
 
 	return 0;

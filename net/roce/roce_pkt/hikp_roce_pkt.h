@@ -39,4 +39,7 @@ struct roce_pkt_res_param {
 	struct roce_pkt_res reg_data;
 };
 
+int hikp_roce_set_pkt_bdf(char *nic_name);
+void hikp_roce_pkt_execute(struct major_cmd_ctrl *self);
+
 #endif /* HIKP_ROCE_PKT_H */

@@ -24,9 +24,15 @@ static struct cmd_serdes_param g_serdes_param = {0xff, 0xff, 0xff, 0xff, 0xff, 0
 
 #define SERDES_OUTPUT_MAX_SIZE 2560
 static char g_serdes_data_out_buf[SERDES_OUTPUT_MAX_SIZE] = {0};
+static struct hilink_cmd_out g_out_put = {0};
+
+static void hikp_serdes_info_print(struct cmd_serdes_param *cmd);
+static void hikp_serdes_dump_print(struct cmd_serdes_param *cmd);
 
 static int cmd_serdes_maininfo_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name,
 	       "-i <chipid> -s <start_lane_id> -n <lane_num> [-k]");
 	printf("\n         %s, e.g. hikptool serdes_info -i 0 -s m3d0 -n 4 -k\n",
@@ -115,17 +121,20 @@ static int cmd_serdes_lane_num(struct major_cmd_ctrl *self, const char *argv)
 
 static int cmd_serdes_key_info_pro(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_serdes_param.sub_cmd = 1;
 	return 0;
 }
 
 #define USEMODE_SSC_STR_MAXLEN 20
-static void hikp_serdes_brief_info_print(struct major_cmd_ctrl *self,
-					 const struct hilink_brief_info *data, uint32_t data_size)
+static void hikp_serdes_brief_info_print(struct cmd_serdes_param *cmd,
+	const struct hilink_brief_info *data, uint32_t data_size)
 {
 	uint8_t ds_id;
-	uint8_t start_sds_id = g_serdes_param.start_sds_id;
-	uint8_t sds_num = g_serdes_param.sds_num;
+	uint8_t start_sds_id = cmd->start_sds_id;
+	uint8_t sds_num = cmd->sds_num;
 	char usemode_ssc_str[USEMODE_SSC_STR_MAXLEN] = {0};
 	const char *usemode_array[HILINK_USE_MODE_END] = {
 		"default", "pcie", "sata", "sas", "hccs",
@@ -136,26 +145,20 @@ static void hikp_serdes_brief_info_print(struct major_cmd_ctrl *self,
 	};
 
 	if (data_size != sds_num) {
-		self->err_no = -EINVAL;
-		snprintf(self->err_str, sizeof(self->err_str),
-			 "serdes brief info data size is wrong.");
+		printf("serdes brief info data size is wrong.\n");
 		return;
 	}
 
 	for (ds_id = 0; ds_id < sds_num; ds_id++) {
 		if (data[ds_id].usemode >= HILINK_USE_MODE_END) {
-			self->err_no = -EINVAL;
-			snprintf(self->err_str, sizeof(self->err_str),
-				 "usemode[%u] is out of range.", data[ds_id].usemode);
+			printf("usemode[%u] is out of range.\n", data[ds_id].usemode);
 			return;
 		}
 		strncpy(usemode_ssc_str, usemode_array[data[ds_id].usemode],
 			sizeof(usemode_ssc_str) - 1);
 
 		if (data[ds_id].ssc_type >= HILINK_SSC_TYPE_END) {
-			self->err_no = -EINVAL;
-			snprintf(self->err_str, sizeof(self->err_str),
-				 "ssc_type[%u] is out of range.", data[ds_id].ssc_type);
+			printf("ssc_type[%u] is out of range.\n", data[ds_id].ssc_type);
 			return;
 		}
 		if (data[ds_id].usemode < HILINK_USE_MODE_HCCS) {
@@ -165,7 +168,7 @@ static void hikp_serdes_brief_info_print(struct major_cmd_ctrl *self,
 		}
 		printf("chip%u (M%u,ds%d) pll(%u, %u) pn(%u, %u) power(%u, %u)"
 		       "(refclk_sel:%u) rate(%u, %u Mhz) usemode(%s)\n",
-		       g_serdes_param.chip_id, g_serdes_param.macro_id,
+		       cmd->chip_id, cmd->macro_id,
 		       ds_id + start_sds_id, data[ds_id].tx_cs_sel, data[ds_id].rx_cs_sel,
 		       data[ds_id].tx_pn, data[ds_id].rx_pn,
 		       data[ds_id].tx_power, data[ds_id].rx_power,
@@ -200,25 +203,22 @@ static void hikp_serdes_brief_info_print(struct major_cmd_ctrl *self,
 	 "-------------------------------------------------"			\
 	 "--------------------------------\n")
 
-static void hikp_serdes_detail_info_print(struct major_cmd_ctrl *self,
-					  const struct hilink_detail_info *data,
-					  uint32_t data_size)
+static void hikp_serdes_detail_info_print(struct cmd_serdes_param *cmd,
+	const struct hilink_detail_info *data, uint32_t data_size)
 {
 	uint32_t i;
 	uint8_t ds_id;
-	uint8_t start_sds_id = g_serdes_param.start_sds_id;
-	uint8_t sds_num = g_serdes_param.sds_num;
+	uint8_t start_sds_id = cmd->start_sds_id;
+	uint8_t sds_num = cmd->sds_num;
 
 	if (data_size != sds_num) {
-		self->err_no = -EINVAL;
-		snprintf(self->err_str, sizeof(self->err_str),
-			 "serdes detail info data size is wrong.");
+		printf("serdes detail info data size is wrong.\n");
 		return;
 	}
 	printf(KEY_INFO_TITLE);
 	for (ds_id = 0; ds_id < sds_num; ds_id++) {
 		printf("chip%u (M%u,ds%d) [%3d,%3d,%3u,%3d,%3d]",
-		       g_serdes_param.chip_id, g_serdes_param.macro_id, ds_id + start_sds_id,
+		       cmd->chip_id, cmd->macro_id, ds_id + start_sds_id,
 		       data[ds_id].tx_cfg.fir_pre2, data[ds_id].tx_cfg.fir_pre1,
 		       data[ds_id].tx_cfg.fir_main, data[ds_id].tx_cfg.fir_post1,
 		       data[ds_id].tx_cfg.fir_post2);
@@ -243,6 +243,8 @@ static void hikp_serdes_detail_info_print(struct major_cmd_ctrl *self,
 static void hikp_serdes_logout_init(struct hilink_cmd_out *logout, char *buffer,
 				    uint32_t size, uint32_t type)
 {
+	memset(buffer, 0, size);
+
 	logout->str_len = size;
 	logout->result_offset = 0;
 	logout->out_str = buffer;
@@ -282,67 +284,88 @@ static int hikp_serdes_info_para_check(struct major_cmd_ctrl *self)
 	return 0;
 }
 
-static void hikp_serdes_info_cmd_execute(struct major_cmd_ctrl *self)
+static void hikp_serdes_print(struct cmd_serdes_param *cmd)
+{
+	if (cmd->cmd_type == SERDES_KEY_INFO)
+		hikp_serdes_info_print(cmd);
+	else if (cmd->cmd_type == SERDES_DUMP_REG)
+		hikp_serdes_dump_print(cmd);
+}
+
+int hikp_serdes_get_reponse(struct cmd_serdes_param *cmd)
 {
 	struct hikp_cmd_header req_header = {0};
 	struct hikp_cmd_ret *cmd_ret;
 	struct hilink_cmd_in hilink_cmd = {0};
+	size_t out_out_header_size;
+
+	hilink_cmd.cmd_type              = cmd->cmd_type;
+	hilink_cmd.sub_cmd               = cmd->sub_cmd;
+	hilink_cmd.cmd_para.chip_id      = cmd->chip_id;
+	hilink_cmd.cmd_para.macro_id     = cmd->macro_id;
+	hilink_cmd.cmd_para.start_sds_id = cmd->start_sds_id;
+	hilink_cmd.cmd_para.sds_num      = cmd->sds_num;
+
+	hikp_serdes_logout_init(&g_out_put, g_serdes_data_out_buf, SERDES_OUTPUT_MAX_SIZE, 0);
+
+	hikp_cmd_init(&req_header, SERDES_MOD, cmd->cmd_type, cmd->sub_cmd);
+	cmd_ret = hikp_cmd_alloc(&req_header, &hilink_cmd, sizeof(hilink_cmd));
+	if (cmd_ret == NULL || cmd_ret->status != 0) {
+		printf("hikp_cmd_alloc err.\n");
+		hikp_cmd_free(&cmd_ret);
+		return -EINVAL;
+	}
+	out_out_header_size = sizeof(g_out_put.str_len) + sizeof(g_out_put.result_offset) +
+			      sizeof(g_out_put.type) + sizeof(g_out_put.ret_val);
+	memcpy(&g_out_put, cmd_ret->rsp_data, out_out_header_size);
+
+	if ((cmd_ret->rsp_data_num * sizeof(uint32_t) - out_out_header_size) > SERDES_OUTPUT_MAX_SIZE) {
+		printf("serdes_info rsp_data data copy size error, data size:0x%zx max size:0x%x.",
+			(cmd_ret->rsp_data_num * sizeof(uint32_t) - out_out_header_size),
+			SERDES_OUTPUT_MAX_SIZE);
+		hikp_cmd_free(&cmd_ret);
+		return -EINVAL;
+	}
+	memcpy(g_out_put.out_str, cmd_ret->rsp_data + out_out_header_size / sizeof(uint32_t),
+		cmd_ret->rsp_data_num * sizeof(uint32_t) - out_out_header_size);
+	hikp_cmd_free(&cmd_ret);
+
+	hikp_serdes_print(cmd);
+
+	return 0;
+}
+
+static void hikp_serdes_info_print(struct cmd_serdes_param *cmd)
+{
 	struct hilink_brief_info *brief_info_data = NULL;
 	struct hilink_detail_info *detail_info_data = NULL;
-	struct hilink_cmd_out out_put;
-	size_t out_out_header_size;
+
+	if (cmd->sub_cmd > 0) {
+		detail_info_data = (struct hilink_detail_info *)g_out_put.out_str;
+		hikp_serdes_detail_info_print(cmd, detail_info_data,
+			g_out_put.result_offset / sizeof(struct hilink_detail_info));
+	} else {
+		brief_info_data = (struct hilink_brief_info *)g_out_put.out_str;
+		hikp_serdes_brief_info_print(cmd, brief_info_data,
+			g_out_put.result_offset / sizeof(struct hilink_brief_info));
+	}
+}
+
+static void hikp_serdes_info_cmd_execute(struct major_cmd_ctrl *self)
+{
 	int ret;
 
 	ret = hikp_serdes_info_para_check(self);
 	if (ret != 0)
 		return;
 
-	hikp_serdes_logout_init(&out_put, g_serdes_data_out_buf, SERDES_OUTPUT_MAX_SIZE, 0);
-
-	hilink_cmd.cmd_type              = SERDES_KEY_INFO;
-	hilink_cmd.sub_cmd               = g_serdes_param.sub_cmd;
-	hilink_cmd.cmd_para.chip_id      = g_serdes_param.chip_id;
-	hilink_cmd.cmd_para.macro_id     = g_serdes_param.macro_id;
-	hilink_cmd.cmd_para.start_sds_id = g_serdes_param.start_sds_id;
-	hilink_cmd.cmd_para.sds_num      = g_serdes_param.sds_num;
-
-	hikp_cmd_init(&req_header, SERDES_MOD, SERDES_KEY_INFO, g_serdes_param.sub_cmd);
-	cmd_ret = hikp_cmd_alloc(&req_header, &hilink_cmd, sizeof(hilink_cmd));
-	if (cmd_ret == NULL || cmd_ret->status != 0) {
-		snprintf(self->err_str, sizeof(self->err_str), "hikp_cmd_alloc err.");
-		self->err_no = -EINVAL;
-		goto err_out;
+	g_serdes_param.cmd_type = SERDES_KEY_INFO;
+	ret = hikp_serdes_get_reponse(&g_serdes_param);
+	if (ret != 0) {
+		self->err_no = ret;
+		snprintf(self->err_str, sizeof(self->err_str), "serdes_info hikp_serdes_get_reponse err\n");
+		return;
 	}
-	out_out_header_size = sizeof(out_put.str_len) + sizeof(out_put.result_offset) +
-			      sizeof(out_put.type) + sizeof(out_put.ret_val);
-	memcpy(&out_put, cmd_ret->rsp_data, out_out_header_size);
-
-	if ((cmd_ret->rsp_data_num * sizeof(uint32_t) - out_out_header_size) >
-	    SERDES_OUTPUT_MAX_SIZE) {
-		self->err_no = -EINVAL;
-		snprintf(self->err_str, sizeof(self->err_str),
-			"serdes_info rsp_data data copy size error, data size:0x%zx max size:0x%x.",
-			(cmd_ret->rsp_data_num * sizeof(uint32_t) - out_out_header_size),
-			SERDES_OUTPUT_MAX_SIZE);
-		goto err_out;
-	}
-	memcpy(out_put.out_str, cmd_ret->rsp_data + out_out_header_size / sizeof(uint32_t),
-		cmd_ret->rsp_data_num * sizeof(uint32_t) - out_out_header_size);
-
-	if (g_serdes_param.sub_cmd > 0) {
-		detail_info_data = (struct hilink_detail_info *)out_put.out_str;
-		hikp_serdes_detail_info_print(self, detail_info_data,
-					      out_put.result_offset /
-					      sizeof(struct hilink_detail_info));
-	} else {
-		brief_info_data = (struct hilink_brief_info *)out_put.out_str;
-		hikp_serdes_brief_info_print(self, brief_info_data,
-					     out_put.result_offset /
-					     sizeof(struct hilink_brief_info));
-	}
-
-err_out:
-	hikp_cmd_free(&cmd_ret);
 }
 
 static void cmd_serdes_maininfo_init(void)
@@ -361,6 +384,8 @@ static void cmd_serdes_maininfo_init(void)
 
 static int cmd_serdes_dump_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name,
 	       "-c <subcmd> -i <chipid> -s <start_lane_id>");
 	printf("\n         %s, e.g. hikptool serdes_dump -c cs -i 0 -s m0d0\n",
@@ -393,22 +418,27 @@ _SERDES_DUMP_SUBCMD_PRO_:
 	return 0;
 }
 
-static void hikp_serdes_dump_print(struct major_cmd_ctrl *self,
-				   const uint32_t *data, uint32_t data_size)
+static void hikp_serdes_dump_print(struct cmd_serdes_param *cmd)
 {
+	uint32_t *dump_data = (uint32_t *)g_out_put.out_str;
+	uint32_t data_size = g_out_put.result_offset / sizeof(uint32_t);
 	uint32_t i;
+
+	if (g_out_put.type == 1) { /* 0:data; 1:string */
+		printf("serdes dump data type is string, buffer is not enough.\n");
+		return;
+	}
 
 	/* 2: Check whether addresses and values are paired */
 	if (data_size == 0 || data_size % 2 != 0) {
-		self->err_no = -EINVAL;
-		snprintf(self->err_str, sizeof(self->err_str), "serdes dump data size is wrong.");
+		printf("serdes dump data size is wrong.\n");
 		return;
 	}
 
 	printf("\n[-------Macro%uCS/DS%u-------]\nAddr   Value",
-		g_serdes_param.macro_id, g_serdes_param.start_sds_id);
+		cmd->macro_id, cmd->start_sds_id);
 	for (i = 0; i < data_size; i += 2) { /* 2: Addresses and values are paired */
-		printf("\n0x%04x 0x%08x", data[i], data[i + 1]);
+		printf("\n0x%04x 0x%08x", dump_data[i], dump_data[i + 1]);
 	}
 	printf("\n");
 }
@@ -444,59 +474,19 @@ static int hikp_serdes_dump_para_check(struct major_cmd_ctrl *self)
 
 static void hikp_serdes_dump_cmd_execute(struct major_cmd_ctrl *self)
 {
-	struct hikp_cmd_header req_header = {0};
-	struct hikp_cmd_ret *cmd_ret;
-	struct hilink_cmd_in hilink_cmd = {0};
-	uint32_t *dump_data = NULL;
-	struct hilink_cmd_out out_put;
-	size_t out_out_header_size;
 	int ret;
 
 	ret = hikp_serdes_dump_para_check(self);
 	if (ret != 0)
 		return;
 
-	hikp_serdes_logout_init(&out_put, g_serdes_data_out_buf, SERDES_OUTPUT_MAX_SIZE, 0);
-
-	hilink_cmd.cmd_type              = SERDES_DUMP_REG;
-	hilink_cmd.sub_cmd               = g_serdes_param.sub_cmd;
-	hilink_cmd.cmd_para.chip_id      = g_serdes_param.chip_id;
-	hilink_cmd.cmd_para.macro_id     = g_serdes_param.macro_id;
-	hilink_cmd.cmd_para.start_sds_id = g_serdes_param.start_sds_id;
-
-	hikp_cmd_init(&req_header, SERDES_MOD, SERDES_DUMP_REG, g_serdes_param.sub_cmd);
-	cmd_ret = hikp_cmd_alloc(&req_header, &hilink_cmd, sizeof(hilink_cmd));
-	if (cmd_ret == NULL || cmd_ret->status != 0) {
-		self->err_no = -EINVAL;
-		snprintf(self->err_str, sizeof(self->err_str), "hikp_cmd_alloc err.");
-		goto err_out;
+	g_serdes_param.cmd_type = SERDES_DUMP_REG;
+	ret = hikp_serdes_get_reponse(&g_serdes_param);
+	if (ret != 0) {
+		self->err_no = ret;
+		snprintf(self->err_str, sizeof(self->err_str), "serdes_dump hikp_serdes_get_reponse err\n");
+		return;
 	}
-	out_out_header_size = sizeof(out_put.str_len) + sizeof(out_put.result_offset) +
-			      sizeof(out_put.type) + sizeof(out_put.ret_val);
-	memcpy(&out_put, cmd_ret->rsp_data, out_out_header_size);
-
-	if ((cmd_ret->rsp_data_num * sizeof(uint32_t) - out_out_header_size) >
-	    SERDES_OUTPUT_MAX_SIZE) {
-		self->err_no = -EINVAL;
-		snprintf(self->err_str, sizeof(self->err_str),
-			"serdes_dump rsp_data data copy size error, data size:0x%zx max size:0x%x.",
-			(cmd_ret->rsp_data_num * sizeof(uint32_t) - out_out_header_size),
-			SERDES_OUTPUT_MAX_SIZE);
-		goto err_out;
-	}
-	memcpy(out_put.out_str, cmd_ret->rsp_data + out_out_header_size / sizeof(uint32_t),
-		cmd_ret->rsp_data_num * sizeof(uint32_t) - out_out_header_size);
-	if (out_put.type == 1) { /* 0:data; 1:string */
-		self->err_no = -EINVAL;
-		snprintf(self->err_str, sizeof(self->err_str),
-			 "serdes dump data type is string, buffer is not enough.");
-		goto err_out;
-	}
-
-	dump_data = (uint32_t *)out_put.out_str;
-	hikp_serdes_dump_print(self, dump_data, out_put.result_offset / sizeof(uint32_t));
-err_out:
-	hikp_cmd_free(&cmd_ret);
 }
 
 static void cmd_serdes_dump_init(void)

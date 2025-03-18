@@ -18,6 +18,8 @@ static struct roh_mac_param g_roh_mac_param = { 0 };
 
 static int hikp_roh_mac_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name,
 	       "-i <interface> -s <mac_type|cam|credit>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
@@ -96,7 +98,7 @@ int hikp_roh_get_mac_type(struct major_cmd_ctrl *self, struct bdf_t bdf)
 	return is_roh;
 }
 
-static void hikp_roh_show_mac_type(struct major_cmd_ctrl *self, int mac_type)
+static void hikp_roh_show_mac_type(int mac_type)
 {
 	if (mac_type)
 		printf("MAC_TYPE: ROH\n");
@@ -382,7 +384,7 @@ static void hikp_roh_mac_execute_entry(struct major_cmd_ctrl *self)
 			HIKP_ERROR_PRINT("Failed get current mac type\n");
 			return;
 		}
-		hikp_roh_show_mac_type(self, mac_type);
+		hikp_roh_show_mac_type(mac_type);
 		break;
 	case (CMD_SHOW_CAM_FLAG):
 		if (hikp_roh_is_roh(self) > 0)

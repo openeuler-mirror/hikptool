@@ -20,6 +20,7 @@
 #define ROCE_HIKP_REG_SWICTH 2
 
 #define ROCE_MDB_CMD_CLEAR (1 << 0)
+#define ROCE_MDB_CMD 0
 #define ROCE_MDB_CMD_EXT (1 << 1)
 
 struct cmd_roce_mdb_param {
@@ -48,5 +49,9 @@ enum roce_mdb_cmd_type {
 	MDB_EXT,
 	MDB_CLEAR_EXT,
 };
+
+int hikp_roce_set_mdb_bdf(char *nic_name);
+void hikp_roce_set_mdb_mode(uint8_t mode);
+void hikp_roce_mdb_execute(struct major_cmd_ctrl *self);
 
 #endif /* HIKP_ROCE_MDB_H */

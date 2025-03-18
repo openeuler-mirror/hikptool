@@ -26,6 +26,8 @@ struct tool_pcie_cmd g_info_cmd = {
 
 static int pcie_info_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s\n", self->cmd_ptr->name);
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("    %s, %-25s %s\n", "-i", "--interface",
@@ -42,6 +44,9 @@ static int pcie_info_help(struct major_cmd_ctrl *self, const char *argv)
 
 static int pcie_distribution_show(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_info_cmd.cmd_type = INFO_DISTRIBUTION;
 
 	return 0;
@@ -49,6 +54,9 @@ static int pcie_distribution_show(struct major_cmd_ctrl *self, const char *argv)
 
 static int pcie_err_state_show(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_info_cmd.cmd_type = INFO_ERR_STATE_SHOW;
 
 	return 0;
@@ -56,6 +64,9 @@ static int pcie_err_state_show(struct major_cmd_ctrl *self, const char *argv)
 
 static int pcie_err_state_clear(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_info_cmd.cmd_type = INFO_ERR_STATE_CLEAR;
 
 	return 0;
@@ -65,6 +76,8 @@ static int pcie_port_chip_set(struct major_cmd_ctrl *self, const char *argv)
 {
 	uint32_t val;
 	int ret;
+
+	HIKP_SET_USED(self);
 
 	ret = string_toui(argv, &val);
 	if (ret) {

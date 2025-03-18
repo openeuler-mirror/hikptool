@@ -39,14 +39,14 @@ static int sas_get_dqe(const struct tool_sas_cmd *cmd, uint32_t *reg_save, uint3
 		return -EINVAL;
 	}
 	*reg_num = cmd_ret->rsp_data_num;
-	for (int i = 0; i < *reg_num; i++)
+	for (uint32_t i = 0; i < *reg_num; i++)
 		reg_save[i] = cmd_ret->rsp_data[i];
 
 	hikp_cmd_free(&cmd_ret);
 	return 0;
 }
 
-static void print_dqe_info(const void *reg_save, uint32_t reg_num)
+static void print_dqe_info(const void *reg_save)
 {
 	volatile struct hisi_sas_dq_info *dqe = (volatile struct hisi_sas_dq_info *)(reg_save);
 
@@ -109,6 +109,6 @@ int sas_dqe(const struct tool_sas_cmd *cmd)
 		printf("SAS dqe is failed\n");
 		return -EINVAL;
 	}
-	print_dqe_info(reg_save, reg_num);
+	print_dqe_info(reg_save);
 	return 0;
 }

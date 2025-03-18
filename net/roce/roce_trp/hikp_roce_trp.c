@@ -18,11 +18,29 @@ struct roce_trp_module g_roce_trp_module[] = {
 	ROCE_TRP_HANDLE(TRP_RX),
 	ROCE_TRP_HANDLE(GEN_AC),
 	ROCE_TRP_HANDLE(PAYL),
-	ROCE_TRP_HANDLE(COMMON),
+	{ "COMMON", TRP_COMMON },
 };
+
+int hikp_roce_set_trp_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_trp_param_t.target);
+}
+
+void hikp_roce_set_trp_bankid(uint32_t bank_id)
+{
+	g_roce_trp_param_t.bank_id = bank_id;
+}
+
+void hikp_roce_set_trp_submodule(uint32_t module)
+{
+	g_roce_trp_param_t.sub_cmd = module;
+}
 
 static int hikp_roce_trp_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -86,7 +104,7 @@ static int hikp_roce_trp_bank_get(struct major_cmd_ctrl *self, const char *argv)
 static int hikp_roce_trp_bank_check(void)
 {
 	switch (g_roce_trp_param_t.sub_cmd) {
-	case (COMMON):
+	case (TRP_COMMON):
 		if (g_roce_trp_param_t.bank_id > TRP_MAX_BANK_NUM)
 			return -EINVAL;
 		break;
@@ -341,7 +359,7 @@ static const struct reg_name_info {
 	const char **reg_name;
 	uint8_t arr_len;
 } g_trp_reg_name_info_table[] = {
-	{COMMON, g_trp_common_reg_name, HIKP_ARRAY_SIZE(g_trp_common_reg_name)},
+	{TRP_COMMON, g_trp_common_reg_name, HIKP_ARRAY_SIZE(g_trp_common_reg_name)},
 	{TRP_RX, g_trp_trp_rx_reg_name, HIKP_ARRAY_SIZE(g_trp_trp_rx_reg_name)},
 	{GEN_AC, g_trp_gen_ac_reg_name, HIKP_ARRAY_SIZE(g_trp_gen_ac_reg_name)},
 	{PAYL, g_trp_payl_reg_name, HIKP_ARRAY_SIZE(g_trp_payl_reg_name)},
@@ -377,7 +395,7 @@ static void hikp_roce_trp_print(uint8_t total_block_num,
 	printf("***********************************\n");
 }
 
-static void hikp_roce_trp_execute(struct major_cmd_ctrl *self)
+void hikp_roce_trp_execute(struct major_cmd_ctrl *self)
 {
 	struct roce_trp_head res_head;
 	uint32_t *offset_start = NULL;

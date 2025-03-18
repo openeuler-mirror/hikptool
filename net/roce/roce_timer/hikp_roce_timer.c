@@ -15,8 +15,16 @@
 
 static struct cmd_roce_timer_params g_roce_timer_param = { 0 };
 
+int hikp_roce_set_timer_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_timer_param.target);
+}
+
 static int hikp_roce_timer_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -40,6 +48,9 @@ static int hikp_roce_timer_target(struct major_cmd_ctrl *self, const char *argv)
 
 static int hikp_roce_timer_clear_set(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_roce_timer_param.flag = ROCE_TIMER_CMD_CLEAR;
 	return 0;
 }
@@ -114,6 +125,8 @@ static int hikp_roce_timer_show_qpc(struct major_cmd_ctrl *self)
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	int ret;
 
+	HIKP_SET_USED(self);
+
 	req_data.bdf = g_roce_timer_param.target.bdf;
 	if (g_roce_timer_param.flag)
 		hikp_cmd_init(&req_header, ROCE_MOD, GET_ROCEE_TIMER_CMD, TIMER_QPC_CLEAR);
@@ -146,6 +159,8 @@ static int hikp_roce_timer_show_cqc(struct major_cmd_ctrl *self)
 	struct hikp_cmd_header req_header = { 0 };
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	int ret;
+
+	HIKP_SET_USED(self);
 
 	req_data.bdf = g_roce_timer_param.target.bdf;
 	if (g_roce_timer_param.flag)
@@ -192,13 +207,13 @@ static int hikp_roce_timer_clear(struct major_cmd_ctrl *self)
 	return 0;
 }
 
-static void hikp_roce_timer_execute(struct major_cmd_ctrl *self)
+void hikp_roce_timer_execute(struct major_cmd_ctrl *self)
 {
 	int (*func[])(struct major_cmd_ctrl *self) = {
 		hikp_roce_timer_show_cqc, hikp_roce_timer_show_qpc
 	};
 	const char *function[] = {"show cqc", "show qpc"};
-	int i = 0;
+	size_t i = 0;
 	int ret;
 
 	if (g_roce_timer_param.flag) {

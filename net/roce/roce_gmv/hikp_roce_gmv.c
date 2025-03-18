@@ -16,8 +16,21 @@
 
 static struct cmd_roce_gmv_param g_roce_gmv_param = { 0 };
 
+int hikp_roce_set_gmv_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_gmv_param.target);
+}
+
+void hikp_roce_set_gmv_index(uint32_t gmv_index)
+{
+	g_roce_gmv_param.gmv_index = gmv_index;
+}
+
 static int hikp_roce_gmv_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -83,7 +96,7 @@ static void hikp_roce_gmv_print(uint32_t reg_num, struct roce_gmv_rsp_data *gmv_
 	printf("*******************************************\n");
 }
 
-static void hikp_roce_gmv_execute(struct major_cmd_ctrl *self)
+void hikp_roce_gmv_execute(struct major_cmd_ctrl *self)
 {
 	struct roce_gmv_req_para req_data = { 0 };
 	struct roce_gmv_rsp_data *gmv_rsp = NULL;
@@ -91,6 +104,8 @@ static void hikp_roce_gmv_execute(struct major_cmd_ctrl *self)
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	uint32_t reg_num;
 	int ret;
+
+	HIKP_SET_USED(self);
 
 	req_data.bdf = g_roce_gmv_param.target.bdf;
 	req_data.gmv_index = g_roce_gmv_param.gmv_index;

@@ -18,7 +18,7 @@
 
 #define TOOL_NAME "hikptool"
 
-#define TOOL_VER "1.1.3"
+#define TOOL_VER "1.1.4"
 
 #define HI_GET_BITFIELD(value, start, mask) (((value) >> (start)) & (mask))
 #define HI_SET_FIELD(origin, shift, val)	((origin) |= (val) << (shift))
@@ -90,6 +90,26 @@ struct type_trans {
 #define HIKP_WARN_PRINT(x, args...) HIKP_LOG_PRINT("[ WARN ] " x, ##args)
 #define HIKP_INFO_PRINT(x, args...) HIKP_LOG_PRINT("[ INFO ] " x, ##args)
 #define HIKP_DBG_PRINT(x, args...) HIKP_LOG_PRINT("[ DBG ] " x, ##args)
+
+/* definition to mark a variable or function parameter as used so
+ * as to avoid a compiler warning
+ */
+#define HIKP_SET_USED(x) (void)(x)
+
+#define MIDR_EL1_PATH "/sys/devices/system/cpu/cpu0/regs/identification/midr_el1"
+#define MIDR_BUFFER_SIZE 20
+#define PART_NUM_OFFSET 4
+#define MIDR_HEX_TYPE 16
+
+enum chip_type {
+	CHIP_HIP09,
+	CHIP_HIP10,
+	CHIP_HIP10C,
+	CHIP_HIP11,
+	CHIP_UNKNOW,
+};
+
+uint32_t get_chip_type(void);
 
 int string_toui(const char *nptr, uint32_t *value);
 int string_toub(const char *nptr, uint8_t *value);

@@ -56,9 +56,14 @@ struct roce_tsp_module {
 };
 
 enum roce_tsp_sub_cmd_code {
-	COMMON = 1,
+	TSP_COMMON = 1,
 	TDP,
 	TGP_TMP,
 };
+
+int hikp_roce_set_tsp_bdf(char *nic_name);
+void hikp_roce_set_tsp_bankid(uint32_t bank_id);
+void hikp_roce_set_tsp_submodule(uint32_t module);
+void hikp_roce_tsp_execute(struct major_cmd_ctrl *self);
 
 #endif /* HIKP_ROCE_TSP_H */

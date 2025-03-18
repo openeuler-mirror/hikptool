@@ -15,8 +15,16 @@
 
 static struct cmd_roce_pkt_param_t g_roce_pkt_param_t = { 0 };
 
+int hikp_roce_set_pkt_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_pkt_param_t.target);
+}
+
 static int hikp_roce_pkt_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -41,6 +49,9 @@ static int hikp_roce_pkt_target(struct major_cmd_ctrl *self, const char *argv)
 
 static int hikp_roce_pkt_clear_set(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_roce_pkt_param_t.reset_flag = 1;
 	return 0;
 }
@@ -96,7 +107,7 @@ static void hikp_roce_pkt_print(uint32_t total_block_num,
 	printf("***********************************\n");
 }
 
-static void hikp_roce_pkt_execute(struct major_cmd_ctrl *self)
+void hikp_roce_pkt_execute(struct major_cmd_ctrl *self)
 {
 	struct roce_pkt_req_param req_data = { 0 };
 	struct roce_pkt_res_param *roce_pkt_res;

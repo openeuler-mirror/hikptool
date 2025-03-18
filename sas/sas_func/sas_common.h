@@ -16,7 +16,7 @@
 
 #define RESP_MAX_NUM 60
 #define SAS_MAX_PHY_NUM 7
-#define SAS_MAX_ERR_NUM 6
+#define SAS_MAX_ERR_NUM 5
 #define SAS_ERR_NUM 4
 #define SAS_QUEUE_NUM 16
 #define IPTT_ICT_STATUS 29

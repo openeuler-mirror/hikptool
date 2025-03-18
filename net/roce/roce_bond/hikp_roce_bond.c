@@ -15,8 +15,16 @@
 
 static struct cmd_roce_bond_param g_roce_bond_param = { 0 };
 
+int hikp_roce_set_bond_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_bond_param.target);
+}
+
 static int hikp_roce_bond_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -45,6 +53,8 @@ static int hikp_roce_bond_get_data(struct hikp_cmd_ret **cmd_ret,
 	uint32_t req_size;
 	int ret;
 
+	HIKP_SET_USED(reg_name);
+
 	req_data.bdf = g_roce_bond_param.target.bdf;
 	req_data.block_id = block_id;
 
@@ -60,7 +70,7 @@ static int hikp_roce_bond_get_data(struct hikp_cmd_ret **cmd_ret,
 	return ret;
 }
 
-static void hikp_roce_bond_execute(struct major_cmd_ctrl *self)
+void hikp_roce_bond_execute(struct major_cmd_ctrl *self)
 {
 	hikp_roce_ext_execute(self, GET_ROCEE_BOND_CMD, hikp_roce_bond_get_data);
 }

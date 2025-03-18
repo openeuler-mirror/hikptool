@@ -15,7 +15,7 @@
 
 struct cmd_roce_scc_param_t g_roce_scc_param_t = { 0 };
 struct roce_scc_module g_roce_scc_module[] = {
-	ROCE_SCC_HANDLE(COMMON),
+	{ "COMMON", SCC_COMMON },
 	ROCE_SCC_HANDLE(DCQCN),
 	ROCE_SCC_HANDLE(DIP),
 	ROCE_SCC_HANDLE(HC3),
@@ -23,8 +23,21 @@ struct roce_scc_module g_roce_scc_module[] = {
 	ROCE_SCC_HANDLE(CFG),
 };
 
+int hikp_roce_set_scc_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_scc_param_t.target);
+}
+
+void hikp_roce_set_scc_submodule(uint32_t module)
+{
+	g_roce_scc_param_t.sub_cmd = module;
+}
+
 static int hikp_roce_scc_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -71,6 +84,9 @@ static int hikp_roce_scc_module_select(struct major_cmd_ctrl *self, const char *
 
 static int hikp_roce_scc_clear_set(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_roce_scc_param_t.reset_flag = 1;
 
 	return 0;
@@ -78,7 +94,7 @@ static int hikp_roce_scc_clear_set(struct major_cmd_ctrl *self, const char *argv
 
 static int hikp_roce_scc_clear_module_check(void)
 {
-	if (g_roce_scc_param_t.sub_cmd == COMMON)
+	if (g_roce_scc_param_t.sub_cmd == SCC_COMMON)
 		return 0;
 
 	return -EINVAL;
@@ -292,7 +308,7 @@ static const struct reg_name_info {
 	const char **reg_name;
 	uint8_t arr_len;
 } g_scc_reg_name_info_table[] = {
-	{COMMON, g_scc_common_reg_name, HIKP_ARRAY_SIZE(g_scc_common_reg_name)},
+	{SCC_COMMON, g_scc_common_reg_name, HIKP_ARRAY_SIZE(g_scc_common_reg_name)},
 	{DCQCN, g_scc_dcqcn_reg_name, HIKP_ARRAY_SIZE(g_scc_dcqcn_reg_name)},
 	{DIP, g_scc_dip_reg_name, HIKP_ARRAY_SIZE(g_scc_dip_reg_name)},
 	{HC3, g_scc_hc3_reg_name, HIKP_ARRAY_SIZE(g_scc_hc3_reg_name)},
@@ -330,7 +346,7 @@ static void hikp_roce_scc_print(uint8_t total_block_num,
 	printf("***********************************\n");
 }
 
-static void hikp_roce_scc_execute(struct major_cmd_ctrl *self)
+void hikp_roce_scc_execute(struct major_cmd_ctrl *self)
 {
 	struct roce_scc_head res_head;
 	uint32_t *offset_start = NULL;

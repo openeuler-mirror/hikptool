@@ -151,6 +151,8 @@ static char g_roh_mac_mib_name[MIB_EVENT_COUNT][ROH_NAME_MAX] = {
 
 static int hikp_roh_show_mib_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface> -s\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -253,6 +255,9 @@ static void hikp_roh_show_mib_execute(struct major_cmd_ctrl *self)
 
 static int hikp_roh_show_mib_parse(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	roh_show_mib_param.flag |= ROH_CMD_SHOW_MIB;
 	return 0;
 }

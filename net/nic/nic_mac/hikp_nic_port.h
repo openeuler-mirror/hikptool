@@ -271,4 +271,10 @@ struct cmd_hot_plug_card_info {
 	uint8_t cur_type;
 };
 
+struct nic_port_collect_param {
+	const char *net_dev_name;
+};
+
+int hikp_info_collect_nic_port(void *data);
+
 #endif /* HIKP_NIC_PORT_H */

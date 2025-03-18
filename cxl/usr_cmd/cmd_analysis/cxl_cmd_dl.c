@@ -25,6 +25,8 @@ struct tool_cxl_cmd g_cxl_dl_cmd = {
 
 static int cxl_dl_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("  Usage: %s\n", self->cmd_ptr->name);
 	printf("         %s\n", self->cmd_ptr->help_info);
 	printf("    %s, %-25s %s\n", "-i", "--interface", "please input port[x]  first");
@@ -44,6 +46,8 @@ static int cxl_dl_port_id_set(struct major_cmd_ctrl *self, const char *argv)
 	uint32_t val;
 	int ret;
 
+	HIKP_SET_USED(self);
+
 	ret = string_toui(argv, &val);
 	if (ret) {
 		printf("cxl dl set port id err %d\n", ret);
@@ -56,6 +60,9 @@ static int cxl_dl_port_id_set(struct major_cmd_ctrl *self, const char *argv)
 
 static int cxl_dl_err_status(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_dl_cmd.cmd_type = CXL_DL_ERR;
 
 	return 0;
@@ -63,6 +70,9 @@ static int cxl_dl_err_status(struct major_cmd_ctrl *self, const char *argv)
 
 static int cxl_dl_dump(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_dl_cmd.cmd_type = CXL_DL_DUMP;
 
 	return 0;
@@ -70,6 +80,9 @@ static int cxl_dl_dump(struct major_cmd_ctrl *self, const char *argv)
 
 static int cxl_dl_dfx(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_dl_cmd.cmd_type = CXL_DL_DFX;
 
 	return 0;
@@ -77,6 +90,9 @@ static int cxl_dl_dfx(struct major_cmd_ctrl *self, const char *argv)
 
 static int cxl_dl_fsm_state(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_dl_cmd.cmd_type = CXL_DL_FSM_STATE;
 
 	return 0;

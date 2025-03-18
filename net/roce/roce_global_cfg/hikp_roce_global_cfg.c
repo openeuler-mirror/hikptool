@@ -15,9 +15,17 @@
 
 static struct cmd_roce_global_cfg_param g_roce_global_cfg_param = { 0 };
 
+int hikp_roce_set_global_cfg_bdf(char *nic_name)
+{
+	return tool_check_and_get_valid_bdf_id(nic_name,
+					       &g_roce_global_cfg_param.target);
+}
+
 static int hikp_roce_global_cfg_help(struct major_cmd_ctrl *self,
 				     const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -48,6 +56,8 @@ static int hikp_roce_global_cfg_get_data(struct hikp_cmd_ret **cmd_ret,
 	uint32_t req_size;
 	int ret;
 
+	HIKP_SET_USED(reg_name);
+
 	req_data.bdf = g_roce_global_cfg_param.target.bdf;
 	req_data.block_id = block_id;
 
@@ -63,7 +73,7 @@ static int hikp_roce_global_cfg_get_data(struct hikp_cmd_ret **cmd_ret,
 	return ret;
 }
 
-static void hikp_roce_global_cfg_execute(struct major_cmd_ctrl *self)
+void hikp_roce_global_cfg_execute(struct major_cmd_ctrl *self)
 {
 	enum roce_global_cfg_cmd_type sub_cmds[] = {
 		ROCE_GLB_GENAC,
@@ -75,7 +85,7 @@ static void hikp_roce_global_cfg_execute(struct major_cmd_ctrl *self)
 		ROCE_GLB_TDP_M,
 		ROCE_GLB_NICL,
 	};
-	int i;
+	size_t i;
 
 	for (i = 0; i < HIKP_ARRAY_SIZE(sub_cmds); i++) {
 		g_roce_global_cfg_param.sub_cmd = sub_cmds[i];

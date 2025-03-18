@@ -70,7 +70,7 @@ static void hikp_nic_notify_pkt_show(const struct nic_notify_pkt_info *info)
 	printf("####################### END ###########################\n");
 }
 
-static void hikp_nic_notify_pkt_cmd_execute(struct major_cmd_ctrl *self)
+void hikp_nic_notify_pkt_cmd_execute(struct major_cmd_ctrl *self)
 {
 	struct bdf_t *bdf = &g_notify_pkt_target.bdf;
 	struct nic_notify_pkt_info info = {0};
@@ -84,6 +84,8 @@ static void hikp_nic_notify_pkt_cmd_execute(struct major_cmd_ctrl *self)
 
 static int hikp_nic_notify_pkt_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <device>");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");
@@ -94,7 +96,7 @@ static int hikp_nic_notify_pkt_cmd_help(struct major_cmd_ctrl *self, const char 
 	return 0;
 }
 
-static int hikp_nic_notify_pkt_get_target(struct major_cmd_ctrl *self, const char *argv)
+int hikp_nic_notify_pkt_get_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &g_notify_pkt_target);
 	if (self->err_no != 0) {

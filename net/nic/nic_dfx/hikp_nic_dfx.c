@@ -404,6 +404,13 @@ static const struct dfx_type_name_parse g_dfx_ssu_name_parse[] = {
 		dfx_ssu_type_64_tx_comm_stats,		HIKP_ARRAY_SIZE(dfx_ssu_type_64_tx_comm_stats)},
 };
 
+void hikp_nic_dfx_set_cmd_para(int idx)
+{
+	g_dfx_param.sub_cmd_code = g_dfx_module_parse[idx].sub_cmd_code;
+	g_dfx_param.module_idx = idx;
+	g_dfx_param.flag |= MODULE_SET_FLAG;
+}
+
 static void dfx_help_info(const struct major_cmd_ctrl *self)
 {
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface>\n");
@@ -417,11 +424,13 @@ static void dfx_help_info(const struct major_cmd_ctrl *self)
 
 static int hikp_cmd_dfx_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	dfx_help_info(self);
 	return 0;
 }
 
-static int hikp_nic_cmd_dfx_target(struct major_cmd_ctrl *self, const char *argv)
+int hikp_nic_cmd_dfx_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &(g_dfx_param.target));
 	if (self->err_no != 0) {
@@ -714,7 +723,7 @@ static void hikp_nic_dfx_print(const struct nic_dfx_rsp_head_t *rsp_head, uint32
 	printf("################### ====== dump end ====== ######################\n");
 }
 
-static void hikp_nic_dfx_cmd_execute(struct major_cmd_ctrl *self)
+void hikp_nic_dfx_cmd_execute(struct major_cmd_ctrl *self)
 {
 	struct nic_dfx_rsp_head_t rsp_head = { 0 };
 	struct nic_dfx_rsp_head_t tmp_head = { 0 };

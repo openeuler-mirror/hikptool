@@ -25,6 +25,8 @@ struct tool_cxl_cmd g_cxl_membar_cmd = {
 
 static int cxl_membar_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("  Usage: %s\n", self->cmd_ptr->name);
 	printf("         %s\n", self->cmd_ptr->help_info);
 	printf("    %s, %-25s %s\n", "-i", "--interface", "please input port[x]  first");
@@ -42,6 +44,8 @@ static int cxl_membar_port_id_set(struct major_cmd_ctrl *self, const char *argv)
 	uint32_t val;
 	int ret;
 
+	HIKP_SET_USED(self);
+
 	ret = string_toui(argv, &val);
 	if (ret) {
 		printf("cxl membar set port id err %d\n", ret);
@@ -54,6 +58,9 @@ static int cxl_membar_port_id_set(struct major_cmd_ctrl *self, const char *argv)
 
 static int cxl_membar_err_info(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_membar_cmd.cmd_type = CXL_MEMBAR_ERR;
 
 	return 0;
@@ -61,6 +68,9 @@ static int cxl_membar_err_info(struct major_cmd_ctrl *self, const char *argv)
 
 static int cxl_membar_dump(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_cxl_membar_cmd.cmd_type = CXL_MEMBAR_DUMP;
 
 	return 0;

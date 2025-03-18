@@ -19,6 +19,8 @@
 
 static int sas_dump_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s\n", self->cmd_ptr->name);
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("    %s, %-25s %s\n", "-c", "--chipid", "please input chip id[x]  first\n");
@@ -35,6 +37,9 @@ static int sas_dump_help(struct major_cmd_ctrl *self, const char *argv)
 
 static int sas_dump_global(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	(void)sas_set_cmd_type(DUMP_GLOBAL);
 	return 0;
 }
@@ -56,6 +61,9 @@ static int sas_dump_phyx(struct major_cmd_ctrl *self, char const *argv)
 
 static int sas_dump_axi(struct major_cmd_ctrl *self, char const *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	(void)sas_set_cmd_type(DUMP_AXI);
 	return 0;
 }

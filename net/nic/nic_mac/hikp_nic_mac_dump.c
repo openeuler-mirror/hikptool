@@ -184,7 +184,7 @@ static int mac_cmd_dump_para_check(struct major_cmd_ctrl *self)
 	return 0;
 }
 
-static void mac_cmd_dump_execute(struct major_cmd_ctrl *self)
+void mac_cmd_dump_execute(struct major_cmd_ctrl *self)
 {
 	int ret;
 
@@ -203,7 +203,7 @@ static void mac_cmd_dump_execute(struct major_cmd_ctrl *self)
 		mac_cmd_dump_module(self, g_dump_reg_info.module_name);
 }
 
-static int mac_cmd_dump_reg_target(struct major_cmd_ctrl *self, const char *argv)
+int mac_cmd_dump_reg_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &g_dump_reg_info.target);
 	if (self->err_no) {
@@ -217,6 +217,8 @@ static int mac_cmd_dump_reg_target(struct major_cmd_ctrl *self, const char *argv
 
 static int mac_cmd_dump_reg_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface> -m <module>\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -233,11 +235,35 @@ static int mac_cmd_dump_reg_help(struct major_cmd_ctrl *self, const char *argv)
 	return 0;
 }
 
-static int mac_cmd_dump_module_cfg(struct major_cmd_ctrl *self, const char *argv)
+int mac_cmd_dump_module_cfg(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+
 	g_dump_reg_info.module_name = argv;
 
 	return 0;
+}
+
+int hikp_info_collect_nic_mac(void *data)
+{
+	struct nic_mac_collect_param *param = (struct nic_mac_collect_param *)data;
+	struct major_cmd_ctrl *major_cmd = get_major_cmd();
+	int ret;
+
+	memset(&g_dump_reg_info, 0, sizeof(g_dump_reg_info));
+
+	ret = mac_cmd_dump_reg_target(major_cmd, param->net_dev_name);
+	if (ret)
+		return ret;
+
+	ret = mac_cmd_dump_module_cfg(major_cmd, param->module_name);
+	if (ret)
+		return ret;
+
+	printf("hikptool nic_mac -i %s -m %s\n", param->net_dev_name, param->module_name);
+	mac_cmd_dump_execute(major_cmd);
+
+	return ret;
 }
 
 static void cmd_mac_dump_reg_init(void)

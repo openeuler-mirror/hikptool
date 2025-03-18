@@ -38,4 +38,8 @@ enum roce_gmv_cmd_type {
 	GMV_SHOW = 0x0,
 };
 
+int hikp_roce_set_gmv_bdf(char *nic_name);
+void hikp_roce_set_gmv_index(uint32_t gmv_index);
+void hikp_roce_gmv_execute(struct major_cmd_ctrl *self);
+
 #endif /* HIKP_ROCE_GMV_H */

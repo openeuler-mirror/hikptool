@@ -33,8 +33,20 @@ static const struct qos_feature_cmd g_qos_feature_cmd[] = {
 	 hikp_nic_qos_show_pfc_storm_para},
 };
 
+void hikp_nic_qos_set_cmd_feature_idx(int feature_idx)
+{
+	g_qos_param.feature_idx = feature_idx;
+}
+
+void hikp_nic_qos_set_cmd_direction(enum nic_pfc_dir dir)
+{
+	g_qos_param.dir = dir;
+}
+
 static int hikp_nic_qos_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <device>");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");
@@ -242,7 +254,7 @@ static int hikp_nic_query_qos_feature(struct hikp_cmd_header *req_header, const 
 	return ret;
 }
 
-static void hikp_nic_qos_cmd_execute(struct major_cmd_ctrl *self)
+void hikp_nic_qos_cmd_execute(struct major_cmd_ctrl *self)
 {
 	char *revision_id = g_qos_param.revision_id;
 	struct bdf_t *bdf = &g_qos_param.target.bdf;
@@ -265,7 +277,7 @@ static void hikp_nic_qos_cmd_execute(struct major_cmd_ctrl *self)
 	}
 
 	if (g_qos_param.feature_idx == NIC_PFC_STORM_PARA_DUMP &&
-	    g_qos_param.dir == NIC_QUEUE_DIR_NONE) {
+	    g_qos_param.dir == NIC_QOS_DIR_NONE) {
 		hikp_nic_qos_cmd_help(self, NULL);
 		snprintf(self->err_str, sizeof(self->err_str),
 			 "-d/--dir param error!");
@@ -296,7 +308,7 @@ static void hikp_nic_qos_cmd_execute(struct major_cmd_ctrl *self)
 	printf("#################### END #######################\n");
 }
 
-static int hikp_nic_cmd_get_qos_target(struct major_cmd_ctrl *self, const char *argv)
+int hikp_nic_cmd_get_qos_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &(g_qos_param.target));
 	if (self->err_no != 0) {
@@ -330,11 +342,11 @@ static int hikp_nic_cmd_qos_direct(struct major_cmd_ctrl *self,
 				   const char *argv)
 {
 	if (strcmp(argv, "rx") == 0) {
-		g_qos_param.dir = NIC_RX_QUEUE;
+		g_qos_param.dir = NIC_RX_QOS;
 		return 0;
 	}
 	if (strcmp(argv, "tx") == 0) {
-		g_qos_param.dir = NIC_TX_QUEUE;
+		g_qos_param.dir = NIC_TX_QOS;
 		return 0;
 	}
 
@@ -350,7 +362,7 @@ static void cmd_nic_get_qos_init(void)
 	struct major_cmd_ctrl *major_cmd = get_major_cmd();
 
 	g_qos_param.feature_idx = -1;
-	g_qos_param.dir = NIC_QUEUE_DIR_NONE;
+	g_qos_param.dir = NIC_QOS_DIR_NONE;
 
 	major_cmd->option_count = 0;
 	major_cmd->execute = hikp_nic_qos_cmd_execute;

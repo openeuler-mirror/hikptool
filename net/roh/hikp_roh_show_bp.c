@@ -17,6 +17,8 @@ static struct cmd_roh_show_bp_param g_roh_show_bp_param = { 0 };
 
 static int hikp_roh_show_bp_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <interface> -s\n");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("  Options:\n\n");
@@ -115,6 +117,9 @@ static void hikp_roh_show_bp_execute(struct major_cmd_ctrl *self)
 
 static int hikp_roh_show_bp_parse(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_roh_show_bp_param.flag |= ROH_CMD_SHOW_BP;
 	return 0;
 }

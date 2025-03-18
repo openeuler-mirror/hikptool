@@ -29,6 +29,8 @@ struct tool_pcie_cmd g_dumpreg_cmd = {
 
 static int pcie_dumpreg_help(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(argv);
+
 	printf("\n  Usage: %s\n", self->cmd_ptr->name);
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("    %s, %-25s %s\n", "-i", "--interface", "please input port[x] first\n");
@@ -48,6 +50,8 @@ static int pcie_port_set(struct major_cmd_ctrl *self, const char *argv)
 	uint32_t val;
 	int ret;
 
+	HIKP_SET_USED(self);
+
 	ret = string_toui(argv, &val);
 	if (ret) {
 		printf("info set port id err %d.\n", ret);
@@ -63,6 +67,8 @@ static int dump_level_set(struct major_cmd_ctrl *self, const char *argv)
 	uint32_t val = 0;
 	int ret;
 
+	HIKP_SET_USED(self);
+
 	ret = string_toui(argv, &val);
 	if (ret || val < DUMP_GLOBAL_LEVEL || val > DUMP_PORT_LEVEL) {
 		printf("info set id err, ret = %d, val = %u\n", ret, val);
@@ -75,6 +81,9 @@ static int dump_level_set(struct major_cmd_ctrl *self, const char *argv)
 
 static int pcie_dumpreg_dump(struct major_cmd_ctrl *self, const char *argv)
 {
+	HIKP_SET_USED(self);
+	HIKP_SET_USED(argv);
+
 	g_dumpreg_cmd.cmd_type = DUMPREG_DUMP;
 
 	return 0;

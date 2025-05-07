@@ -37,6 +37,7 @@ endmacro()
 option(ENABLE_STATIC "Make tool run as independently as possible" off)
 
 file(GLOB_RECURSE HIKPTOOL_SRC
+	${CMAKE_CURRENT_SOURCE_DIR}/core_ring/*.c
 	${CMAKE_CURRENT_SOURCE_DIR}/cxl/*.c
 	${CMAKE_CURRENT_SOURCE_DIR}/net/*.c
 	${CMAKE_CURRENT_SOURCE_DIR}/ossl/*.c

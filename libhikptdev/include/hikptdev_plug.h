@@ -46,6 +46,7 @@ enum cmd_module_type {
 	UB_MOD = 11,
 	HCCS_MOD = 16,
 	SDMA_MOD = 17,
+	CORE_RING_MOD = 18,
 	RAS_MOD = 19
 };
 

@@ -113,6 +113,7 @@ struct nic_fd_key_cfg {
 struct nic_fd_hw_info {
 	uint8_t mode;
 	uint8_t enable;
+	/* Max key bit width hwardware supported and unrelated to mode. */
 	uint16_t key_max_bit;
 	struct nic_fd_alloc alloc;
 	struct nic_fd_key_cfg key_cfg[NIC_FD_STAGE_NUM];

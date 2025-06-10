@@ -106,7 +106,7 @@ static int hikp_hccs_cmd_send(struct hikp_cmd_header *req_header,
 		goto out;
 	}
 	if (cur_blk_size > buff_len ||
-		cur_blk_size > sizeof(struct hikp_hccs_rsp)) {
+		cur_blk_size > sizeof(rsp->rsp_data)) {
 		HIKP_ERROR_PRINT("The firmware data size (%" PRIu64 ") greater than "
 				 "sw buffer(%zu) or hikp_hccs_rsp size(%zu).\n",
 				 cur_blk_size, buff_len, sizeof(struct hikp_hccs_rsp));

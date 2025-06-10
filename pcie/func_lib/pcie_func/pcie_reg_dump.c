@@ -397,7 +397,12 @@ static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
 	memset(dumpreg_log_file, 0, sizeof(dumpreg_log_file));
 	(void)strncpy((char *)dumpreg_log_file, file_name, MAX_LOG_NAME_LEN + 1);
 
-	(void)remove((const char *)file_name);
+	if (access((const char *)file_name, F_OK) == 0) {
+		if (remove((const char *)file_name)) {
+			Err("remove %s failed, errno is %d\n", file_name, errno);
+			return -errno;
+		}
+	}
 	/* Add write permission to the file */
 	fd_file = fopen(file_name, "w+");
 	if (fd_file == NULL) {

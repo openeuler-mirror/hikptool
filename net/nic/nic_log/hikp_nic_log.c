@@ -56,30 +56,45 @@ static int hikp_nic_write_data_to_file(uint8_t *data, uint32_t len)
 	size_t write_cnt;
 	FILE *fp = NULL;
 	int ret;
+	int rc;
 
 	ret = generate_file_name(file_name, MAX_LOG_NAME_LEN, (const unsigned char *)"m7");
 	if (ret < 0)
 		return ret;
 
-	ret = snprintf(g_log_path, sizeof(g_log_path), HIKP_LOG_DIR_PATH"%s", file_name);
-	if (ret < 0) {
+	rc = snprintf(g_log_path, sizeof(g_log_path), HIKP_LOG_DIR_PATH"%s", file_name);
+	if (rc < 0) {
 		HIKP_ERROR_PRINT("creat log file path fail.\n");
 		return -EIO;
 	}
-	(void)remove((const char *)g_log_path);
+
+	if (access((const char *)g_log_path, F_OK) == 0) {
+		if (remove((const char *)g_log_path)) {
+			HIKP_ERROR_PRINT("remove %s failed, errno is %d\n", g_log_path, errno);
+			return -errno;
+		}
+	}
+
 	fp = fopen(g_log_path, "w+");
 	if (fp == NULL) {
 		HIKP_ERROR_PRINT("open %s failed, errno is %d\n", g_log_path, errno);
 		return -errno;
 	}
 	write_cnt = fwrite(data, 1, len, fp);
-	if (write_cnt != len)
-		HIKP_ERROR_PRINT("write %s failed, write cnt %lu.\n", g_log_path, write_cnt);
+	if (write_cnt != len) {
+		HIKP_ERROR_PRINT("write %s failed, write cnt %zu.\n", g_log_path, write_cnt);
+		ret = -EAGAIN;
+	}
 
 	printf("dump m7 log completed, log file: %s.\n", g_log_path);
-	(void)chmod(g_log_path, 0440);
-	(void)fclose(fp);
-	return 0;
+	/* Set the file permission to 0440 */
+	if (chmod(g_log_path, 0440))
+		HIKP_ERROR_PRINT("chmod %s failed, errno is %d\n", g_log_path, errno);
+
+	if (fclose(fp))
+		HIKP_ERROR_PRINT("close %s failed, errno is %d\n", g_log_path, errno);
+
+	return ret;
 }
 
 static int hikp_nic_get_blk_log(struct hikp_cmd_ret **cmd_ret, uint32_t blk_id)

@@ -265,6 +265,7 @@ static const char *g_scc_common_reg_name[] = {
 	"SCC_INPUT_REQ_CNT",
 	"SCC_OUTPUT_RSP_CNT",
 	"SCC_INOUT_CNT_CFG",
+	"SCC_CUR_PROCESS_TIME",
 };
 
 static const char *g_scc_dcqcn_reg_name[] = {

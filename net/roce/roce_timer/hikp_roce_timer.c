@@ -69,6 +69,14 @@ static const char *g_timer_qpc_reg_name[] = {
 	"ROCEE_TIMER_QPC_ECC_ERR",
 	"ROCEE_TIMER_QPC_ECC_ERR_INFO",
 	"START_TYPE_ERR_CNT",
+	"FIFO_CNT_TH0",
+	"FIFO_CNT_TH1",
+	"FIFO_CNT_TH2",
+	"FIFO_CNT_TH3",
+	"FIFO_CNT_TH4",
+	"FIFO_CNT_TH5",
+	"FIFO_CNT_TH6",
+	"FIFO_CNT_TH7",
 };
 
 static const char *g_timer_cqc_reg_name[] = {

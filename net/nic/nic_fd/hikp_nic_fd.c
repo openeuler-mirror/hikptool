@@ -841,6 +841,7 @@ static void hikp_nic_fd_data_free(union nic_fd_feature_info *fd_data)
 static int hikp_nic_check_fd_hw_info(const struct nic_fd_hw_info *hw_info,
 				     const struct fd_feature_cmd *fd_cmd)
 {
+	uint16_t max_key_bytes, active_key_bits;
 	uint16_t i;
 
 	if (strcmp(fd_cmd->feature_name, NIC_FD_RULES_NAME) == 0) {
@@ -862,6 +863,14 @@ static int hikp_nic_check_fd_hw_info(const struct nic_fd_hw_info *hw_info,
 						 i + 1, hw_info->key_cfg[i].key_select);
 				return -EOPNOTSUPP;
 			}
+		}
+
+		max_key_bytes = hikp_nic_get_tcam_data_size(hw_info->key_max_bit);
+		active_key_bits = hikp_nic_get_max_key_len(hw_info->mode);
+		if (active_key_bits > max_key_bytes * HIKP_BITS_PER_BYTE) {
+			HIKP_ERROR_PRINT("The active tcam bits(%u) is more than the max key bits(%d).\n",
+					 active_key_bits, max_key_bytes * HIKP_BITS_PER_BYTE);
+			return -EINVAL;
 		}
 	} else if (strcmp(fd_cmd->feature_name, NIC_FD_COUNTER_NAME) == 0) {
 		if (hw_info->alloc.stage_counter_num[NIC_FD_STAGE_1] == 0) {

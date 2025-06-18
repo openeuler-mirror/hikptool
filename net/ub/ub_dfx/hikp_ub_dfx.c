@@ -104,6 +104,7 @@ static int hikp_ub_get_first_blk_dfx(struct ub_dfx_rsp_head *rsp_head, uint32_t 
 	struct ub_dfx_rsp *dfx_rsp = NULL;
 	struct hikp_cmd_ret *cmd_ret;
 	uint32_t rsp_data_size;
+	uint8_t cur_blk_size;
 	int ret;
 
 	ret = hikp_ub_dfx_get_blk_data(&cmd_ret, 0, g_ub_dfx_param.sub_cmd_code);
@@ -127,18 +128,20 @@ static int hikp_ub_get_first_blk_dfx(struct ub_dfx_rsp_head *rsp_head, uint32_t 
 	}
 
 	rsp_data_size = cmd_ret->rsp_data_num * REP_DATA_BLK_SIZE;
-	if (rsp_data_size - sizeof(dfx_rsp->rsp_head) < rsp_head->cur_blk_size ||
-	    *max_dfx_size < rsp_head->cur_blk_size) {
-		HIKP_ERROR_PRINT("blk0 reg_data copy size error, rsp data size: %u, data size: %hhu, max size: %u\n",
-				 rsp_data_size, rsp_head->cur_blk_size, *max_dfx_size);
+	cur_blk_size = rsp_head->cur_blk_size;
+	if (rsp_data_size - sizeof(dfx_rsp->rsp_head) < cur_blk_size ||
+	    *max_dfx_size < cur_blk_size || cur_blk_size > sizeof(dfx_rsp->reg_data)) {
+		HIKP_ERROR_PRINT("blk0 reg_data copy size error, rsp data size: %u, "
+				 "data size: %hhu, max size: %u\n",
+				 rsp_data_size, cur_blk_size, *max_dfx_size);
 		free(*reg_data);
 		*reg_data = NULL;
 		ret = -EINVAL;
 		goto err_out;
 	}
-	memcpy(*reg_data, dfx_rsp->reg_data, rsp_head->cur_blk_size);
+	memcpy(*reg_data, dfx_rsp->reg_data, cur_blk_size);
 
-	*max_dfx_size -= (uint32_t)rsp_head->cur_blk_size;
+	*max_dfx_size -= (uint32_t)cur_blk_size;
 err_out:
 	hikp_cmd_free(&cmd_ret);
 
@@ -151,6 +154,7 @@ static int hikp_ub_get_blk_dfx(struct ub_dfx_rsp_head *rsp_head, uint32_t blk_id
 	struct ub_dfx_rsp *dfx_rsp = NULL;
 	struct hikp_cmd_ret *cmd_ret;
 	uint32_t rsp_data_size;
+	uint8_t cur_blk_size;
 	int ret;
 
 	ret = hikp_ub_dfx_get_blk_data(&cmd_ret, blk_id, g_ub_dfx_param.sub_cmd_code);
@@ -160,15 +164,17 @@ static int hikp_ub_get_blk_dfx(struct ub_dfx_rsp_head *rsp_head, uint32_t blk_id
 	dfx_rsp = (struct ub_dfx_rsp *)(cmd_ret->rsp_data);
 	*rsp_head = dfx_rsp->rsp_head;
 	rsp_data_size = cmd_ret->rsp_data_num * REP_DATA_BLK_SIZE;
-	if (rsp_data_size - sizeof(dfx_rsp->rsp_head) < rsp_head->cur_blk_size ||
-	    rsp_head->cur_blk_size > *max_dfx_size) {
-		HIKP_ERROR_PRINT("blk%u reg_data copy size error, rsp data size: %u, data size: %hhu, max size: %u\n",
-				 blk_id, rsp_data_size, rsp_head->cur_blk_size, *max_dfx_size);
+	cur_blk_size = rsp_head->cur_blk_size;
+	if (rsp_data_size - sizeof(dfx_rsp->rsp_head) < cur_blk_size ||
+	    *max_dfx_size < cur_blk_size || cur_blk_size > sizeof(dfx_rsp->reg_data)) {
+		HIKP_ERROR_PRINT("blk%u reg_data copy size error, rsp data size: %u, "
+				 "data size: %hhu, max size: %u\n",
+				 blk_id, rsp_data_size, cur_blk_size, *max_dfx_size);
 		ret = -EINVAL;
 		goto err_out;
 	}
-	memcpy(reg_data, dfx_rsp->reg_data, rsp_head->cur_blk_size);
-	*max_dfx_size -= (uint32_t)rsp_head->cur_blk_size;
+	memcpy(reg_data, dfx_rsp->reg_data, cur_blk_size);
+	*max_dfx_size -= (uint32_t)cur_blk_size;
 
 err_out:
 	hikp_cmd_free(&cmd_ret);

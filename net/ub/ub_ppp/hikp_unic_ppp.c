@@ -90,6 +90,7 @@ static int hikp_unic_ppp_get_blk(struct hikp_cmd_header *req_header,
 	struct hikp_cmd_ret *cmd_ret;
 	struct unic_ppp_rsp *rsp;
 	uint32_t rsp_data_size;
+	uint8_t cur_blk_size;
 	int ret = 0;
 
 	cmd_ret = hikp_cmd_alloc(req_header, req_data, sizeof(*req_data));
@@ -100,14 +101,16 @@ static int hikp_unic_ppp_get_blk(struct hikp_cmd_header *req_header,
 
 	rsp = (struct unic_ppp_rsp *)cmd_ret->rsp_data;
 	rsp_data_size = cmd_ret->rsp_data_num * REP_DATA_BLK_SIZE;
-	if (rsp_data_size - sizeof(rsp->rsp_head) < rsp->rsp_head.cur_blk_size ||
-	    buf_len < rsp->rsp_head.cur_blk_size) {
-		HIKP_ERROR_PRINT("block context copy size error, data size: %u, buffer size: %zu, blk size: %hhu.\n",
-				 rsp_data_size, buf_len, rsp->rsp_head.cur_blk_size);
+	cur_blk_size = rsp->rsp_head.cur_blk_size;
+	if (rsp_data_size - sizeof(rsp->rsp_head) < cur_blk_size ||
+	    buf_len < cur_blk_size || cur_blk_size > sizeof(rsp->rsp_data)) {
+		HIKP_ERROR_PRINT("block context copy size error, data size: %u, "
+				 "buffer size: %zu, blk size: %hhu.\n",
+				 rsp_data_size, buf_len, cur_blk_size);
 		ret = -EINVAL;
 		goto out;
 	}
-	memcpy(buf, rsp->rsp_data, rsp->rsp_head.cur_blk_size);
+	memcpy(buf, rsp->rsp_data, cur_blk_size);
 	memcpy(rsp_head, &rsp->rsp_head, sizeof(struct unic_ppp_rsp_head));
 
 out:

@@ -90,6 +90,9 @@ static const char *g_pkt_reg_name[] = {
 	"ROCEE_CNP_PKT_TX_CNT",
 	"TRP_GET_MPT_ERR_PKT_CNT",
 	"TRP_GET_IRRL_ERR_PKT_CNT",
+	"GEN_AC_CQ_CQE_CNT",
+	"GEN_AC_CQ_POE_CNT",
+	"GEN_AC_CQ_NOTIFY_CNT",
 };
 
 static void hikp_roce_pkt_print(uint32_t total_block_num,

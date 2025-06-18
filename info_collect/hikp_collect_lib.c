@@ -102,10 +102,15 @@ int hikp_create_save_path(const char *name)
 {
 	char collect_name[MAX_LOG_NAME_LEN] = {0};
 	time_t time_seconds = time(0);
-	struct tm timeinfo;
+	struct tm timeinfo, *ptm;
 	int ret;
 
-	localtime_r(&time_seconds, &timeinfo);
+	ptm = localtime_r(&time_seconds, &timeinfo);
+	if (!ptm) {
+		HIKP_ERROR_PRINT("failed to get time info.\n");
+		return -EINVAL;
+	}
+
 	if (name != NULL)
 		(void)snprintf((char *)collect_name, MAX_LOG_NAME_LEN,
 			"collect_%s_%04d%02d%02d%02d%02d%02d",
@@ -201,12 +206,22 @@ static int hikp_collect_cmd_exec(const struct info_collect_cmd *cmd)
 		 * process just like when it succeeds.
 		 * */
 		if (execvp(cmd->args[ARGS_IDX0], cmd->args) < 0) {
-			HIKP_ERROR_PRINT("execvp failed: %d\n", errno);
+			HIKP_ERROR_PRINT("%s: execvp failed %d\n", cmd->args[ARGS_IDX0], errno);
 			exit(EXIT_FAILURE);
 		}
 	} else if (pid > 0) {
 		/* Parent process */
-		waitpid(pid, &status, 0);
+		if (waitpid(pid, &status, 0) < 0) {
+			HIKP_ERROR_PRINT("%s: waitpid() failure %d\n",
+					 cmd->args[ARGS_IDX0], errno);
+		} else if (WIFEXITED((unsigned int)status) &&
+			   (WEXITSTATUS((unsigned int)status) != 0)) {
+			HIKP_ERROR_PRINT("%s: child exit %u\n",
+					 cmd->args[ARGS_IDX0],
+					 WEXITSTATUS((unsigned int)status));
+			if (strcmp(cmd->args[ARGS_IDX0], "tar") == 0)
+				return -ECHILD;
+		}
 	} else {
 		HIKP_ERROR_PRINT("fork failed!\n");
 		return -ECHILD;

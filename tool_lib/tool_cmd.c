@@ -206,7 +206,15 @@ void command_parse_and_excute(const int argc, const char **argv)
 		snprintf(major_cmd->err_str, sizeof(major_cmd->err_str), "locking failed.");
 		goto PARSE_OUT;
 	}
-	major_cmd->execute(major_cmd);
+
+	if (major_cmd->execute) {
+		major_cmd->execute(major_cmd);
+	} else {
+		major_cmd->err_no = -EPERM;
+		snprintf(major_cmd->err_str, sizeof(major_cmd->err_str),
+			 "Command execute is null.");
+	}
+
 	tool_unlock(&lock_fd, UDA_FLOCK_BLOCK);
 PARSE_OUT:
 	if (major_cmd->err_no)

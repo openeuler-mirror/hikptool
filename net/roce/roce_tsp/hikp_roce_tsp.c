@@ -167,6 +167,10 @@ static const char *g_tsp_common_reg_name[] = {
 	"TSP_INDRECT_RD_CTRL",
 	"TSP_INDRECT_RD_DATA",
 	"ROCEE_TSP_OVF",
+	"ROCE_TPP_DATA_FIFO_ST",
+	"ROCE_TPP_DATA_ALM",
+	"ROCE_TPP_DATA_STA0",
+	"ROCE_TPP_DATA_STA1",
 };
 
 static const char *g_tsp_tdp_reg_name[] = {

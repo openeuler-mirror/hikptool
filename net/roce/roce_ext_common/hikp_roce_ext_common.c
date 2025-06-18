@@ -96,6 +96,7 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 	struct reg_data *reg = &output->reg;
 	struct hikp_cmd_ret *cmd_ret;
 	uint32_t remain_block;
+	size_t reg_data_size;
 	size_t cur_size;
 	int ret;
 
@@ -144,6 +145,15 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 	}
 
 	cur_size = res_head->cur_block_num * sizeof(uint32_t);
+	/*calculates the size of reg_data in the roce_ext_res_param structure.*/
+	reg_data_size = cmd_ret->rsp_data_num * sizeof(uint32_t) - sizeof(struct roce_ext_head);
+	if (cur_size + reg_array_length * sizeof(uint32_t) > reg_data_size) {
+		printf("hikptool roce_%s cur size error, cur_size: %zu, reg_data_size: %zu.\n",
+		       cmd_name, cur_size, reg_data_size);
+		ret = -EINVAL;
+		hikp_roce_ext_reg_data_free(reg);
+		goto get_data_error;
+	}
 	memcpy(reg->offset + block_id,
 	       (uint32_t *)&roce_ext_res->reg_data, cur_size);
 	memcpy(reg->data + block_id,

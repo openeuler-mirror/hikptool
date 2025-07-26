@@ -12,6 +12,7 @@
  */
 
 #include "hikp_roce_ext_common.h"
+#include <stddef.h>
 
 static void hikp_roce_ext_reg_data_free(struct reg_data *reg)
 {
@@ -43,6 +44,7 @@ static const struct cmd_type_info {
 	{GET_ROCEE_RST_CMD, "RST", ROCE_HIKP_RST_REG_NUM},
 	{GET_ROCEE_GLOBAL_CFG_CMD, "GLOBAL_CFG", ROCE_HIKP_GLOBAL_CFG_REG_NUM},
 	{GET_ROCEE_BOND_CMD, "BOND", ROCE_HIKP_BOND_REG_NUM},
+	{GET_ROCEE_DFX_STA_CMD, "DFX_STA", ROCE_HIKP_DFX_STA_NUM_EXT},
 };
 
 static int get_cmd_info_table_idx(enum roce_cmd_type cmd_type)
@@ -95,9 +97,11 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 	struct roce_ext_res_param *roce_ext_res;
 	struct reg_data *reg = &output->reg;
 	struct hikp_cmd_ret *cmd_ret;
+	size_t reg_data_offset;
 	uint32_t remain_block;
-	size_t reg_data_size;
-	size_t cur_size;
+	size_t offset_size;
+	size_t data_size;
+	void *dst_data;
 	int ret;
 
 	/* reg_array_length greater than or equal to 0 ensures that cmd_name
@@ -117,6 +121,7 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 
 	if (block_id == 0) {
 		res_head->total_block_num = roce_ext_res->head.total_block_num;
+		res_head->flags = roce_ext_res->head.flags;
 		if (!res_head->total_block_num) {
 			printf("hikptool roce_%s total_block_num error!\n",
 				cmd_name);
@@ -124,10 +129,12 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 			goto get_data_error;
 		}
 		reg->offset = (uint32_t *)calloc(res_head->total_block_num, sizeof(uint32_t));
-		reg->data = (uint32_t *)calloc(res_head->total_block_num, sizeof(uint32_t));
+		output->per_val_size = res_head->flags & ROCE_HIKP_DATA_U64_FLAG ?
+			sizeof(uint64_t) : sizeof(uint32_t);
+		reg->data = calloc(res_head->total_block_num, output->per_val_size);
 		if ((reg->offset == NULL) || (reg->data == NULL)) {
-			printf("hikptool roce_%s alloc log memmory 0x%zx failed!\n",
-				cmd_name, res_head->total_block_num * sizeof(uint32_t));
+			printf("hikptool roce_%s alloc log memmory failed!\n",
+				cmd_name);
 			ret = -ENOMEM;
 			hikp_roce_ext_reg_data_free(reg);
 			goto get_data_error;
@@ -144,20 +151,32 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 		goto get_data_error;
 	}
 
-	cur_size = res_head->cur_block_num * sizeof(uint32_t);
-	/*calculates the size of reg_data in the roce_ext_res_param structure.*/
-	reg_data_size = cmd_ret->rsp_data_num * sizeof(uint32_t) - sizeof(struct roce_ext_head);
-	if (cur_size + reg_array_length * sizeof(uint32_t) > reg_data_size) {
-		printf("hikptool roce_%s cur size error, cur_size: %zu, reg_data_size: %zu.\n",
-		       cmd_name, cur_size, reg_data_size);
+	/*
+	 * The data structure `roce_ext_res_param_u64` returned by the
+	 * firmware is 8-byte aligned, so the offset of the `reg_data`
+	 * member needs to be adjusted accordingly.
+	 */
+	if (res_head->flags & ROCE_HIKP_DATA_U64_FLAG)
+		reg_data_offset = offsetof(struct roce_ext_res_param_u64, reg_data);
+	else
+		reg_data_offset = offsetof(struct roce_ext_res_param, reg_data);
+
+	offset_size = res_head->cur_block_num * sizeof(uint32_t);
+	data_size = res_head->cur_block_num * output->per_val_size;
+	dst_data = reg->data_u32 + block_id * output->per_val_size / sizeof(uint32_t);
+	/* Avoid memcpy out-of-bounds. */
+	if ((reg_data_offset + data_size) / sizeof(uint32_t) + reg_array_length > cmd_ret->rsp_data_num) {
+		printf("hikptool roce_%s cur size error, data_size: %zu, rsp_data_num: %u.\n",
+		       cmd_name, data_size, cmd_ret->rsp_data_num);
 		ret = -EINVAL;
 		hikp_roce_ext_reg_data_free(reg);
 		goto get_data_error;
 	}
 	memcpy(reg->offset + block_id,
-	       (uint32_t *)&roce_ext_res->reg_data, cur_size);
-	memcpy(reg->data + block_id,
-	       (uint32_t *)&roce_ext_res->reg_data + reg_array_length, cur_size);
+	       (uint32_t *)&roce_ext_res->head + reg_data_offset / sizeof(uint32_t),
+	       offset_size);
+	memcpy(dst_data, (uint32_t *)&roce_ext_res->head + reg_data_offset
+	       / sizeof(uint32_t) + reg_array_length, data_size);
 
 get_data_error:
 	hikp_cmd_free(&cmd_ret);
@@ -172,15 +191,20 @@ static void hikp_roce_ext_print(enum roce_cmd_type cmd_type,
 	const char *cmd_name = get_cmd_name(cmd_type);
 	uint8_t arr_len = output->reg_name.arr_len;
 	uint32_t *offset = output->reg.offset;
-	uint32_t *data = output->reg.data;
+	struct reg_data *reg = &output->reg;
+	const char *name;
 	uint32_t i;
 
 	printf("**************%s INFO*************\n", cmd_name);
 	printf("%-40s[addr_offset] : reg_data\n", "reg_name");
-	for (i = 0; i < total_block_num; i++)
-		printf("%-40s[0x%08X] : 0x%08X\n",
-		       i < arr_len ? reg_name[i] : "",
-		       offset[i], data[i]);
+	for (i = 0; i < total_block_num; i++) {
+		name = i < arr_len ? reg_name[i] : "";
+		printf("%-40s[0x%08X] : ", name, offset[i]);
+		if (output->res_head.flags & ROCE_HIKP_DATA_U64_FLAG)
+			printf("0x%016lX\n", reg->data_u64[i]);
+		else
+			printf("0x%08X\n", reg->data_u32[i]);
+	}
 	printf("************************************\n");
 }
 

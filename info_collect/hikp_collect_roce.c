@@ -26,6 +26,7 @@
 #include "hikp_roce_tsp.h"
 #include "hikp_roce_scc.h"
 #include "hikp_roce_gmv.h"
+#include "hikp_roce_dfx_sta.h"
 
 static void collect_roce_devinfo_log(void)
 {
@@ -121,6 +122,26 @@ static int collect_hikp_roce_gmv_log(void *nic_name)
 		hikp_roce_set_gmv_index(gmv_index);
 		hikp_roce_gmv_execute(&self);
 	}
+
+	return 0;
+}
+
+static int collect_hikp_roce_dfx_sta_log(void *nic_name)
+{
+	struct major_cmd_ctrl self = {0};
+	struct hikp_cmd_type type = {0};
+	int ret;
+
+	self.cmd_ptr = &type;
+	ret = hikp_roce_set_dfx_sta_bdf((char *)nic_name);
+	if (ret) {
+		HIKP_ERROR_PRINT("failed to set roce_dfx_sta bdf for %s.\n",
+				 (char *)nic_name);
+		return ret;
+	}
+
+	printf("hikptool roce_dfx_sta -i %s\n", (char *)nic_name);
+	hikp_roce_dfx_sta_execute(&self);
 
 	return 0;
 }
@@ -466,6 +487,7 @@ static int collect_one_roce_hikp_log(void *net_name)
 		{ "roce_tsp", collect_hikp_roce_tsp_log },
 		{ "roce_scc", collect_hikp_roce_scc_log },
 		{ "roce_gmv", collect_hikp_roce_gmv_log },
+		{ "roce_dfx_sta", collect_hikp_roce_dfx_sta_log },
 	};
 	size_t i;
 

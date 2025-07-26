@@ -103,6 +103,7 @@ enum roce_cmd_type {
 	GET_ROCEE_RST_CMD,
 	GET_ROCEE_GLOBAL_CFG_CMD,
 	GET_ROCEE_BOND_CMD,
+	GET_ROCEE_DFX_STA_CMD,
 };
 
 enum ub_cmd_type {

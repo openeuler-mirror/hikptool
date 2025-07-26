@@ -17,6 +17,7 @@
 #include "hikp_net_lib.h"
 
 #define ROCE_MAX_REG_NUM (NET_MAX_REQ_DATA_NUM - 1)
+#define ROCE_MAX_U64_REG_NUM 18
 
 #define ROCE_HIKP_CAEP_REG_NUM_EXT ROCE_MAX_REG_NUM
 #define ROCE_HIKP_GMV_REG_NUM_EXT ROCE_MAX_REG_NUM
@@ -30,11 +31,15 @@
 #define ROCE_HIKP_RST_REG_NUM ROCE_MAX_REG_NUM
 #define ROCE_HIKP_GLOBAL_CFG_REG_NUM ROCE_MAX_REG_NUM
 #define ROCE_HIKP_BOND_REG_NUM ROCE_MAX_REG_NUM
+#define ROCE_HIKP_DFX_STA_NUM_EXT ROCE_MAX_U64_REG_NUM
+
+#define ROCE_HIKP_DATA_U64_FLAG 1 << 0
 
 struct roce_ext_head {
 	uint8_t total_block_num;
 	uint8_t cur_block_num;
-	uint16_t reserved;
+	uint8_t flags;
+	uint8_t reserved;
 };
 
 struct roce_ext_res_param {
@@ -42,9 +47,25 @@ struct roce_ext_res_param {
 	uint32_t reg_data[0];
 };
 
+struct roce_ext_res_data_u64 {
+	uint32_t offset[ROCE_MAX_U64_REG_NUM];
+	uint64_t data[ROCE_MAX_U64_REG_NUM];
+	uint32_t rsv[4];
+};
+
+struct roce_ext_res_param_u64 {
+	struct roce_ext_head head;
+	uint32_t rsv;
+	struct roce_ext_res_data_u64 reg_data;
+};
+
 struct reg_data {
 	uint32_t *offset;
-	uint32_t *data;
+	union {
+		void *data;
+		uint32_t *data_u32;
+		uint64_t *data_u64;
+	};
 };
 
 struct roce_ext_reg_name {
@@ -55,6 +76,7 @@ struct roce_ext_reg_name {
 struct roce_ext_res_output {
 	struct roce_ext_head res_head;
 	struct reg_data reg;
+	uint32_t per_val_size;
 	struct roce_ext_reg_name reg_name;
 };
 

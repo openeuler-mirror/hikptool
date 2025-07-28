@@ -247,6 +247,7 @@ static void hikp_nic_print_tuple(const struct key_info *tuple_key,
 #define HIKP_NIC_FD_TUPLE_KEY_LEN_6_BYTES   6
 #define HIKP_NIC_FD_TUPLE_KEY_LEN_4_BYTES   4
 #define HIKP_NIC_FD_TUN_VNI_LEN             3
+	uint32_t temp_value = 0;
 	uint32_t tun_vni = 0;
 	uint64_t mask = 0;
 	uint8_t i;
@@ -271,7 +272,8 @@ static void hikp_nic_print_tuple(const struct key_info *tuple_key,
 	case OUTER_ETH_TYPE:
 	case INNER_ETH_TYPE:
 		printf("\t  %s[mask=0x%" PRIx64 "]: ", tuple_key->key_name, mask);
-		printf("0x%x\n", *(uint16_t *)tcam_y);
+		memcpy(&temp_value, tcam_y, sizeof(uint16_t));
+		printf("0x%x\n", temp_value);
 		break;
 	case OUTER_VLAN_TAG_FST:
 	case OUTER_VLAN_TAG_SEC:
@@ -286,7 +288,8 @@ static void hikp_nic_print_tuple(const struct key_info *tuple_key,
 	case INNER_SRC_PORT:
 	case INNER_DST_PORT:
 		printf("\t  %s[mask=0x%" PRIx64 "]: ", tuple_key->key_name, mask);
-		printf("%u\n", *(uint16_t *)tcam_y);
+		memcpy(&temp_value, tcam_y, sizeof(uint16_t));
+		printf("%u\n", temp_value);
 		break;
 	case OUTER_IP_TOS:
 	case INNER_IP_TOS:
@@ -306,7 +309,8 @@ static void hikp_nic_print_tuple(const struct key_info *tuple_key,
 	case OUTER_L4_RSV:
 	case INNER_L4_RSV:
 		printf("\t  %s[mask=0x%" PRIx64 "]: ", tuple_key->key_name, mask);
-		printf("%u\n", *(uint32_t *)tcam_y);
+		memcpy(&temp_value, tcam_y, sizeof(uint32_t));
+		printf("%u\n", temp_value);
 		break;
 	case OUTER_TUN_VNI:
 		for (i = 0; i < HIKP_NIC_FD_TUN_VNI_LEN; i++)

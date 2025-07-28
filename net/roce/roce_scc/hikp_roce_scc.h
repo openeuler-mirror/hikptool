@@ -23,6 +23,18 @@
 		#x, x              \
 	}
 
+#define MAX_PARSE_NUM                       5
+#define ROCEE_SCC_SCH_EN_MASK               GENMASK(24, 24)
+#define ROCEE_TM_SCH_EN_MASK                GENMASK(23, 23)
+#define ROCEE_SCH_UNIT_VALUE_MASK           GENMASK(22, 16)
+#define ROCEE_SCC_WL_CFG_MASK               GENMASK(15, 12)
+#define ROCEE_SCC_TOKEN_VALUE_MASK          GENMASK(11, 8)
+#define ROCEE_SCC_SCH_EN_SHIFT              24
+#define ROCEE_TM_SCH_EN_SHIFT               23
+#define ROCEE_SCH_UNIT_VALUE_SHIFT          16
+#define ROCEE_SCC_WL_CFG_SHIFT              12
+#define ROCEE_SCC_TOKEN_VALUE_SHIFT         8
+
 struct roce_scc_req_param {
 	struct bdf_t bdf;
 	uint8_t reset_flag;
@@ -33,6 +45,7 @@ struct cmd_roce_scc_param_t {
 	struct tool_target target;
 	uint8_t reset_flag;
 	uint32_t sub_cmd;
+	uint8_t verbose_flag;
 };
 
 struct roce_scc_head {
@@ -64,10 +77,12 @@ enum roce_scc_type {
 	HC3,
 	LDCP,
 	CFG,
+	VERBOSE,
 };
 
 int hikp_roce_set_scc_bdf(char *nic_name);
 void hikp_roce_set_scc_submodule(uint32_t module);
 void hikp_roce_scc_execute(struct major_cmd_ctrl *self);
+void hikp_roce_set_scc_verbose_en(uint8_t verbose_en);
 
 #endif /* HIKP_ROCE_SCC_H */

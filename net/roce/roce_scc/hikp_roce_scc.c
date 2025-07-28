@@ -34,6 +34,11 @@ void hikp_roce_set_scc_submodule(uint32_t module)
 	g_roce_scc_param_t.sub_cmd = module;
 }
 
+void hikp_roce_set_scc_verbose_en(uint8_t verbose_en)
+{
+	g_roce_scc_param_t.verbose_flag = verbose_en;
+}
+
 static int hikp_roce_scc_help(struct major_cmd_ctrl *self, const char *argv)
 {
 	HIKP_SET_USED(argv);
@@ -47,6 +52,8 @@ static int hikp_roce_scc_help(struct major_cmd_ctrl *self, const char *argv)
 	       "COMMON/DCQCN/DIP/HC3/LDCP/CFG");
 	printf("    %s, %-25s %s\n", "-c", "--clear=<clear>",
 	       "[Only Work for COMMON]clear param count registers");
+	printf("    %s, %-25s %s\n", "-v", "--verbose=<verbose>",
+	       "[Only Work for CFG]see more information");
 	printf("\n");
 
 	return 0;
@@ -88,6 +95,23 @@ static int hikp_roce_scc_clear_set(struct major_cmd_ctrl *self, const char *argv
 	HIKP_SET_USED(argv);
 
 	g_roce_scc_param_t.reset_flag = 1;
+
+	return 0;
+}
+
+static int hikp_roce_scc_verbose_set(struct major_cmd_ctrl *self, const char *argv)
+{
+	HIKP_SET_USED(argv);
+
+	/* Currently, only the cfg subcommand is supported for parsing. */
+	self->err_no = (g_roce_scc_param_t.sub_cmd == CFG) ? 0 : -EINVAL;
+	if (self->err_no) {
+		snprintf(self->err_str, sizeof(self->err_str),
+			 "only the cfg subcommand is supported for parsing.");
+		return -EINVAL;
+	}
+
+	hikp_roce_set_scc_verbose_en(0x1);
 
 	return 0;
 }
@@ -266,6 +290,8 @@ static const char *g_scc_common_reg_name[] = {
 	"SCC_OUTPUT_RSP_CNT",
 	"SCC_INOUT_CNT_CFG",
 	"SCC_CUR_PROCESS_TIME",
+	"SCC_AVE_PROCESS_TOTAL_TIME",
+	"SCC_AVE_PROCESS_TOTAL_CNT",
 };
 
 static const char *g_scc_dcqcn_reg_name[] = {
@@ -319,9 +345,35 @@ static const struct reg_name_info {
 	{CFG, g_scc_cfg_reg_name, HIKP_ARRAY_SIZE(g_scc_cfg_reg_name)},
 };
 
+struct roce_scc_parse_info {
+	char *field_offset;
+	uint32_t mask_offset;
+	uint32_t shift_offset;
+} g_scc_parse_info[] = {
+	{"ROCEE_SCC_SCH_EN", ROCEE_SCC_SCH_EN_MASK, ROCEE_SCC_SCH_EN_SHIFT},
+	{"ROCEE_TM_SCH_EN", ROCEE_TM_SCH_EN_MASK, ROCEE_TM_SCH_EN_SHIFT},
+	{"ROCEE_SCH_UNIT_VALUE", ROCEE_SCH_UNIT_VALUE_MASK, ROCEE_SCH_UNIT_VALUE_SHIFT},
+	{"ROCEE_SCC_WL_CFG", ROCEE_SCC_WL_CFG_MASK, ROCEE_SCC_WL_CFG_SHIFT},
+	{"ROCEE_SCC_TOKEN_VALUE", ROCEE_SCC_TOKEN_VALUE_MASK, ROCEE_SCC_TOKEN_VALUE_SHIFT},
+};
+
+static void hikp_roce_scc_parse(const uint32_t *reg_arr, uint8_t reg_len, uint32_t *parse_data,
+				uint8_t parse_data_len)
+{
+	uint32_t parse_id = 0;
+	uint8_t reg_id;
+
+	for (reg_id = 0; reg_id < reg_len; reg_id++)
+		for (; parse_id < parse_data_len; parse_id++)
+			parse_data[parse_id] =
+				(reg_arr[reg_id] & g_scc_parse_info[parse_id].mask_offset) >>
+				g_scc_parse_info[parse_id].shift_offset;
+}
+
 static void hikp_roce_scc_print(uint8_t total_block_num,
 				const uint32_t *offset, const uint32_t *data)
 {
+	uint32_t parse_data[MAX_PARSE_NUM] = {0};
 	const char **reg_name;
 	uint8_t arr_len;
 	uint32_t i;
@@ -346,6 +398,13 @@ static void hikp_roce_scc_print(uint8_t total_block_num,
 		printf("%-40s[0x%08X] : 0x%08X\n",
 		       i < arr_len ? reg_name[i] : "",
 		       offset[i], data[i]);
+
+	if (g_roce_scc_param_t.verbose_flag) {
+		hikp_roce_scc_parse(data, total_block_num, parse_data, MAX_PARSE_NUM);
+		for (i = 0; i < MAX_PARSE_NUM; i++)
+			printf("%-40s             : 0x%08X\n",
+				g_scc_parse_info[i].field_offset, parse_data[i]);
+	}
 	printf("***********************************\n");
 }
 
@@ -413,6 +472,7 @@ static void cmd_roce_scc_init(void)
 	cmd_option_register("-i", "--interface", true, hikp_roce_scc_target);
 	cmd_option_register("-m", "--module", true, hikp_roce_scc_module_select);
 	cmd_option_register("-c", "--clear", false, hikp_roce_scc_clear_set);
+	cmd_option_register("-v", "--verbose", false, hikp_roce_scc_verbose_set);
 }
 
 HIKP_CMD_DECLARE("roce_scc", "get or clear roce_scc registers information", cmd_roce_scc_init);

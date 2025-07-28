@@ -27,7 +27,7 @@ struct hikp_cmd_ret {
 	uint32_t status;
 	uint32_t version;
 	uint32_t rsp_data_num;
-	uint32_t rsp_data[0];
+	uint32_t rsp_data[0] __attribute__((aligned(__SIZEOF_LONG__)));
 };
 
 /* Module code */

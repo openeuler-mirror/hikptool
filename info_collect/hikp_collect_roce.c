@@ -180,8 +180,9 @@ static int collect_hikp_roce_scc_log(void *nic_name)
 	hikp_roce_set_scc_submodule(LDCP);
 	hikp_roce_scc_execute(&self);
 
-	printf("hikptool roce_scc -i %s -m CFG\n", (char *)nic_name);
+	printf("hikptool roce_scc -i %s -m CFG -v\n", (char *)nic_name);
 	hikp_roce_set_scc_submodule(CFG);
+	hikp_roce_set_scc_verbose_en(0x1);
 	hikp_roce_scc_execute(&self);
 
 	return 0;

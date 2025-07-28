@@ -401,7 +401,8 @@ static int cmd_serdes_dump_help(struct major_cmd_ctrl *self, const char *argv)
 
 static int cmd_serdes_dump_subcmds(struct major_cmd_ctrl *self, const char *argv)
 {
-	const char *set_cmds[HILINK_DUMP_TYPE_END] = { "cs", "ds", "csds", "ram", "subctrl"};
+	const char *set_cmds[HILINK_DUMP_TYPE_END] = { "cs", "ds", "csds", "ram", "subctrl",
+		"cs1", "cs2", "ds1", "ds2", "ds3"};
 	uint8_t i;
 
 	for (i = 0; i < HILINK_DUMP_TYPE_END; i++) {

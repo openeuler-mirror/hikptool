@@ -1,12 +1,15 @@
 #!/bin/bash
 
 bw_stats_field=("mac_tx_total_oct_num" "mac_rx_total_oct_num")
-declare -A start_stats
-declare -A end_stats
+declare -Ag start_stats
+declare -Ag end_stats
+declare -g t1
+declare -g t2
 
 init_start_stats(){
 	local device=$1
 	stats=$(ethtool -S "$device")
+	t1=$(date +%s%3N)
 
 	for((i=0; i<${#bw_stats_field[@]};i++)); do
 		start_stats[${bw_stats_field[i]}]=$(echo "$stats"|grep "${bw_stats_field[i]}"| awk '{print $2}')
@@ -16,6 +19,7 @@ init_start_stats(){
 bw_end_stats(){
 	local device=$1
 	stats=$(ethtool -S "$device")
+	t2=$(date +%s%3N)
 
 	for((i=0;i<${#bw_stats_field[@]};i++)); do
 		end_stats[${bw_stats_field[i]}]=$(echo "$stats"|grep "${bw_stats_field[i]}"| awk '{print $2}')
@@ -39,29 +43,27 @@ get_bw_fmt(){
 		fmt_factor=$((1024*1024))
 	fi
 
-	bw_fmt=$(printf "%.2f" $(echo "scale=2;($cur_period_bytes-$pre_period_bytes)/$fmt_factor/$time_diff" | bc))
+	bw=$(echo "scale=2;($cur_period_bytes-$pre_period_bytes)/$fmt_factor/$time_diff" | bc)
+
+	if [ ! "$m" ];then
+		bw_fmt=$(printf "%6.2f Gb/s" "${bw}")
+	else
+		bw_fmt=$(printf "%8.2f Mib/s" "${bw}")
+	fi
 	echo "$bw_fmt"
 }
 
 print_stats(){
 	device=$1
-	time_interval=$2
+	time_interval="$(printf "%.3f" "$(echo "scale=3;$2/1000" | bc)")"
 	echo "$device roce"
-
-	if [ ! "$m" ];then
-		tx_print_fmt='tx_bw: %6.2f Gb/s\n'
-		rx_print_fmt='rx_bw: %6.2f Gb/s\n'
-	else
-		tx_print_fmt='tx_bw: %8.2f MiB/s\n'
-		rx_print_fmt='rx_bw: %8.2f MiB/s\n'
-	fi
 
 	for((i=0;i<${#bw_stats_field[@]};i++)); do
 		bw_res=$(get_bw_fmt "${start_stats[${bw_stats_field[i]}]}" "${end_stats[${bw_stats_field[i]}]}" "$time_interval")
 		if [ $i -eq 0 ];then
-			printf "$tx_print_fmt" ${bw_res}
+			printf "tx_bw: %s\n" "${bw_res}"
 		else
-			printf "$rx_print_fmt" ${bw_res}
+			printf "rx_bw: %s\n" "${bw_res}"
 		fi
 	done
 }
@@ -70,12 +72,10 @@ get_stats_info(){
 	device=$1
 	time_limit=$2
 	init_start_stats "$device"
-	t1=$(date +%s)
 
 	while true;do
 		sleep "$time_limit"
 		bw_end_stats "$device"
-		t2=$(date +%s)
 		duration=$((t2-t1))
 		print_stats "$device" "$duration"
 		t1=$t2

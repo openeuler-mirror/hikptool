@@ -100,6 +100,7 @@ const struct cmd_list_info g_chip_hip09_hip10_cmd_list[] = {
 
 const struct cmd_list_info g_chip_hip11_cmd_list[] = {
 	{g_core_ring_cmd_list,      HIKP_ARRAY_SIZE(g_core_ring_cmd_list)},
+	{g_hccs_cmd_list,           HIKP_ARRAY_SIZE(g_hccs_cmd_list)},
 	{g_log_collect_cmd_list,    HIKP_ARRAY_SIZE(g_log_collect_cmd_list)},
 	{g_nic_cmd_list,            HIKP_ARRAY_SIZE(g_nic_cmd_list)},
 	{g_pcie_cmd_list,           HIKP_ARRAY_SIZE(g_pcie_cmd_list)},

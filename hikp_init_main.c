@@ -19,9 +19,149 @@
 /* hikptool command adapter */
 struct cmd_adapter g_tool = { 0 };
 
+static const char *g_cxl_cmd_list[] = {
+	"cxl_cpa",          "cxl_dl",        "cxl_membar",     "cxl_rcrb",
+};
+
+static const char *g_hccs_cmd_list[] = {
+	"hccs",
+};
+
+static const char *g_log_collect_cmd_list[] = {
+	"info_collect",
+};
+
+static const char *g_nic_cmd_list[] = {
+	"nic_dfx",          "nic_fd",        "nic_fec",        "nic_gro",          "nic_info",
+	"nic_log",          "nic_mac",       "nic_ncsi",       "nic_notify_pkt",   "nic_port",
+	"nic_port_fault",   "nic_ppp",       "nic_qos",        "nic_queue",        "nic_rss",
+	"nic_torus",        "nic_xsfp",
+};
+
+static const char *g_pcie_cmd_list[] = {
+	"pcie_dumpreg",     "pcie_info",     "pcie_regrd",     "pcie_trace",
+};
+
+static const char *g_roce_cmd_list[] = {
+	"roce_bond",        "roce_caep",     "roce_dfx_sta",   "roce_global_cfg",  "roce_gmv",
+	"roce_mdb",         "roce_pkt",      "roce_qmm",       "roce_rst",         "roce_scc",
+	"roce_timer",       "roce_trp",      "roce_tsp",
+};
+
+static const char *g_roh_cmd_list[] = {
+	"roh_mac",          "roh_show_bp",   "roh_show_mib",
+};
+
+static const char *g_sas_cmd_list[] = {
+	"sas_anacq", "sas_anadq", "sas_dev", "sas_dqe", "sas_dump", "sas_errcode",
+};
+
+static const char *g_sata_cmd_list[] = {
+	"sata_dump",
+};
+
+static const char *g_serdes_cmd_list[] = {
+	"serdes_dump",      "serdes_info",
+};
+
+static const char *g_socip_cmd_list[] = {
+	"socip_dumpreg",
+};
+
+static const char *g_core_ring_cmd_list[] = {
+	"cpu_ring",
+};
+
+static const char *g_sdma_cmd_list[] = {
+	"sdma_dump",
+};
+
+static const char *g_ub_cmd_list[] = {
+	"ub_bp", "ub_crd", "ub_dfx", "ub_info", "ub_link", "unic_ppp",
+};
+
+static const char *g_ras_cmd_list[] = {
+	"bbox_export",
+};
+
+const struct cmd_list_info g_chip_hip09_hip10_cmd_list[] = {
+	{g_cxl_cmd_list,            HIKP_ARRAY_SIZE(g_cxl_cmd_list)},
+	{g_hccs_cmd_list,           HIKP_ARRAY_SIZE(g_hccs_cmd_list)},
+	{g_log_collect_cmd_list,    HIKP_ARRAY_SIZE(g_log_collect_cmd_list)},
+	{g_nic_cmd_list,            HIKP_ARRAY_SIZE(g_nic_cmd_list)},
+	{g_pcie_cmd_list,           HIKP_ARRAY_SIZE(g_pcie_cmd_list)},
+	{g_roce_cmd_list,           HIKP_ARRAY_SIZE(g_roce_cmd_list)},
+	{g_roh_cmd_list,            HIKP_ARRAY_SIZE(g_roh_cmd_list)},
+	{g_sas_cmd_list,            HIKP_ARRAY_SIZE(g_sas_cmd_list)},
+	{g_sata_cmd_list,           HIKP_ARRAY_SIZE(g_sata_cmd_list)},
+	{g_serdes_cmd_list,         HIKP_ARRAY_SIZE(g_serdes_cmd_list)},
+	{g_socip_cmd_list,          HIKP_ARRAY_SIZE(g_socip_cmd_list)},
+};
+
+const struct cmd_list_info g_chip_hip11_cmd_list[] = {
+	{g_core_ring_cmd_list,      HIKP_ARRAY_SIZE(g_core_ring_cmd_list)},
+	{g_log_collect_cmd_list,    HIKP_ARRAY_SIZE(g_log_collect_cmd_list)},
+	{g_nic_cmd_list,            HIKP_ARRAY_SIZE(g_nic_cmd_list)},
+	{g_pcie_cmd_list,           HIKP_ARRAY_SIZE(g_pcie_cmd_list)},
+	{g_roce_cmd_list,           HIKP_ARRAY_SIZE(g_roce_cmd_list)},
+	{g_roh_cmd_list,            HIKP_ARRAY_SIZE(g_roh_cmd_list)},
+	{g_sata_cmd_list,           HIKP_ARRAY_SIZE(g_sata_cmd_list)},
+	{g_sdma_cmd_list,           HIKP_ARRAY_SIZE(g_sdma_cmd_list)},
+	{g_serdes_cmd_list,         HIKP_ARRAY_SIZE(g_serdes_cmd_list)},
+	{g_socip_cmd_list,          HIKP_ARRAY_SIZE(g_socip_cmd_list)},
+	{g_ub_cmd_list,             HIKP_ARRAY_SIZE(g_ub_cmd_list)},
+};
+
+const struct cmd_list_info g_chip_hip12_cmd_list[] = {
+	{g_ras_cmd_list,            HIKP_ARRAY_SIZE(g_ras_cmd_list)},
+	{g_hccs_cmd_list,           HIKP_ARRAY_SIZE(g_hccs_cmd_list)},
+	{g_log_collect_cmd_list,    HIKP_ARRAY_SIZE(g_log_collect_cmd_list)},
+	{g_pcie_cmd_list,           HIKP_ARRAY_SIZE(g_pcie_cmd_list)},
+	{g_serdes_cmd_list,         HIKP_ARRAY_SIZE(g_serdes_cmd_list)},
+	{g_socip_cmd_list,          HIKP_ARRAY_SIZE(g_socip_cmd_list)},
+};
+
+static bool cmd_is_support(const char *cmd_name, struct cmd_list_info *cmd_info, size_t len)
+{
+	for (size_t i = 0; i < len; i++)
+		for (size_t j = 0; j < cmd_info[i].list_len; j++)
+			if (strcmp(cmd_info[i].cmd_list[j], cmd_name) == 0)
+				return true;
+
+	return false;
+}
+
+static bool check_cmd_is_support(const char *cmd_name)
+{
+	uint32_t chip_type = get_chip_type();
+	bool is_support = true;
+
+	switch (chip_type) {
+	case CHIP_HIP09:
+	case CHIP_HIP10:
+	case CHIP_HIP10C:
+		is_support = cmd_is_support(cmd_name, g_chip_hip09_hip10_cmd_list,
+					    HIKP_ARRAY_SIZE(g_chip_hip09_hip10_cmd_list));
+		break;
+	case CHIP_HIP11:
+		is_support = cmd_is_support(cmd_name, g_chip_hip11_cmd_list,
+					    HIKP_ARRAY_SIZE(g_chip_hip11_cmd_list));
+		break;
+	case CHIP_HIP12:
+		is_support = cmd_is_support(cmd_name, g_chip_hip12_cmd_list,
+					    HIKP_ARRAY_SIZE(g_chip_hip12_cmd_list));
+		break;
+	default:
+		break;
+	}
+
+	/* Unrecognized hardware type, default display supported */
+	return is_support;
+}
+
 static void show_tool_version(const struct cmd_adapter *adapter)
 {
-	printf("%s version %s Huawei\n", adapter->name, adapter->version);
+	printf("%s version %s Huawei HW(%u)\n", adapter->name, adapter->version, get_chip_type());
 }
 
 static int cmp(const void *a, const void *b)
@@ -52,7 +192,8 @@ static void show_tool_help(const struct cmd_adapter *adapter)
 	qsort(start_cmd_ptr, end_cmd_ptr - start_cmd_ptr,
 	      sizeof(struct hikp_cmd_type), (const void *)cmp);
 	for (cmd_ptr = start_cmd_ptr; cmd_ptr < end_cmd_ptr; cmd_ptr++)
-		printf("    %-23s  %s\n", cmd_ptr->name, cmd_ptr->help_info);
+		if (check_cmd_is_support(cmd_ptr->name))
+			printf("    %-23s  %s\n", cmd_ptr->name, cmd_ptr->help_info);
 
 	printf("\n");
 }
@@ -90,6 +231,9 @@ static int parse_and_init_cmd(const char *arg)
 
 	for (cmd_ptr = start_cmd_ptr; cmd_ptr < end_cmd_ptr; cmd_ptr++) {
 		if (strnlen(cmd_ptr->name, MAX_CMD_LEN) != strnlen(arg, MAX_CMD_LEN))
+			continue;
+
+		if (!check_cmd_is_support(cmd_ptr->name))
 			continue;
 
 		if ((strncmp(arg, cmd_ptr->name,

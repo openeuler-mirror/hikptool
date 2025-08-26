@@ -56,6 +56,8 @@ uint32_t get_chip_type(void)
 		chip_type = CHIP_HIP10C;
 	else if (strcmp(part_num_str, "d22") == 0)
 		chip_type = CHIP_HIP11;
+	else if (strcmp(part_num_str, "d06") == 0)
+		chip_type = CHIP_HIP12;
 	else
 		chip_type = CHIP_UNKNOW;
 

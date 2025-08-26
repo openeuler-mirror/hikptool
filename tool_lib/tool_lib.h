@@ -106,6 +106,7 @@ enum chip_type {
 	CHIP_HIP10,
 	CHIP_HIP10C,
 	CHIP_HIP11,
+	CHIP_HIP12,
 	CHIP_UNKNOW,
 };
 

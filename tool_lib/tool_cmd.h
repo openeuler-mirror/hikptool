@@ -67,6 +67,11 @@ struct cmd_adapter {
 	struct major_cmd_ctrl p_major_cmd;
 };
 
+struct cmd_list_info {
+	const char **cmd_list;
+	size_t list_len;
+};
+
 extern int _s_cmd_data;
 extern int _e_cmd_data;
 extern struct cmd_adapter g_tool;

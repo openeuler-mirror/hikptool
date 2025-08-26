@@ -25,7 +25,7 @@ enum {
 
 struct dump_reg_param_t {
 	uint8_t val;
-	bool is_vaild;
+	bool is_valid;
 };
 
 static const char *g_param_desc[SOCIP_DUMP_REG_PARAM_NUM] = {
@@ -65,7 +65,7 @@ static int get_param(struct major_cmd_ctrl *self, const char *argv, uint32_t ind
 		self->err_no = -EINVAL;
 		return -EINVAL;
 	}
-	param->is_vaild = true;
+	param->is_valid = true;
 
 	return 0;
 }
@@ -97,7 +97,7 @@ static bool check_socip_dumpreg_param(void)
 	uint32_t i;
 
 	for (i = 0; i < HIKP_ARRAY_SIZE(g_dump_reg_param); i++) {
-		if (!param->is_vaild) {
+		if (!param->is_valid) {
 			ret = false;
 			HIKP_ERROR_PRINT("%s is not set\n", g_param_desc[i]);
 		}

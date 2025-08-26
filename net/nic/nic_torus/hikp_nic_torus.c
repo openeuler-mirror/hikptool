@@ -123,7 +123,7 @@ static void hikp_nic_torus_show(const struct nic_torus_info *info)
 	printf("ssu_pause_time_out_en: %u\n", info->pause_time_out_en);
 	printf("vlan_fe: 0x%x (for port vlan)\n", info->vlan_fe);
 	printf("ets_tcg0_mapping: 0x%x\n", info->ets_tcg0_mapping);
-	printf("ets_tcg0_mapping is showed as 0xff if ncl_config forward bit is setted to 1\n");
+	printf("ets_tcg0_mapping is showed as 0xff if ncl_config forward bit is set to 1\n");
 
 	hikp_nic_torus_switch_param_show(info);
 

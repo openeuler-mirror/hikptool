@@ -11,6 +11,7 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -613,39 +614,32 @@ static void hikp_hccs_show_port_dfx_info(union hccs_feature_info *feature_info)
 	size_t vld_size;
 
 	vld_size = (size_t)info_vld->vld_size;
-	if (vld_size >= sizeof(info->link_fsm)) {
+	if (vld_size > offsetof(struct hccs_port_dfx_info, link_fsm)) {
 		printf("%-16s\t%s\n", "link_fsm", hikp_hccs_link_fsm_to_str(info->link_fsm));
-		vld_size -= sizeof(info->link_fsm);
 	}
 
-	if (vld_size >= sizeof(info->cur_lane_num)) {
+	if (vld_size > offsetof(struct hccs_port_dfx_info, cur_lane_num)) {
 		printf("%-16s\t%u\n", "cur_lane_num", info->cur_lane_num);
-		vld_size -= sizeof(info->cur_lane_num);
 	}
 
-	if (vld_size >= sizeof(info->lane_mask)) {
+	if (vld_size > offsetof(struct hccs_port_dfx_info, lane_mask)) {
 		printf("%-16s\t0x%x\n", "lane_mask", info->lane_mask);
-		vld_size -= sizeof(info->lane_mask);
 	}
 
-	if (vld_size >= sizeof(info->crc_err_cnt)) {
+	if (vld_size > offsetof(struct hccs_port_dfx_info, crc_err_cnt)) {
 		printf("%-16s\t%u\n", "crc_err_cnt", info->crc_err_cnt);
-		vld_size -= sizeof(info->crc_err_cnt);
 	}
 
-	if (vld_size >= sizeof(info->retry_cnt)) {
+	if (vld_size > offsetof(struct hccs_port_dfx_info, retry_cnt)) {
 		printf("%-16s\t%u\n", "retry_cnt", info->retry_cnt);
-		vld_size -= sizeof(info->retry_cnt);
 	}
 
-	if (vld_size >= sizeof(info->phy_reinit_cnt)) {
+	if (vld_size > offsetof(struct hccs_port_dfx_info, phy_reinit_cnt)) {
 		printf("%-16s\t%u\n", "phy_reinit_cnt", info->phy_reinit_cnt);
-		vld_size -= sizeof(info->phy_reinit_cnt);
 	}
 
-	if (vld_size >= sizeof(info->tx_credit)) {
+	if (vld_size > offsetof(struct hccs_port_dfx_info, tx_credit)) {
 		printf("%-16s\t%u\n", "tx_credit", info->tx_credit);
-		vld_size -= sizeof(info->tx_credit);
 	}
 }
 
@@ -748,7 +742,7 @@ static int hikp_hccs_cmd_parse_die(struct major_cmd_ctrl *self, const char *argv
 	self->err_no = string_toui(argv, &die_id);
 	if (self->err_no) {
 		snprintf(self->err_str, sizeof(self->err_str),
-			 "Failed to  parse -d/--die_id parameter.");
+			 "Failed to parse -d/--die_id parameter.");
 		return self->err_no;
 	}
 
@@ -778,7 +772,7 @@ static int hikp_hccs_cmd_parse_port(struct major_cmd_ctrl *self, const char *arg
 
 	if (port_id > UINT8_MAX) {
 		snprintf(self->err_str, sizeof(self->err_str),
-			 "port id should not be greater %u.", UINT8_MAX);
+			 "port id should not be greater than %u.", UINT8_MAX);
 		self->err_no = -EINVAL;
 		return self->err_no;
 	}

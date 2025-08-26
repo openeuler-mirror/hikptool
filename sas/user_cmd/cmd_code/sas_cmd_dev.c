@@ -27,7 +27,7 @@ static int sas_dev_help(struct major_cmd_ctrl *self, const char *argv)
 	printf("    %s, %-25s %s\n", "-d", "--dieid", "please input die id[x]  first\n");
 	printf("\n  Options:\n\n");
 	printf("    %s, %-25s %s\n", "-h", "--help", "display this help and exit\n");
-	printf("    %s, %-25s %s\n", "-l", "--link", "dispaly device type and speed\n");
+	printf("    %s, %-25s %s\n", "-l", "--link", "display device type and speed\n");
 	printf("\n");
 
 	return 0;

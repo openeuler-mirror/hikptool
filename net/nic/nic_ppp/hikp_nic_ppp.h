@@ -148,7 +148,7 @@ struct nic_mng_tbl {
 struct func_vlan_offload_cfg {
 	uint16_t vlan_fe;
 	uint16_t pvid;
-	uint8_t port_vlan_bypass; /* 0: off, 1: on, 2: unsupport port vlan */
+	uint8_t port_vlan_bypass; /* 0: off, 1: on, 2: unsupported port vlan */
 	uint8_t accept_tag1;
 	uint8_t accept_tag2;
 	uint8_t accept_untag1;

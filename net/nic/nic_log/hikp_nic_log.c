@@ -64,7 +64,7 @@ static int hikp_nic_write_data_to_file(uint8_t *data, uint32_t len)
 
 	rc = snprintf(g_log_path, sizeof(g_log_path), HIKP_LOG_DIR_PATH"%s", file_name);
 	if (rc < 0) {
-		HIKP_ERROR_PRINT("creat log file path fail.\n");
+		HIKP_ERROR_PRINT("create log file path fail.\n");
 		return -EIO;
 	}
 

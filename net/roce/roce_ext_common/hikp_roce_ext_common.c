@@ -83,73 +83,70 @@ static int get_cmd_reg_array_length(enum roce_cmd_type cmd_type)
 	return idx;
 }
 
-static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
-				 uint32_t block_id,
-				 struct roce_ext_res_output *output,
-				 int (*get_data)(struct hikp_cmd_ret **cmd_ret,
-						 uint32_t block_id,
-						 struct roce_ext_reg_name *reg_name))
+static int fill_output(struct hikp_cmd_ret *cmd_ret,
+			const char *cmd_name,
+			uint32_t block_id,
+			struct roce_ext_res_output *output)
 {
-	int reg_array_length = get_cmd_reg_array_length(cmd_type);
-	struct roce_ext_reg_name *reg_name = &output->reg_name;
+	struct roce_ext_res_param *roce_ext_res = (struct roce_ext_res_param *)cmd_ret->rsp_data;
 	struct roce_ext_head *res_head = &output->res_head;
-	const char *cmd_name = get_cmd_name(cmd_type);
-	struct roce_ext_res_param *roce_ext_res;
 	struct reg_data *reg = &output->reg;
-	struct hikp_cmd_ret *cmd_ret;
+
+	res_head->cur_block_num = roce_ext_res->head.cur_block_num;
+
+	if (block_id != 0)
+		return 0;
+
+	res_head->total_block_num = roce_ext_res->head.total_block_num;
+	res_head->flags = roce_ext_res->head.flags;
+	if (!res_head->total_block_num) {
+		printf("hikptool roce_%s total_block_num error!\n", cmd_name);
+		return -EINVAL;
+	}
+
+	size_t per_val_size = res_head->flags & ROCE_HIKP_DATA_U64_FLAG ?
+	sizeof(uint64_t) : sizeof(uint32_t);
+	reg->offset = (uint32_t *)calloc(res_head->total_block_num, sizeof(uint32_t));
+	output->per_val_size = per_val_size;
+	reg->data = calloc(res_head->total_block_num, per_val_size);
+	if (!reg->offset || !reg->data) {
+		printf("hikptool roce_%s alloc log memory failed!\n", cmd_name);
+		hikp_roce_ext_reg_data_free(reg);
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+
+static int validate_block_numbers(const struct roce_ext_head *res_head,
+				  const char *cmd_name,
+				  uint32_t block_id)
+{
+	uint32_t remain_block = res_head->total_block_num - block_id;
+
+	if (!res_head->cur_block_num || res_head->cur_block_num > remain_block) {
+		printf("hikptool roce_%s block size error, cur: %u, total: %u, remain: %u.\n",
+			cmd_name, res_head->cur_block_num,
+			res_head->total_block_num, remain_block);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static int copy_data_from_response(struct hikp_cmd_ret *cmd_ret,
+				   struct roce_ext_res_output *output,
+				   int reg_array_length,
+				   const char *cmd_name,
+				   uint32_t block_id)
+{
+	struct roce_ext_res_param *roce_ext_res = (struct roce_ext_res_param *)cmd_ret->rsp_data;
+	struct roce_ext_head *res_head = &output->res_head;
+	struct reg_data *reg = &output->reg;
 	size_t reg_data_offset;
-	uint32_t remain_block;
 	size_t offset_size;
 	size_t data_size;
 	void *dst_data;
-	int ret;
-
-	/* reg_array_length greater than or equal to 0 ensures that cmd_name
-	 * is not NULL, so cmd_name does not need to be checked.
-	 */
-	if (reg_array_length < 0)
-		return reg_array_length;
-
-	ret = get_data(&cmd_ret, block_id, reg_name);
-	if (ret) {
-		printf("hikptool roce_%s get data failed!\n", cmd_name);
-		goto get_data_error;
-	}
-
-	roce_ext_res = (struct roce_ext_res_param *)cmd_ret->rsp_data;
-	res_head->cur_block_num = roce_ext_res->head.cur_block_num;
-
-	if (block_id == 0) {
-		res_head->total_block_num = roce_ext_res->head.total_block_num;
-		res_head->flags = roce_ext_res->head.flags;
-		if (!res_head->total_block_num) {
-			printf("hikptool roce_%s total_block_num error!\n",
-				cmd_name);
-			ret = -EINVAL;
-			goto get_data_error;
-		}
-		reg->offset = (uint32_t *)calloc(res_head->total_block_num, sizeof(uint32_t));
-		output->per_val_size = res_head->flags & ROCE_HIKP_DATA_U64_FLAG ?
-			sizeof(uint64_t) : sizeof(uint32_t);
-		reg->data = calloc(res_head->total_block_num, output->per_val_size);
-		if ((reg->offset == NULL) || (reg->data == NULL)) {
-			printf("hikptool roce_%s alloc log memmory failed!\n",
-				cmd_name);
-			ret = -ENOMEM;
-			hikp_roce_ext_reg_data_free(reg);
-			goto get_data_error;
-		}
-	}
-
-	remain_block = res_head->total_block_num - block_id;
-	if (!res_head->cur_block_num || res_head->cur_block_num > remain_block) {
-		printf("hikptool roce_%s block size error, cur: %u, total: %u, remain: %u.\n",
-		       cmd_name, res_head->cur_block_num,
-		       res_head->total_block_num, remain_block);
-		ret = -EINVAL;
-		hikp_roce_ext_reg_data_free(reg);
-		goto get_data_error;
-	}
 
 	/*
 	 * The data structure `roce_ext_res_param_u64` returned by the
@@ -164,19 +161,62 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 	offset_size = res_head->cur_block_num * sizeof(uint32_t);
 	data_size = res_head->cur_block_num * output->per_val_size;
 	dst_data = reg->data_u32 + block_id * output->per_val_size / sizeof(uint32_t);
-	/* Avoid memcpy out-of-bounds. */
-	if ((reg_data_offset + data_size) / sizeof(uint32_t) + reg_array_length > cmd_ret->rsp_data_num) {
+	if ((reg_data_offset + data_size) / sizeof(uint32_t) + (size_t)reg_array_length > cmd_ret->rsp_data_num) {
 		printf("hikptool roce_%s cur size error, data_size: %zu, rsp_data_num: %u.\n",
-		       cmd_name, data_size, cmd_ret->rsp_data_num);
-		ret = -EINVAL;
+			cmd_name, data_size, cmd_ret->rsp_data_num);
+		return -EINVAL;
+	}
+
+	memcpy(reg->offset + block_id,
+		(uint32_t *)&roce_ext_res->head + reg_data_offset / sizeof(uint32_t),
+		offset_size);
+
+	memcpy(dst_data, (uint32_t *)&roce_ext_res->head + reg_data_offset / sizeof(uint32_t) + reg_array_length,
+		data_size);
+
+	return 0;
+}
+
+static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
+				 uint32_t block_id,
+				 struct roce_ext_res_output *output,
+				 int (*get_data)(struct hikp_cmd_ret **cmd_ret,
+						 uint32_t block_id,
+						 struct roce_ext_reg_name *reg_name))
+{
+	int reg_array_length = get_cmd_reg_array_length(cmd_type);
+	struct roce_ext_reg_name *reg_name = &output->reg_name;
+	struct roce_ext_head *res_head = &output->res_head;
+	const char *cmd_name = get_cmd_name(cmd_type);
+	struct reg_data *reg = &output->reg;
+	struct hikp_cmd_ret *cmd_ret;
+	int ret;
+
+	/* reg_array_length greater than or equal to 0 ensures that cmd_name
+	 * is not NULL, so cmd_name does not need to be checked.
+	 */
+	if (reg_array_length < 0)
+		return reg_array_length;
+
+	ret = get_data(&cmd_ret, block_id, reg_name);
+	if (ret) {
+		printf("hikptool roce_%s get data failed!\n", cmd_name);
+		goto get_data_error;
+	}
+
+	ret = fill_output(cmd_ret, cmd_name, block_id, output);
+	if (ret)
+		goto get_data_error;
+
+	ret = validate_block_numbers(res_head, cmd_name, block_id);
+	if (ret) {
 		hikp_roce_ext_reg_data_free(reg);
 		goto get_data_error;
 	}
-	memcpy(reg->offset + block_id,
-	       (uint32_t *)&roce_ext_res->head + reg_data_offset / sizeof(uint32_t),
-	       offset_size);
-	memcpy(dst_data, (uint32_t *)&roce_ext_res->head + reg_data_offset
-	       / sizeof(uint32_t) + reg_array_length, data_size);
+
+	ret = copy_data_from_response(cmd_ret, output, reg_array_length, cmd_name, block_id);
+	if (ret)
+		hikp_roce_ext_reg_data_free(reg);
 
 get_data_error:
 	hikp_cmd_free(&cmd_ret);

@@ -56,7 +56,7 @@ enum nic_fd_tuple {
 
 enum nic_fd_meta_data {
 	PACKET_TYPE_ID = 0,
-	IP_FRAGEMENT,
+	IP_FRAGMENT,
 	ROCE_TYPE,
 	NEXT_KEY,
 	VLAN_NUMBER,

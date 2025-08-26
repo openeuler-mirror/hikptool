@@ -26,7 +26,7 @@ struct key_info {
 
 static const struct key_info g_meta_data_key_info[] = {
 	{"packet_type_id", PACKET_TYPE_ID, 6},
-	{"fragement",      IP_FRAGEMENT,   1},
+	{"fragment",       IP_FRAGMENT,    1},
 	{"roce_type",      ROCE_TYPE,      1},
 	{"next_key",       NEXT_KEY,       5},
 	{"vlan_num",       VLAN_NUMBER,    2},
@@ -169,7 +169,7 @@ static void hikp_nic_show_fd_key_info(struct nic_fd_hw_info *hw_info)
 		printf("  outer_dest_ipv6_word_en: 0x%x\n", key_cfg->outer_dest_ipv6_word_en);
 
 		if (key_cfg->key_select == HNS3_FD_KEY_BASE_ON_PTYPE) {
-			HIKP_WARN_PRINT("Unsupport for parsing packet type key.\n");
+			HIKP_WARN_PRINT("Unsupported for parsing packet type key.\n");
 			continue;
 		}
 
@@ -333,7 +333,7 @@ static void hikp_nic_print_meta_data(uint16_t type, uint32_t val)
 	case NEXT_KEY:
 		printf("%u", val);
 		break;
-	case IP_FRAGEMENT:
+	case IP_FRAGMENT:
 		printf("%s", val == 0 ? "NON-IP frag packet" : "IP frag packet");
 		break;
 	case ROCE_TYPE:
@@ -683,7 +683,7 @@ static int hikp_nic_query_fd_rules(struct hikp_cmd_header *req_header, const str
 		}
 		entry_cnt += rsp_head.cur_blk_entry_cnt;
 		if (rsp_head.next_entry_idx <= idx) {
-			HIKP_ERROR_PRINT("The next entry index (%u) is less than or equal with the curent(%u).\n",
+			HIKP_ERROR_PRINT("The next entry index (%u) is less than or equal with the current(%u).\n",
 					 rsp_head.next_entry_idx, idx);
 			return -EINVAL;
 		}
@@ -742,7 +742,7 @@ static int hikp_nic_query_fd_counter(struct hikp_cmd_header *req_header, const s
 		}
 		entry_size += rsp_head.cur_blk_entry_cnt;
 		if (rsp_head.next_entry_idx <= idx) {
-			HIKP_ERROR_PRINT("The next entry index (%u) is less than or equal with the curent(%u).\n",
+			HIKP_ERROR_PRINT("The next entry index (%u) is less than or equal with the current(%u).\n",
 					 rsp_head.next_entry_idx, idx);
 			return -EINVAL;
 		}
@@ -856,7 +856,7 @@ static int hikp_nic_check_fd_hw_info(const struct nic_fd_hw_info *hw_info,
 		}
 		if (hw_info->mode > FD_MODE_DEPTH_2K_WIDTH_200B_STAGE_2)
 			HIKP_WARN_PRINT("Unknown fd mode(%u), "
-					"unsupport for displaying meta data info.\n",
+					"unsupported for displaying meta data info.\n",
 					hw_info->mode);
 
 		for (i = 0; i < NIC_FD_STAGE_NUM; i++) {
@@ -1080,7 +1080,7 @@ static int hikp_nic_cmd_fd_parse_stage(struct major_cmd_ctrl *self, const char *
 
 	if (stage_no - 1 == NIC_FD_STAGE_2) {
 		snprintf(self->err_str, sizeof(self->err_str),
-			 "unsupport for querying stage%u entry!", stage_no);
+			 "unsupported for querying stage%u entry!", stage_no);
 		self->err_no = -EOPNOTSUPP;
 		return self->err_no;
 	}

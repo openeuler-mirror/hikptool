@@ -86,7 +86,7 @@ static int pcie_trace_mode_set(struct major_cmd_ctrl *self, const char *argv)
 	g_trace_cmd.cmd_type = TRACE_MODE;
 	ret = string_toui(argv, &val);
 	if (ret || val > 1) {
-		printf("tarce mode set err %d\n", ret);
+		printf("trace mode set err %d\n", ret);
 		return -EINVAL;
 	}
 	g_trace_cmd.trace_mode_val = val;

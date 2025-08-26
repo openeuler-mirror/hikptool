@@ -249,7 +249,7 @@ static int hikp_nic_traverse_all_hns3_dev_and_get_info(void)
 
 	sockfd = hikp_net_creat_sock();
 	if (sockfd < MIN_SOCKFD) {
-		HIKP_ERROR_PRINT("creat sockfd failed, sockfd is %d.\n", sockfd);
+		HIKP_ERROR_PRINT("create sockfd failed, sockfd is %d.\n", sockfd);
 		return -EIO;
 	}
 	ret = getifaddrs(&ifa_lst);

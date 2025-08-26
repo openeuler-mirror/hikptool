@@ -97,7 +97,7 @@ static bool check_and_parse_domain_bdf_id(const char *bus_info, struct bdf_t *bd
 	if (strlen(bus_info) >= IFNAMSIZ)
 		return false;
 
-	/* pci_id: 0000:bd:00.0 ==> doman:bus:device.function add
+	/* pci_id: 0000:bd:00.0 ==> domain:bus:device.function add
 	 * remains here to solve such input: 0000:bd:00.0abcdef
 	 */
 	retval = sscanf(bus_info, "%x:%x:%x.%u%s", &domain, &bus, &dev, &fun, remains);

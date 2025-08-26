@@ -185,7 +185,7 @@ static int hikp_roce_trp_get_total_data_num(struct roce_trp_head *res_head,
 	*offset = (uint32_t *)calloc(1, max_size);
 	*data = (uint32_t *)calloc(1, max_size);
 	if ((*offset == NULL) || (*data == NULL)) {
-		printf("hikptool roce_trp alloc log memmory 0x%zx failed\n", max_size);
+		printf("hikptool roce_trp alloc log memory 0x%zx failed\n", max_size);
 		hikp_roce_trp_reg_data_free(offset, data);
 		ret = -ENOMEM;
 		goto get_data_error;

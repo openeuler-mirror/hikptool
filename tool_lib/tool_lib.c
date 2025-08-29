@@ -23,6 +23,7 @@ uint32_t get_chip_type(void)
 	uint32_t chip_type = CHIP_UNKNOW;
 	uint64_t midr_el1;
 	uint32_t part_num;
+	char *end = NULL;
 	FILE *file;
 
 	file = fopen(MIDR_EL1_PATH, "r");
@@ -38,7 +39,12 @@ uint32_t get_chip_type(void)
 	}
 
 	fclose(file);
-	midr_el1 = strtoul(midr_buffer, NULL, MIDR_HEX_TYPE);
+	midr_el1 = strtoul(midr_buffer, &end, MIDR_HEX_TYPE);
+	if ((end <= midr_buffer) || (midr_el1 == ULONG_MAX)) {
+		HIKP_ERROR_PRINT("Get chip type failed: %d\n", errno);
+		return chip_type;
+	}
+
 	part_num = (midr_el1 & 0xffff) >> PART_NUM_OFFSET;
 	(void)snprintf(part_num_str, MIDR_BUFFER_SIZE, "%x", part_num);
 
@@ -50,6 +56,8 @@ uint32_t get_chip_type(void)
 		chip_type = CHIP_HIP10C;
 	else if (strcmp(part_num_str, "d22") == 0)
 		chip_type = CHIP_HIP11;
+	else if (strcmp(part_num_str, "d06") == 0)
+		chip_type = CHIP_HIP12;
 	else
 		chip_type = CHIP_UNKNOW;
 

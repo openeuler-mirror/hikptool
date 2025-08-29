@@ -70,7 +70,7 @@ static int pcie_reg_read_result_show(const struct hikp_cmd_ret *cmd_ret)
 		    cmd_ret->rsp_data_num);
 		return -EINVAL;
 	}
-	Info("RIGISTER VALUE[0x%08x].\n", cmd_ret->rsp_data[0]);
+	Info("REGISTER VALUE[0x%08x].\n", cmd_ret->rsp_data[0]);
 
 	return 0;
 }

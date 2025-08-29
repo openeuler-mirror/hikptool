@@ -130,7 +130,7 @@ static int cmd_serdes_key_info_pro(struct major_cmd_ctrl *self, const char *argv
 
 #define USEMODE_SSC_STR_MAXLEN 20
 static void hikp_serdes_brief_info_print(struct cmd_serdes_param *cmd,
-	const struct hilink_brief_info *data, uint32_t data_size)
+	const struct hilink_brief_info *data)
 {
 	uint8_t ds_id;
 	uint8_t start_sds_id = cmd->start_sds_id;
@@ -143,11 +143,6 @@ static void hikp_serdes_brief_info_print(struct cmd_serdes_param *cmd,
 	const char *ssc_type_array[HILINK_SSC_TYPE_END] = {
 		"nossc", "ssc", "mssc_in", "mssc_s", "mssc_n", "mssc_w", "mssc_e"
 	};
-
-	if (data_size != sds_num) {
-		printf("serdes brief info data size is wrong.\n");
-		return;
-	}
 
 	for (ds_id = 0; ds_id < sds_num; ds_id++) {
 		if (data[ds_id].usemode >= HILINK_USE_MODE_END) {
@@ -204,17 +199,13 @@ static void hikp_serdes_brief_info_print(struct cmd_serdes_param *cmd,
 	 "--------------------------------\n")
 
 static void hikp_serdes_detail_info_print(struct cmd_serdes_param *cmd,
-	const struct hilink_detail_info *data, uint32_t data_size)
+	const struct hilink_detail_info *data)
 {
 	uint32_t i;
 	uint8_t ds_id;
 	uint8_t start_sds_id = cmd->start_sds_id;
 	uint8_t sds_num = cmd->sds_num;
 
-	if (data_size != sds_num) {
-		printf("serdes detail info data size is wrong.\n");
-		return;
-	}
 	printf(KEY_INFO_TITLE);
 	for (ds_id = 0; ds_id < sds_num; ds_id++) {
 		printf("chip%u (M%u,ds%d) [%3d,%3d,%3u,%3d,%3d]",
@@ -341,13 +332,20 @@ static void hikp_serdes_info_print(struct cmd_serdes_param *cmd)
 	struct hilink_detail_info *detail_info_data = NULL;
 
 	if (cmd->sub_cmd > 0) {
+		if (g_out_put.result_offset != cmd->sds_num * sizeof(struct hilink_detail_info)) {
+			printf("serdes detail info data size is wrong.\n");
+			return;
+		}
 		detail_info_data = (struct hilink_detail_info *)g_out_put.out_str;
-		hikp_serdes_detail_info_print(cmd, detail_info_data,
-			g_out_put.result_offset / sizeof(struct hilink_detail_info));
+		hikp_serdes_detail_info_print(cmd, detail_info_data);
 	} else {
+		if (g_out_put.result_offset != cmd->sds_num * sizeof(struct hilink_brief_info)) {
+			printf("serdes brief info data size is wrong.\n");
+			return;
+		}
+
 		brief_info_data = (struct hilink_brief_info *)g_out_put.out_str;
-		hikp_serdes_brief_info_print(cmd, brief_info_data,
-			g_out_put.result_offset / sizeof(struct hilink_brief_info));
+		hikp_serdes_brief_info_print(cmd, brief_info_data);
 	}
 }
 

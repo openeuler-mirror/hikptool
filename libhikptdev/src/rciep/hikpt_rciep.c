@@ -73,7 +73,8 @@ static int hikp_try_lock(void)
 		count--;
 		usleep(LOCK_CHECK_GAP_US);
 	} while (count);
-	printf("dev lock by other process:%u.\n", g_hikp_req->field.pid_record);
+	printf("try to lock failed, lock may be occupied by another process: %u, error: %s\n",
+	       g_hikp_req->field.pid_record, strerror(errno));
 
 	return -EBUSY;
 }
@@ -187,7 +188,7 @@ static int hikp_req_first_round(uint32_t *req_data, uint32_t rep_num, uint32_t *
 	req_issue(); /* On the first round, an interrupt is triggered. */
 	*cpl_status = hikp_wait_for_cpl_status();
 	if (*cpl_status != HIKP_CPL_BY_TF && *cpl_status != HIKP_CPL_BY_IMU) {
-		printf("First round failed. Error code:%u.\n", *cpl_status);
+		printf("First round failed. Error code:0x%X.\n", *cpl_status);
 		return RCIEP_FAIL;
 	}
 

@@ -162,16 +162,16 @@ static int hikp_roh_build_cam(struct major_cmd_ctrl *self, struct cam_table_entr
 	struct hikp_cmd_header req_header = { 0 };
 	struct hikp_cmd_ret *cmd_ret = NULL;
 	int block_num;
+	int addition;
 	int reg_num;
-	int addtion;
 	int index;
 
 	reg_num = hikp_roh_get_cam_reg_num(self);
 	if (reg_num < 0)
 		return -EIO;
 
-	addtion = reg_num % RESPONSE_DATA_NUMBER_MAX ? 1 : 0;
-	block_num = reg_num / RESPONSE_DATA_NUMBER_MAX + addtion;
+	addition = reg_num % RESPONSE_DATA_NUMBER_MAX ? 1 : 0;
+	block_num = reg_num / RESPONSE_DATA_NUMBER_MAX + addition;
 
 	for (int i = 0; i < block_num; i++) {
 		req_data.bdf = g_roh_mac_param.target.bdf;

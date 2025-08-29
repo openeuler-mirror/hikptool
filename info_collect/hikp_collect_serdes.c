@@ -210,7 +210,7 @@ static void collect_serdes_dump_log(void)
 			log_cmd.die_id = j;
 			ret = snprintf(log_name, MAX_LOG_NAME_LEN, "serdes_dump_c%ud%u", i, j);
 			if (ret < 0 || (uint32_t)(ret) >= MAX_LOG_NAME_LEN) {
-				HIKP_ERROR_PRINT("create serdes_info log name failed\n");
+				HIKP_ERROR_PRINT("create serdes_dump log name failed\n");
 				break;
 			}
 			ret = hikp_collect_log(GROUP_SERDES, log_name,

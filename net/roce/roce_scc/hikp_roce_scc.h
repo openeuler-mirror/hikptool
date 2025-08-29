@@ -77,7 +77,6 @@ enum roce_scc_type {
 	HC3,
 	LDCP,
 	CFG,
-	VERBOSE,
 };
 
 int hikp_roce_set_scc_bdf(char *nic_name);

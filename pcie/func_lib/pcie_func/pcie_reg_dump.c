@@ -417,8 +417,9 @@ static int pcie_create_dumpreg_log_file(uint32_t port_id, uint32_t dump_level)
 static void pcie_close_dumpreg_log_file(void)
 {
 	fclose(g_pcie_dumpreg_fd);
-	/* Revoke write permission of file  */
-	chmod(dumpreg_log_file, 0400);
+	/* Set the file permission to 0400 */
+	if (chmod(dumpreg_log_file, 0400))
+		Err("chmod %s failed, errno is %d\n", dumpreg_log_file, errno);
 	g_pcie_dumpreg_fd = NULL;
 }
 

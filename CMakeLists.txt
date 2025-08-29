@@ -9,6 +9,8 @@
 #
 # See the Mulan PSL v2 for more details.
 
+cmake_minimum_required(VERSION 3.0.0)
+
 project(hikptool C)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
@@ -61,7 +63,7 @@ target_include_directories(hikptool PRIVATE ${HIKPTOOL_HEADER_DIR})
 target_link_directories(hikptool PRIVATE ${CMAKE_INSTALL_PREFIX}/lib)
 target_link_libraries(hikptool PRIVATE KPTDEV_SO)
 if (ENABLE_STATIC)
-    # I don¡¯t know why, but once you add double quotes to these
+    # I don't know why, but once you add double quotes to these
     # link parameters, an error will be reported.
     set(EXT_LINK_FLAGS -static-libgcc -static-libstdc++ -static)
     set_target_properties(hikptool PROPERTIES LINK_SEARCH_START_STATIC ON)

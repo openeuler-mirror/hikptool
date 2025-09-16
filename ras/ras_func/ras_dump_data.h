@@ -11,78 +11,60 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef RAS_DUMP_REG_H
-#define RAS_DUMP_REG_H
+#ifndef RAS_DUMP_DATA_H
+#define RAS_DUMP_DATA_H
 
-#include "ras_tools_include.h"
-#include "hikpt_rciep.h"
-#include "tool_lib.h"
+#include <stdint.h>
 
-#define RAS_FILE_HEAD_BUF_LEN 256
-#define MAX_DFX_PACKET_LEN 256
-#define RAS_REQ_DATA_LEN 4
-#define DFX_REG_DUMP_HEADER_LEN 6
-#define DFX_REG_PACKET_HEAD_LEN 3
-
-struct dfx_reg_dump_header {
+struct rasdfx_file_header {
 	uint32_t head_magic;  // 文件头的magic数字，特定值表示有效记录。
 	uint32_t version;     // 存储格式版本
 	uint32_t cap_bits;    // bit0表示是否开启crc，其余bit保留。
 	uint32_t pkt_num;     // packet数量
-	uint32_t pkt_length;  // 单个packet占用内存空间，单位bytes
+	uint32_t pkt_size_dwords;  // 单个packet内DWord个数，单位4bytes
 	uint32_t reserved;
 };
 
+struct rasdfx_pkt_header_dw0 {
+	uint32_t version : 8;
+	uint32_t soc_id : 8;
+	uint32_t skt_id : 8;
+	uint32_t die_id : 8;
+};
+
+struct rasdfx_pkt_header_dw1 {
+	uint32_t module_id : 8;
+	uint32_t submodule_id : 8;
+	uint32_t sequence_num : 8;
+	uint32_t reg_count : 8;
+};
+
+struct rasdfx_pkt {
+	struct rasdfx_pkt_header_dw0 dw0;
+	struct rasdfx_pkt_header_dw1 dw1;
+	uint32_t reserved;
+	uint32_t reg_base[0];
+};
+
 struct file_seq {
-	char *buffer;
-	uint32_t buffer_size;
-	int len;
-	char file_name[MAX_LOG_NAME_LEN];
+	int fd;
+	char *buf;
+	size_t buf_size;
+	size_t buf_offs;
 };
 
-struct ras_rsp {
-	uint32_t rsp_data[HIKP_RSP_ALL_DATA_MAX];
-	uint32_t first_pkt_begin;
-	uint32_t last_pkt_end;
-	uint32_t rsp_data_num;
-	uint32_t packet_buffer[MAX_DFX_PACKET_LEN];
-	uint32_t packet_buffer_len;
+enum ras_dump_cmd_type {
+	DUMP_DFX,
+	DUMP_CLEAR
+ };
+
+struct ras_dump_cmd {
+	enum ras_dump_cmd_type cmd_type;
+	uint32_t cmd_id; /* 0: get header info, 1-n: get packet data */
 };
 
-struct ras_dump_req_para {
-	uint32_t cmd_id;
-};
+int ras_data_dump(void);
+int ras_data_clear(void);
 
-enum reg_dump_header_index {
-	HEAD_MAGIC,
-	VERSION,
-	CAP_BITS,
-	PKT_NUM,
-	PKT_LENGTH
-};
+#endif /* RAS_DUMP_DATA_H */
 
-enum dfx_packet_index {
-	DFX_HEAD_INFO_DW0,
-	DFX_HEAD_INFO_DW1,
-	DFX_COMMON_MAIN_TEXT_BEGIN = 3
-};
-
-#define DFX_HEAD_VERSION_OFF 0
-#define DFX_HEAD_SOC_ID_OFF 8
-#define DFX_HEAD_SKT_ID_OFF 16
-#define DFX_HEAD_DIE_ID_OFF 24
-#define DFX_HEAD_MODULE_ID_OFF 0
-#define DFX_HEAD_SUBMODULE_ID_OFF 8
-#define DFX_HEAD_SEQUENCE_NUM_OFF 16
-#define DFX_HEAD_REG_COUNT_OFF 24
-
-#define DFX_DATA_IS_CLEARED 0
-
-#define DFX_FILE_SINGLE_PACKET_HEAD_SIZE 256
-#define DFX_FILE_SINGLE_REG_SIZE 10
-
-
-int ras_data_dump(struct tool_ras_cmd *cmd);
-int ras_data_clear(struct tool_ras_cmd *cmd);
-
-#endif /* RAS_DUMP_REG_H */

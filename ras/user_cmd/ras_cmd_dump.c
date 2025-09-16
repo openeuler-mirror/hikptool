@@ -13,11 +13,12 @@
 
 #include <stdint.h>
 #include "tool_cmd.h"
-#include "ras_tools_include.h"
+#include "hikptdev_plug.h"
+#include "tool_lib.h"
 #include "ras_dump_data.h"
 
-struct tool_ras_cmd g_ras_dump_cmd = {
-	.ras_cmd_type = DUMP_DFX,
+struct ras_dump_cmd g_cmd = {
+	.cmd_type = DUMP_DFX
 };
 
 static int ras_dump_help(struct major_cmd_ctrl *self, const char *argv)
@@ -34,33 +35,21 @@ static int ras_dump_help(struct major_cmd_ctrl *self, const char *argv)
 	return 0;
 }
 
-static enum ras_dump_cmd_type ras_get_cmd_type(void)
-{
-	return g_ras_dump_cmd.ras_cmd_type;
-}
-
-static void ras_set_cmd_type(enum ras_dump_cmd_type type)
-{
-	g_ras_dump_cmd.ras_cmd_type = type;
-}
-
 static int ras_set_clear(struct major_cmd_ctrl *self, const char *argv)
 {
 	HIKP_SET_USED(self);
 	HIKP_SET_USED(argv);
 
-	ras_set_cmd_type(DUMP_CLEAR);
+	g_cmd.cmd_type = DUMP_CLEAR;
 	return 0;
 }
 
-static int ras_dump_execute_process(void)
+static int ras_dump_execute_process(enum ras_dump_cmd_type cmd_type)
 {
-	if (ras_get_cmd_type() == DUMP_DFX)
-		return ras_data_dump(&g_ras_dump_cmd);
-	else if (ras_get_cmd_type() == DUMP_CLEAR)
-		return ras_data_clear(&g_ras_dump_cmd);
+	if (cmd_type == DUMP_CLEAR)
+		return ras_data_clear();
 	else
-		return -EINVAL;
+		return ras_data_dump();
 }
 
 static void ras_dump_execute(struct major_cmd_ctrl *self)
@@ -75,12 +64,12 @@ static void ras_dump_execute(struct major_cmd_ctrl *self)
 		"ras dfx data clear error."
 	};
 
-	ret = ras_dump_execute_process();
+	ret = ras_dump_execute_process(g_cmd.cmd_type);
 	if (ret == 0) {
-		printf("%s\n", suc_msg[ras_get_cmd_type()]);
+		printf("%s\n", suc_msg[g_cmd.cmd_type]);
 	} else {
 		snprintf(self->err_str, sizeof(self->err_str), "%s\n",
-			 err_msg[ras_get_cmd_type()]);
+			 err_msg[g_cmd.cmd_type]);
 		self->err_no = ret;
 	}
 }

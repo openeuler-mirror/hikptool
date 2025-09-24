@@ -71,14 +71,16 @@ static int hikp_hccs_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");
 	printf("    %s, %-25s %s\n", "-h", "--help", "display this help and exit");
-	printf("    %s, %-25s %s\n", "-c", "--chip_id=<chip_id>", "target chip");
-	printf("    %s, %-25s %s\n", "-d", "--die_id=<die_id>", "target die");
-	printf("    %s, %-25s %s\n", "-p", "--port_id=<port_id>", "target port");
+	printf("    %s, %-25s %s\n", "-c", "--chip_id=<chip_id>", "target chip ID which is from 'X' in chipX");
+	printf("    %s, %-25s %s\n", "-d", "--die_id=<die_id>", "target die ID which is from 'Y' in dieY");
+	printf("    %s, %-25s %s\n", "-p", "--port_id=<port_id>", "target port ID which from 'Z' in hccsZ");
 	printf("      %s\n",
 	       "[-g/--get <options>]\n"
-	       "          topo : get hccs_typo info, no target specified.\n"
-	       "          fixed_attr : get fixed attributes for port specified by -c X -d X -p X.\n"
-	       "          dfx_info : get dfx info for port specified by -c X -d X -p X.\n");
+	       "          topo : get HCCS topology information, no target specified.\n"
+	       "          fixed_attr : get fixed attributes of one port specified by -c X -d Y -p Z.\n"
+	       "          dfx_info : get dfx info of one port specified by -c X -d Y -p Z.\n"
+	       "\n"
+	       "     eg: hikptool hccs -g dfx_info -c 0 -d 2 -p 1\n");
 	return 0;
 }
 

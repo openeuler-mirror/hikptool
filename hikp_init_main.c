@@ -53,7 +53,7 @@ static const char *g_roh_cmd_list[] = {
 };
 
 static const char *g_sas_cmd_list[] = {
-	"sas_anacq", "sas_anadq", "sas_dev", "sas_dqe", "sas_dump", "sas_errcode",
+	"sas_anacq", "sas_anadq", "sas_dev", "sas_dump", "sas_errcode",
 };
 
 static const char *g_sata_cmd_list[] = {

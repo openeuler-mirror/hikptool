@@ -34,7 +34,7 @@ static int sas_get_dev(const struct tool_sas_cmd *cmd, uint32_t *reg_save, uint3
 	hikp_cmd_init(&req_header, SAS_MOD, SAS_DEV, cmd->sas_cmd_type);
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	if (cmd_ret == NULL || cmd_ret->status != 0 || cmd_ret->rsp_data_num > RESP_MAX_NUM) {
-		printf("sas_dqe excutes hikp_cmd_alloc err\n");
+		printf("sas_dev excutes hikp_cmd_alloc err\n");
 		hikp_cmd_free(&cmd_ret);
 		return -EINVAL;
 	}

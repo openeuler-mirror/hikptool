@@ -79,9 +79,4 @@ enum sas_dev_cmd_type {
 	DEV_UNKNOWN_TYPE,
 };
 
-enum sas_dqe_cmd_type {
-	DQE_INFO,
-	DQE_UNKNOWN_TYPE,
-};
-
 #endif /* SAS_COMMON_H */

@@ -82,6 +82,7 @@ enum nic_cmd_type {
 	GET_NOTIFY_PKT_CMD,
 	GET_TORUS_INFO_CMD = 0xD,
 	GET_PORT_FAULT_STATUS = 0xE,
+	GET_PORT_LED_CFG = 0xF,
 };
 
 enum roh_cmd_type {

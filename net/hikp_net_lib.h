@@ -83,6 +83,7 @@ enum nic_cmd_type {
 	GET_TORUS_INFO_CMD = 0xD,
 	GET_PORT_FAULT_STATUS = 0xE,
 	GET_PORT_LED_CFG = 0xF,
+	GET_NCSI_TABLE_ENTRY_INFO_CMD = 0x10,
 };
 
 enum roh_cmd_type {
@@ -118,6 +119,14 @@ enum ub_cmd_type {
 
 enum nic_get_ncsi_sub_cmd {
 	NIC_NCSI_GET_DFX_INFO,
+};
+
+enum nic_get_ncsi_entry_sub_cmd {
+	NIC_NCSI_GET_BUF_STATUS = 1,
+	NIC_NCSI_GET_VLAN_FILTER_TBL,
+	NIC_NCSI_GET_ETHER_FILTER_TBL,
+	NIC_NCSI_GET_DMAC_FILTER_TBL,
+	NIC_NCSI_GET_SMAC_FILTER_TBL,
 };
 
 #define HIKP_MAX_PF_NUM 8

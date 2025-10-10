@@ -59,6 +59,8 @@ static const char *g_dfx_sta_reg_name[] = {
 	"PKT_RNR_STA",
 	"PKT_RTY_STA",
 	"MSN_RTY_STA",
+	"LENGTH_ERR",
+	"RQ_RNR",
 };
 
 static int hikp_roce_dfx_sta_get_data(struct hikp_cmd_ret **cmd_ret,

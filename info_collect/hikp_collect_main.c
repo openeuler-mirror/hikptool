@@ -126,7 +126,7 @@ static int info_collect_all(struct major_cmd_ctrl *self, const char *argv)
 	return 0;
 }
 
-static void collect_all_log(void)
+static void collect_all_log_hip09_10(void)
 {
 	collect_pcie_info();
 	collect_acc_log();
@@ -137,7 +137,47 @@ static void collect_all_log(void)
 	collect_sata_log();
 	collect_serdes_log();
 	collect_socip_log();
+}
+
+static void collect_all_log_hip11(void)
+{
+	collect_pcie_info();
+	collect_imp_log();
+	collect_nic_log();
+	collect_roce_log();
+	collect_sata_log();
+	collect_serdes_log();
+	collect_socip_log();
 	collect_sdma_log();
+}
+
+static void collect_all_log_hip12(void)
+{
+	collect_pcie_info();
+	collect_acc_log();
+	collect_serdes_log();
+	collect_socip_log();
+}
+
+static void collect_all_log(void)
+{
+	uint32_t chip_type = get_chip_type();
+
+	switch (chip_type) {
+	case CHIP_HIP09:
+	case CHIP_HIP10:
+	case CHIP_HIP10C:
+		collect_all_log_hip09_10();
+		break;
+	case CHIP_HIP11:
+		collect_all_log_hip11();
+		break;
+	case CHIP_HIP12:
+		collect_all_log_hip12();
+		break;
+	default:
+		break;
+	}
 }
 
 static int info_collect_excute_funs_call(uint32_t collect_type)
@@ -199,7 +239,6 @@ static int info_collect_excute_funs_call(uint32_t collect_type)
 	return ret;
 }
 
-
 static void info_collect_execute(struct major_cmd_ctrl *self)
 {
 	const char *suc_msg[] = {
@@ -243,38 +282,32 @@ static void info_collect_execute(struct major_cmd_ctrl *self)
 	}
 }
 
-static int info_collect_help(struct major_cmd_ctrl *self, const char *argv)
+static int info_collect_help_hip09_10(struct major_cmd_ctrl *self, const char *argv)
 {
 	HIKP_SET_USED(argv);
 
 	printf("\n  Usage: %s\n", self->cmd_ptr->name);
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");
-	printf("    %s, %-25s %s\n", "-h", "--help", "display this help and exit\n");
-	printf("    %s, %-25s %s\n", "-acc", "--acc", "collect acc info\n");
-	printf("    %s, %-25s %s\n", "-imp", "--imp", "collect imp info\n");
-	printf("    %s, %-25s %s\n", "-nic", "--nic", "collect nic info\n");
-	printf("    %s, %-25s %s\n", "-pcie", "--pcie", "collect pcie info\n");
-	printf("    %s, %-25s %s\n", "-roce", "--roce", "collect roce info\n");
-	printf("    %s, %-25s %s\n", "-sas", "--sas", "collect sas info\n");
-	printf("    %s, %-25s %s\n", "-sata", "--sata", "collect sata info\n");
-	printf("    %s, %-25s %s\n", "-serdes", "--serdes", "collect serdes info\n");
-	printf("    %s, %-25s %s\n", "-socip", "--socip", "collect socip info\n");
-	printf("    %s, %-25s %s\n", "-sdma", "--sdma", "collect sdma info\n");
-	printf("    %s, %-25s %s\n", "-all", "--all", "collect all info\n");
+	printf("    %-10s, %-25s %s\n", "-h", "--help", "display this help and exit");
+	printf("    %-10s, %-25s %s\n", "-acc", "--acc", "collect acc info");
+	printf("    %-10s, %-25s %s\n", "-imp", "--imp", "collect imp info");
+	printf("    %-10s, %-25s %s\n", "-nic", "--nic", "collect nic info");
+	printf("    %-10s, %-25s %s\n", "-pcie", "--pcie", "collect pcie info");
+	printf("    %-10s, %-25s %s\n", "-roce", "--roce", "collect roce info");
+	printf("    %-10s, %-25s %s\n", "-sas", "--sas", "collect sas info");
+	printf("    %-10s, %-25s %s\n", "-sata", "--sata", "collect sata info");
+	printf("    %-10s, %-25s %s\n", "-serdes", "--serdes", "collect serdes info");
+	printf("    %-10s, %-25s %s\n", "-socip", "--socip", "collect socip info");
+	printf("    %-10s, %-25s %s\n", "-all", "--all", "collect all info");
 	printf("\n");
 
 	return 0;
 }
 
-static void cmd_info_collect_init(void)
+static void info_collect_cmd_register_hip09_10(void)
 {
-	struct major_cmd_ctrl *major_cmd = get_major_cmd();
-
-	major_cmd->option_count = 0;
-	major_cmd->execute = info_collect_execute;
-
-	cmd_option_register("-h", "--help", false, info_collect_help);
+	cmd_option_register("-h", "--help", false, info_collect_help_hip09_10);
 	cmd_option_register("-acc", "--acc", false, info_collect_acc);
 	cmd_option_register("-imp", "--imp", false, info_collect_imp);
 	cmd_option_register("-nic", "--nic", false, info_collect_nic);
@@ -284,8 +317,96 @@ static void cmd_info_collect_init(void)
 	cmd_option_register("-sata", "--sata", false, info_collect_sata);
 	cmd_option_register("-serdes", "--serdes", false, info_collect_serdes);
 	cmd_option_register("-socip", "--socip", false, info_collect_socip);
+	cmd_option_register("-all", "--all", false, info_collect_all);
+}
+
+static int info_collect_help_hip11(struct major_cmd_ctrl *self, const char *argv)
+{
+	HIKP_SET_USED(argv);
+
+	printf("\n  Usage: %s\n", self->cmd_ptr->name);
+	printf("\n         %s\n", self->cmd_ptr->help_info);
+	printf("\n  Options:\n\n");
+	printf("    %-10s, %-25s %s\n", "-h", "--help", "display this help and exit");
+	printf("    %-10s, %-25s %s\n", "-imp", "--imp", "collect imp info");
+	printf("    %-10s, %-25s %s\n", "-nic", "--nic", "collect nic info");
+	printf("    %-10s, %-25s %s\n", "-pcie", "--pcie", "collect pcie info");
+	printf("    %-10s, %-25s %s\n", "-roce", "--roce", "collect roce info");
+	printf("    %-10s, %-25s %s\n", "-sata", "--sata", "collect sata info");
+	printf("    %-10s, %-25s %s\n", "-serdes", "--serdes", "collect serdes info");
+	printf("    %-10s, %-25s %s\n", "-socip", "--socip", "collect socip info");
+	printf("    %-10s, %-25s %s\n", "-sdma", "--sdma", "collect sdma info");
+	printf("    %-10s, %-25s %s\n", "-all", "--all", "collect all info");
+	printf("\n");
+
+	return 0;
+}
+
+static void info_collect_cmd_register_hip11(void)
+{
+	cmd_option_register("-h", "--help", false, info_collect_help_hip11);
+	cmd_option_register("-imp", "--imp", false, info_collect_imp);
+	cmd_option_register("-nic", "--nic", false, info_collect_nic);
+	cmd_option_register("-pcie", "--pcie", false, info_collect_pcie);
+	cmd_option_register("-roce", "--roce", false, info_collect_roce);
+	cmd_option_register("-sata", "--sata", false, info_collect_sata);
+	cmd_option_register("-serdes", "--serdes", false, info_collect_serdes);
+	cmd_option_register("-socip", "--socip", false, info_collect_socip);
 	cmd_option_register("-sdma", "--sdma", false, info_collect_sdma);
 	cmd_option_register("-all", "--all", false, info_collect_all);
+}
+
+static int info_collect_help_hip12(struct major_cmd_ctrl *self, const char *argv)
+{
+	HIKP_SET_USED(argv);
+
+	printf("\n  Usage: %s\n", self->cmd_ptr->name);
+	printf("\n         %s\n", self->cmd_ptr->help_info);
+	printf("\n  Options:\n\n");
+	printf("    %-10s, %-25s %s\n", "-h", "--help", "display this help and exit");
+	printf("    %-10s, %-25s %s\n", "-acc", "--acc", "collect acc info");
+	printf("    %-10s, %-25s %s\n", "-pcie", "--pcie", "collect pcie info");
+	printf("    %-10s, %-25s %s\n", "-serdes", "--serdes", "collect serdes info");
+	printf("    %-10s, %-25s %s\n", "-socip", "--socip", "collect socip info");
+	printf("    %-10s, %-25s %s\n", "-all", "--all", "collect all info");
+	printf("\n");
+
+	return 0;
+}
+
+static void info_collect_cmd_register_hip12(void)
+{
+	cmd_option_register("-h", "--help", false, info_collect_help_hip12);
+	cmd_option_register("-acc", "--acc", false, info_collect_acc);
+	cmd_option_register("-pcie", "--pcie", false, info_collect_pcie);
+	cmd_option_register("-serdes", "--serdes", false, info_collect_serdes);
+	cmd_option_register("-socip", "--socip", false, info_collect_socip);
+	cmd_option_register("-all", "--all", false, info_collect_all);
+}
+
+static void cmd_info_collect_init(void)
+{
+	struct major_cmd_ctrl *major_cmd = get_major_cmd();
+	uint32_t chip_type = get_chip_type();
+
+	major_cmd->option_count = 0;
+	major_cmd->execute = info_collect_execute;
+
+	switch (chip_type) {
+	case CHIP_HIP09:
+	case CHIP_HIP10:
+	case CHIP_HIP10C:
+		info_collect_cmd_register_hip09_10();
+		break;
+	case CHIP_HIP11:
+		info_collect_cmd_register_hip11();
+		break;
+	case CHIP_HIP12:
+		info_collect_cmd_register_hip12();
+		break;
+	default:
+		break;
+	}
 }
 
 HIKP_CMD_DECLARE("info_collect", "information collect", cmd_info_collect_init);

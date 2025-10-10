@@ -35,7 +35,7 @@ static const char *g_nic_cmd_list[] = {
 	"nic_dfx",          "nic_fd",        "nic_fec",        "nic_gro",          "nic_info",
 	"nic_log",          "nic_mac",       "nic_ncsi",       "nic_notify_pkt",   "nic_port",
 	"nic_port_fault",   "nic_ppp",       "nic_qos",        "nic_queue",        "nic_rss",
-	"nic_torus",        "nic_xsfp",
+	"nic_torus",        "nic_xsfp",      "nic_led",
 };
 
 static const char *g_pcie_cmd_list[] = {
@@ -53,7 +53,7 @@ static const char *g_roh_cmd_list[] = {
 };
 
 static const char *g_sas_cmd_list[] = {
-	"sas_anacq", "sas_anadq", "sas_dev", "sas_dqe", "sas_dump", "sas_errcode",
+	"sas_anacq", "sas_anadq", "sas_dev", "sas_dump", "sas_errcode",
 };
 
 static const char *g_sata_cmd_list[] = {

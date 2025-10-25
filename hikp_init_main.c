@@ -92,6 +92,10 @@ static const char *g_ub_scc_cmd_list[] = {
 	"scc",
 };
 
+static const char *g_ub_ubctl_cmd_list[] = {
+	"ubctl",
+};
+
 const struct cmd_list_info g_chip_hip09_hip10_cmd_list[] = {
 	{g_cxl_cmd_list,            HIKP_ARRAY_SIZE(g_cxl_cmd_list)},
 	{g_hccs_cmd_list,           HIKP_ARRAY_SIZE(g_hccs_cmd_list)},
@@ -130,6 +134,7 @@ const struct cmd_list_info g_chip_hip12_cmd_list[] = {
 	{g_ub_scc_cmd_list,         HIKP_ARRAY_SIZE(g_ub_scc_cmd_list)},
 	{g_serdes_cmd_list,         HIKP_ARRAY_SIZE(g_serdes_cmd_list)},
 	{g_socip_cmd_list,          HIKP_ARRAY_SIZE(g_socip_cmd_list)},
+	{g_ub_ubctl_cmd_list,       HIKP_ARRAY_SIZE(g_ub_ubctl_cmd_list)},
 };
 
 static bool cmd_is_support(const char *cmd_name, struct cmd_list_info *cmd_info, size_t len)

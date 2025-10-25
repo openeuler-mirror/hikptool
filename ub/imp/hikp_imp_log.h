@@ -1,0 +1,49 @@
+/*
+ * Copyright (c) 2025 Hisilicon Technologies Co., Ltd.
+ * Hikptool is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ *
+ * See the Mulan PSL v2 for more details.
+ */
+
+#ifndef HIKP_IMP_LOG_H
+#define HIKP_IMP_LOG_H
+#include "tool_cmd.h"
+#include "hikp_imp_cmd.h"
+
+enum imp_log_cmd {
+	IMP_MOD_DUMP_LOG_CMD = 1,
+};
+
+enum imp_log_sub_cmd {
+	DUMP_LOG_DATA = 1,
+};
+
+struct imp_log_req_para {
+	uint8_t chip;
+	uint8_t die;
+	uint8_t rsv[2];
+	uint32_t block_id;
+};
+
+#define LOG_DATA_BLK_SIZE	236    /* A maximum of 240 bytes can be transmitted at a time. */
+struct imp_log_rsp_data {
+	uint16_t total_blk_num;
+	uint16_t cur_blk_size;
+	uint8_t log_data[LOG_DATA_BLK_SIZE];
+};
+
+struct imp_log_blk_ctrl {
+	uint32_t blk_id;
+	uint32_t resp_blk_size;
+	uint32_t total_blk_num;
+};
+
+void hikp_imp_dump_log(struct major_cmd_ctrl *self, struct imp_cmd_cfg *cmd_cfg);
+
+#endif /* HIKP_IMP_LOG_H */

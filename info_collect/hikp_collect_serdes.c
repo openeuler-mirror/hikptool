@@ -19,8 +19,10 @@
 #define MAX_CHIP_NUM_SUPPORT 8
 #define HIP10_DIE_NUM        2
 #define HIP11_DIE_NUM        4
+#define HIP12_DIE_NUM        1
 #define HIP10_DIE_MACRO_NUM  7
 #define HIP11_DIE_MACRO_NUM  4
+#define HIP12_DIE_MACRO_NUM  19
 
 struct serdes_macro_info {
 	uint8_t macro_id;
@@ -49,24 +51,86 @@ struct serdes_macro_info g_hip11[] = {
 	{3, 4}, /* 3, 4: macro_id, ds_num */
 };
 
-static int is_chip_hip11(void)
-{
-	return get_chip_type() == CHIP_HIP11;
-}
+struct serdes_macro_info g_hip12[] = {
+	{0, 8},  /*  0, 8: macro_id, ds_num */
+	{1, 8},  /*  1, 8: macro_id, ds_num */
+	{2, 8},  /*  2, 8: macro_id, ds_num */
+	{3, 6},  /*  3, 6: macro_id, ds_num */
+	{4, 6},  /*  4, 6: macro_id, ds_num */
+	{5, 8},  /*  5, 8: macro_id, ds_num */
+	{6, 8},  /*  6, 8: macro_id, ds_num */
+	{7, 8},  /*  7, 8: macro_id, ds_num */
+	{8, 2},  /*  8, 2: macro_id, ds_num */
+	{9, 2},  /*  9, 2: macro_id, ds_num */
+	{10, 4}, /* 10, 4: macro_id, ds_num */
+	{11, 4}, /* 11, 4: macro_id, ds_num */
+	{12, 4}, /* 12, 4: macro_id, ds_num */
+	{13, 4}, /* 13, 4: macro_id, ds_num */
+	{14, 4}, /* 14, 4: macro_id, ds_num */
+	{15, 4}, /* 15, 4: macro_id, ds_num */
+	{16, 4}, /* 16, 4: macro_id, ds_num */
+	{17, 4}, /* 17, 4: macro_id, ds_num */
+	{18, 4}, /* 18, 4: macro_id, ds_num */
+};
 
 static unsigned char serdes_get_die_num(void)
 {
-	return is_chip_hip11() ? HIP11_DIE_NUM : HIP10_DIE_NUM;
+	uint32_t chip_type = get_chip_type();
+
+	switch (chip_type) {
+		case CHIP_HIP09:
+		case CHIP_HIP10:
+		case CHIP_HIP10C:
+			return HIP10_DIE_NUM;
+		case CHIP_HIP11:
+			return HIP11_DIE_NUM;
+		case CHIP_HIP12:
+			return HIP12_DIE_NUM;
+		default:
+			return 0;
+	}
+
+	return 0;
 }
 
 static unsigned char serdes_get_die_macro_num(void)
 {
-	return is_chip_hip11() ? HIP11_DIE_MACRO_NUM : HIP10_DIE_MACRO_NUM;
+	uint32_t chip_type = get_chip_type();
+
+	switch (chip_type) {
+		case CHIP_HIP09:
+		case CHIP_HIP10:
+		case CHIP_HIP10C:
+			return HIP10_DIE_MACRO_NUM;
+		case CHIP_HIP11:
+			return HIP11_DIE_MACRO_NUM;
+		case CHIP_HIP12:
+			return HIP12_DIE_MACRO_NUM;
+		default:
+			return 0;
+	}
+
+	return 0;
 }
 
 static struct serdes_macro_info *serdes_get_macro_info(void)
 {
-	return is_chip_hip11() ? g_hip11 : g_hip10;
+	uint32_t chip_type = get_chip_type();
+
+	switch (chip_type) {
+		case CHIP_HIP09:
+		case CHIP_HIP10:
+		case CHIP_HIP10C:
+			return g_hip10;
+		case CHIP_HIP11:
+			return g_hip11;
+		case CHIP_HIP12:
+			return g_hip12;
+		default:
+			return NULL;
+	}
+
+	return NULL;
 }
 
 static int collect_serdes_info_process(void *data)

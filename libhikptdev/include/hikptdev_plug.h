@@ -44,6 +44,7 @@ enum cmd_module_type {
 	DPDK_MOD = 9,
 	CXL_MOD = 10,
 	UB_MOD = 11,
+	UBUS_MOD = 12,
 	IMP_MOD = 13,
 	SCC_MOD = 14,
 	HCCS_MOD = 16,

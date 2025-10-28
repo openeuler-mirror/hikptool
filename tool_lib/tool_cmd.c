@@ -45,6 +45,20 @@ static int major_command_check_param(const struct cmd_option *option, const char
 	return -EPERM;
 }
 
+static int major_command_check_param_ubctl(const struct cmd_option *option, const char *arg)
+{
+	if (option == NULL)
+		return -EFAULT;
+
+	if (option->have_param) {
+		if (!arg)
+			return -EINVAL;
+		return 0;
+	}
+
+	return -EPERM;
+}
+
 static int check_command_length(const int argc, const char **argv)
 {
 	unsigned long long str_len = 0;
@@ -124,7 +138,10 @@ static int major_command_parse(struct major_cmd_ctrl *major_cmd, const int argc,
 			/* Determine whether the subcommand is related to the parameter */
 			intermediate_var = i + 1;
 			param = intermediate_var < argc ? argv[intermediate_var] : NULL;
-			ret = major_command_check_param(option, param);
+			if (strcmp(major_cmd->cmd_ptr->name, "ubctl") == 0)
+				ret = major_command_check_param_ubctl(option, param);
+			else
+				ret = major_command_check_param(option, param);
 			if (ret == 0) {
 				i++;
 			} else if (ret == -EINVAL) {

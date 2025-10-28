@@ -53,6 +53,7 @@ file(GLOB_RECURSE HIKPTOOL_SRC
 	${CMAKE_CURRENT_SOURCE_DIR}/ras/*.c
 	${CMAKE_CURRENT_SOURCE_DIR}/tool_lib/*.c
 	${CMAKE_CURRENT_SOURCE_DIR}/info_collect/*.c
+	${CMAKE_CURRENT_SOURCE_DIR}/ub/*.c
 	${CMAKE_CURRENT_SOURCE_DIR}/hikp_init_main.c
 	)
 

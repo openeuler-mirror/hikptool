@@ -84,6 +84,22 @@ static const char *g_ras_cmd_list[] = {
 	"bbox_export",
 };
 
+static const char *g_ub_imp_cmd_list[] = {
+	"imp",
+};
+
+static const char *g_ub_scc_cmd_list[] = {
+	"scc",
+};
+
+static const char *g_ub_ubctl_cmd_list[] = {
+	"ubctl",
+};
+
+static const char *g_ub_ubus_cmd_list[] = {
+	"ubus",
+};
+
 const struct cmd_list_info g_chip_hip09_hip10_cmd_list[] = {
 	{g_cxl_cmd_list,            HIKP_ARRAY_SIZE(g_cxl_cmd_list)},
 	{g_hccs_cmd_list,           HIKP_ARRAY_SIZE(g_hccs_cmd_list)},
@@ -117,9 +133,13 @@ const struct cmd_list_info g_chip_hip12_cmd_list[] = {
 	{g_ras_cmd_list,            HIKP_ARRAY_SIZE(g_ras_cmd_list)},
 	{g_hccs_cmd_list,           HIKP_ARRAY_SIZE(g_hccs_cmd_list)},
 	{g_log_collect_cmd_list,    HIKP_ARRAY_SIZE(g_log_collect_cmd_list)},
+	{g_ub_imp_cmd_list,         HIKP_ARRAY_SIZE(g_ub_imp_cmd_list)},
 	{g_pcie_cmd_list,           HIKP_ARRAY_SIZE(g_pcie_cmd_list)},
+	{g_ub_scc_cmd_list,         HIKP_ARRAY_SIZE(g_ub_scc_cmd_list)},
 	{g_serdes_cmd_list,         HIKP_ARRAY_SIZE(g_serdes_cmd_list)},
 	{g_socip_cmd_list,          HIKP_ARRAY_SIZE(g_socip_cmd_list)},
+	{g_ub_ubctl_cmd_list,       HIKP_ARRAY_SIZE(g_ub_ubctl_cmd_list)},
+	{g_ub_ubus_cmd_list,        HIKP_ARRAY_SIZE(g_ub_ubus_cmd_list)},
 };
 
 static bool cmd_is_support(const char *cmd_name, struct cmd_list_info *cmd_info, size_t len)

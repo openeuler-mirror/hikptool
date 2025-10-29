@@ -47,6 +47,7 @@ enum cmd_module_type {
 	UBUS_MOD = 12,
 	IMP_MOD = 13,
 	SCC_MOD = 14,
+	UMMU_MOD = 15,
 	HCCS_MOD = 16,
 	SDMA_MOD = 17,
 	CORE_RING_MOD = 18,

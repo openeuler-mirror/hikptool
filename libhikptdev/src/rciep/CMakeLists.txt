@@ -9,7 +9,7 @@
 #
 # See the Mulan PSL v2 for more details.
 
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.10.0)
 
 set(KPTDEV_SO_NAME hikptdev)
 
@@ -21,7 +21,7 @@ endif()
 
 target_include_directories(KPTDEV_SO PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
 
-target_link_options(KPTDEV_SO PRIVATE -Wl,-z,relro,-z,now -Wl,-z,noexecstack -fPIE -pie -s)
+target_link_options(KPTDEV_SO PRIVATE -Wl,-z,relro,-z,now -Wl,-z,noexecstack -fPIC -s)
 
 set_target_properties(KPTDEV_SO PROPERTIES OUTPUT_NAME ${KPTDEV_SO_NAME} SOVERSION 1 VERSION 1.1.5)
 install(TARGETS KPTDEV_SO LIBRARY DESTINATION lib OPTIONAL)

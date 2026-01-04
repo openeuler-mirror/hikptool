@@ -23,5 +23,5 @@ target_include_directories(KPTDEV_SO PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../in
 
 target_link_options(KPTDEV_SO PRIVATE -Wl,-z,relro,-z,now -Wl,-z,noexecstack -fPIC -s)
 
-set_target_properties(KPTDEV_SO PROPERTIES OUTPUT_NAME ${KPTDEV_SO_NAME} SOVERSION 1 VERSION 1.1.5)
+set_target_properties(KPTDEV_SO PROPERTIES OUTPUT_NAME ${KPTDEV_SO_NAME} SOVERSION 1 VERSION 1.1.6)
 install(TARGETS KPTDEV_SO LIBRARY DESTINATION lib OPTIONAL)

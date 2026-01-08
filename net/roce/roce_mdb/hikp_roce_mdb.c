@@ -98,6 +98,7 @@ static const char *g_mdb_ext_reg_name[] = {
 	"MDB_DFX_CNT_2",
 	"MDB_DFX_CNT_3",
 	"MDB_DFX_CNT_4",
+	"ROCEE_DB_TIMEOUT_DROP_CNT",
 };
 
 static void hikp_roce_mdb_print(uint32_t reg_num, struct roce_mdb_rsp_data *mdb_rsp)

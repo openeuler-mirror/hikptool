@@ -66,6 +66,7 @@ enum serdes_cmd_type_e {
 	SERDES_GREENBOX            = 41,
 	SERDES_GET_FW_VERSION      = 42,
 	SERDES_FW_LOAD             = 43,
+	SERDES_LOG                 = 48,
 	SERDES_GET_CHIP_INFO       = 49,
 	SERDES_TYPE_NUM
 };
@@ -77,6 +78,30 @@ enum hilink_dump_type_e {
 	HILINK_SERDES_REG_RAM,
 	HILINK_SUBCTRL_REG,
 	HILINK_DUMP_TYPE_END
+};
+
+enum hilink_log_sub_e {
+	HILINK_CMD_LOG_LEVEL = 0,
+	HILINK_CMD_LOG_PRINT,
+	HILINK_CMD_LOG_CFG,
+	HILINK_CMD_LOG_TEST,
+	HILINK_CMD_LOG_READ,
+	HILINK_CMD_LOG_INFO,
+	HILINK_CMD_LOG_HEAD_UPDATE,
+	HILINK_CMD_LOG_END
+};
+
+enum hilink_log_head_update_e {
+	HILINK_LOG_HEAD_UPDATE_DIS = 0,
+	HILINK_LOG_HEAD_UPDATE_EN,
+};
+
+enum hilink_para_check_e {
+	NEED_CHIP_ID = 0x1,
+	NEED_MACRO_ID = 0x2,
+	NEED_LANE_ID = 0x4,
+	NEED_LANE_NUM = 0x8,
+	NEED_SUB_CMD = 0x10,
 };
 
 enum hilink_use_mode_e {
@@ -128,7 +153,10 @@ struct cmd_serdes_param {
 	uint8_t val;
 	uint8_t sub_cmd;
 	uint8_t cmd_type;
-	uint8_t rsvd2;
+	uint8_t rsvd0; /* not used, only for 4-byte alignment */
+	uint32_t rsvd1; /* used as temporary rd_pos in serdes_log function */
+	uint32_t rsvd2; /* used as temporary rd_size in serdes_log function */
+	uint32_t rsvd3; /* used as final rd_size in serdes_log function */
 };
 
 struct hilink_cmd_general {
@@ -236,6 +264,18 @@ struct dump_part_info {
 struct macro_info_msg {
 	uint32_t macro_num;
 	uint8_t lane_num[SERDES_MACRO_NUM_MAX];
+};
+
+#define SERDES_LOG_SLICE_SIZE 2048
+struct serdes_log_mnt_info {
+    uint32_t head;
+    uint32_t tail;
+    uint32_t que_depth;
+};
+
+struct serdes_log_read {
+    uint32_t rd_pos;
+    uint32_t rd_size;
 };
 
 struct chip_info_msg {

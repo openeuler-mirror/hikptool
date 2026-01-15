@@ -61,7 +61,7 @@ static const char *g_sata_cmd_list[] = {
 };
 
 static const char *g_serdes_cmd_list[] = {
-	"serdes_dump",      "serdes_info",
+	"serdes_dump", "serdes_info", "serdes_log",
 };
 
 static const char *g_socip_cmd_list[] = {

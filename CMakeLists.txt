@@ -9,12 +9,12 @@
 #
 # See the Mulan PSL v2 for more details.
 
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.10.0)
 
 project(hikptool C)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
- -O2 -fPIC -fPIE -Wall -Werror -Wextra -Wuninitialized -Wundef -Wunused -Wdate-time \
+ -O2 -fPIC -fPIE -pie -Wall -Werror -Wextra -Wuninitialized -Wundef -Wunused -Wdate-time \
  -Wshadow -Wvla -Wdisabled-optimization -Wempty-body -Wignored-qualifiers \
  -Wimplicit-fallthrough=3 -Wtype-limits -Wshift-negative-value -Wswitch-default \
  -Wframe-larger-than=8192 -Wshift-overflow=2 -Wwrite-strings -Wmissing-format-attribute \

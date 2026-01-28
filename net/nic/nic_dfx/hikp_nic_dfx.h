@@ -73,9 +73,13 @@ enum nic_dfx_reg_type {
 };
 
 #define MAX_MODULE_NAME_LEN 20
+#define IGU_RX_ERR_PKT_OFFSET 0x5000
+
 struct dfx_module_cmd {
 	uint8_t module_name[MAX_MODULE_NAME_LEN];
 	uint32_t sub_cmd_code;
+	const struct dfx_type_name_parse *dfx_name_parse;
+	uint32_t dfx_name_parse_size;
 };
 
 #define MAX_TYPE_NAME_LEN 40
@@ -147,6 +151,7 @@ struct dfx_type_name_parse {
 	uint8_t type_id;
 	const struct dfx_reg_name *reg_list;
 	uint32_t reg_num;
+	bool (*match)(uint16_t offset);
 };
 
 int hikp_nic_cmd_dfx_target(struct major_cmd_ctrl *self, const char *argv);

@@ -16,10 +16,32 @@
 
 #include "hikp_net_lib.h"
 
+#define PER_BLK_DATA_SIZE	30
+#define MAX_REG_NAME_LEN	64
+#define ROUND_UP(val, base)	(((val) + (base) - 1) / (base))
+
+struct mac_reg_name {
+	const char name[MAX_REG_NAME_LEN];
+};
+
+struct mac_reg_info {
+	const struct mac_reg_name* reg_name;
+	uint8_t reg_num;
+};
+
+struct mac_type_name_parse {
+	const struct mac_reg_info *reg_info_list;
+	uint8_t data_len;
+	uint8_t blk_size;
+	bool is_blk;
+};
+
 struct mac_dump_mod_proc {
 	uint32_t module_id;
 	uint32_t sub_cmd;
 	const char *name;
+	const struct mac_type_name_parse *mac_name_parse;
+	uint32_t mac_name_parse_size;
 };
 
 enum dump_module {

@@ -119,8 +119,8 @@ static const struct dfx_reg_name dfx_ppp_type_64_rx_normal_stats1[] = {
 	{ "NR_PKT_CNT" },
 	{ "RR_PKT_CNT" },
 	{ "MNG_TBL_HIT_CNT" },
+	{ "" },
 	{ "FD_TBL_HIT_CNT" },
-	{ "FD_LKUP_CNT" },
 	{ "UM_TBL_UC_HIT_CNT" },
 	{ "UM_TBL_MC_HIT_CNT" },
 	{ "UM_TBL_MC_HIT_PKT_CNT" },
@@ -129,11 +129,11 @@ static const struct dfx_reg_name dfx_ppp_type_64_rx_normal_stats1[] = {
 	{ "MTA_TBL_HIT_PKT_CNT" },
 	{ "FWD_BONDING_HIT_CNT" },
 	{ "GET_BMC_PKT_CNT" },
+	{ "" },
 	{ "SEND_UC_PRT2BMC_PKT_CNT" },
-	{ "SEND_UC_HOST2BMC_PKT_CNT" },
 	{ "PROMIS_TBL_HIT_CNT" },
 	{ "PROMIS_TBL_HIT_PKT_CNT" },
-	{ "GET_TUNL_PKT_CNT" },
+	{ "" },
 };
 
 static const struct dfx_reg_name dfx_ppp_type_64_rx_normal_stats2[] = {
@@ -251,14 +251,14 @@ static const struct dfx_reg_name dfx_ssu_type_32_running_stats[] = {
 };
 
 static const struct dfx_reg_name dfx_ssu_type_32_port_running_stats[] = {
-	{ "PKT_TC_0_CURR_BUF_CNT" },
-	{ "PKT_TC_1_CURR_BUF_CNT" },
-	{ "PKT_TC_2_CURR_BUF_CNT" },
-	{ "PKT_TC_3_CURR_BUF_CNT" },
-	{ "PKT_TC_4_CURR_BUF_CNT" },
-	{ "PKT_TC_5_CURR_BUF_CNT" },
-	{ "PKT_TC_6_CURR_BUF_CNT" },
-	{ "PKT_TC_7_CURR_BUF_CNT" },
+	{ "PACKET_TC_0_CURR_BUFFER_CNT" },
+	{ "PACKET_TC_1_CURR_BUFFER_CNT" },
+	{ "PACKET_TC_2_CURR_BUFFER_CNT" },
+	{ "PACKET_TC_3_CURR_BUFFER_CNT" },
+	{ "PACKET_TC_4_CURR_BUFFER_CNT" },
+	{ "PACKET_TC_5_CURR_BUFFER_CNT" },
+	{ "PACKET_TC_6_CURR_BUFFER_CNT" },
+	{ "PACKET_TC_7_CURR_BUFFER_CNT" },
 };
 
 static const struct dfx_reg_name dfx_ssu_type_32_comm_stats[] = {
@@ -304,16 +304,16 @@ static const struct dfx_reg_name dfx_ssu_type_64_tx_port_drop_stats[] = {
 };
 
 static const struct dfx_reg_name dfx_ssu_type_64_rx_port_normal_stats[] = {
-	{ "RX_PKT_IN_CNT" },
+	{ "RX_PACKET_IN_CNT" },
 	{ "RX_PACKET_OUT_CNT" },
-	{ "RX_PKT_TC_0_IN_CNT" },
-	{ "RX_PKT_TC_1_IN_CNT" },
-	{ "RX_PKT_TC_2_IN_CNT" },
-	{ "RX_PKT_TC_3_IN_CNT" },
-	{ "RX_PKT_TC_4_IN_CNT" },
-	{ "RX_PKT_TC_5_IN_CNT" },
-	{ "RX_PKT_TC_6_IN_CNT" },
-	{ "RX_PKT_TC_7_IN_CNT" },
+	{ "RX_PACKET_TC_0_IN_CNT" },
+	{ "RX_PACKET_TC_1_IN_CNT" },
+	{ "RX_PACKET_TC_2_IN_CNT" },
+	{ "RX_PACKET_TC_3_IN_CNT" },
+	{ "RX_PACKET_TC_4_IN_CNT" },
+	{ "RX_PACKET_TC_5_IN_CNT" },
+	{ "RX_PACKET_TC_6_IN_CNT" },
+	{ "RX_PACKET_TC_7_IN_CNT" },
 	{ "RX_PACKET_TC_0_OUT_CNT" },
 	{ "RX_PACKET_TC_1_OUT_CNT" },
 	{ "RX_PACKET_TC_2_OUT_CNT" },
@@ -326,16 +326,16 @@ static const struct dfx_reg_name dfx_ssu_type_64_rx_port_normal_stats[] = {
 };
 
 static const struct dfx_reg_name dfx_ssu_type_64_tx_port_normal_stats[] = {
-	{ "TX_PKT_IN_CNT" },
-	{ "TX_PKT_OUT_CNT" },
-	{ "TX_PKT_TC_0_IN_CNT" },
-	{ "TX_PKT_TC_1_IN_CNT" },
-	{ "TX_PKT_TC_2_IN_CNT" },
-	{ "TX_PKT_TC_3_IN_CNT" },
-	{ "TX_PKT_TC_4_IN_CNT" },
-	{ "TX_PKT_TC_5_IN_CNT" },
-	{ "TX_PKT_TC_6_IN_CNT" },
-	{ "TX_PKT_TC_7_IN_CNT" },
+	{ "TX_PACKET_IN_CNT" },
+	{ "TX_PACKET_OUT_CNT" },
+	{ "TX_PACKET_TC_0_IN_CNT" },
+	{ "TX_PACKET_TC_1_IN_CNT" },
+	{ "TX_PACKET_TC_2_IN_CNT" },
+	{ "TX_PACKET_TC_3_IN_CNT" },
+	{ "TX_PACKET_TC_4_IN_CNT" },
+	{ "TX_PACKET_TC_5_IN_CNT" },
+	{ "TX_PACKET_TC_6_IN_CNT" },
+	{ "TX_PACKET_TC_7_IN_CNT" },
 	{ "TX_PACKET_TC_0_OUT_CNT" },
 	{ "TX_PACKET_TC_1_OUT_CNT" },
 	{ "TX_PACKET_TC_2_OUT_CNT" },

@@ -171,6 +171,7 @@ static const char *g_tsp_common_reg_name[] = {
 	"ROCE_TPP_DATA_ALM",
 	"ROCE_TPP_DATA_STA0",
 	"ROCE_TPP_DATA_STA1",
+	"ROCEE_TPP_FUN_RST_STA",
 };
 
 static const char *g_tsp_tdp_reg_name[] = {

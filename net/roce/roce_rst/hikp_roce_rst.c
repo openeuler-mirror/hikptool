@@ -44,6 +44,14 @@ static int hikp_roce_rst_target(struct major_cmd_ctrl *self, const char *argv)
 	return self->err_no;
 }
 
+static const char *g_rst_ext_reg_name[] = {
+	"TDP_FUN_RST_DFX",
+	"ROCEE_FUN_RST_DONE",
+	"ROCEE_QMM_FUN_RST_DONE",
+	"ROCEE_CAEP_FUN_RST_DONE",
+	"ROCEE_RST_REQ_STA",
+};
+
 static int hikp_roce_rst_get_data(struct hikp_cmd_ret **cmd_ret,
 				  uint32_t block_id,
 				  struct roce_ext_reg_name *reg_name)
@@ -53,7 +61,8 @@ static int hikp_roce_rst_get_data(struct hikp_cmd_ret **cmd_ret,
 	uint32_t req_size;
 	int ret;
 
-	HIKP_SET_USED(reg_name);
+	reg_name->reg_name = g_rst_ext_reg_name;
+	reg_name->arr_len = HIKP_ARRAY_SIZE(g_rst_ext_reg_name);
 
 	req_data.bdf = g_roce_rst_param.target.bdf;
 	req_data.block_id = block_id;

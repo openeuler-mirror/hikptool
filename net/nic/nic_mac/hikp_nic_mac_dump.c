@@ -616,8 +616,8 @@ static const struct mac_reg_info mac_type_rx_rsfec_phy_blk[] = {
 };
 
 static const struct mac_reg_name rx_rsfec_phy0_dec_cw_cnt_r[] = {
-	{ "RX_RSFEC_PHY0_ERR_CW_CNT_0" },
-	{ "RX_RSFEC_PHY0_ERR_CW_CNT_1" },
+	{ "RX_RSFEC_PHY0_DEC_CW_CNT_0" },
+	{ "RX_RSFEC_PHY0_DEC_CW_CNT_1" },
 };
 
 static const struct mac_reg_name rx_rsfec_phy0_dec_cw_cnt_r_offset_2[] = {
@@ -2475,7 +2475,7 @@ static const struct mac_reg_name an_dbg_timer_addr[] = {
 	{ "AN_SPARE0" },
 	{ "AN_SPARE1" },
 	{ "AN_SPARE_CNT0" },
-	{ "AN_SPARE_CNT0" },
+	{ "AN_SPARE_CNT1" },
 };
 
 static const struct mac_reg_info mac_type_an_reg[] = {
@@ -2529,7 +2529,7 @@ static const struct mac_reg_name lt_dme_info_addr[] = {
 	{ "LT_SM_DURATION1_CNT" },
 	{ "LT_SM_TRANSFER_CNT" },
 	{ "LT_SDS_TRAIN_INFO0" },
-	{ "T_SDS_TRAIN_INFO1" },
+	{ "LT_SDS_TRAIN_INFO1" },
 	{ "LT_SPARE0" },
 	{ "LT_SPARE1" },
 	{ "LT_SPARE_CNT0" },

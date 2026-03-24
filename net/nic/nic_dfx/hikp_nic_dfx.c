@@ -328,14 +328,14 @@ static const struct dfx_reg_name dfx_ssu_type_64_rx_port_normal_stats[] = {
 static const struct dfx_reg_name dfx_ssu_type_64_tx_port_normal_stats[] = {
 	{ "TX_PACKET_IN_CNT" },
 	{ "TX_PACKET_OUT_CNT" },
-	{ "TX_PKTKET_TC_0_IN_CNT" },
-	{ "TX_PKTKET_TC_1_IN_CNT" },
-	{ "TX_PKTKET_TC_2_IN_CNT" },
-	{ "TX_PKTKET_TC_3_IN_CNT" },
-	{ "TX_PKTKET_TC_4_IN_CNT" },
-	{ "TX_PKTKET_TC_5_IN_CNT" },
-	{ "TX_PKTKET_TC_6_IN_CNT" },
-	{ "TX_PKTKET_TC_7_IN_CNT" },
+	{ "TX_PACKET_TC_0_IN_CNT" },
+	{ "TX_PACKET_TC_1_IN_CNT" },
+	{ "TX_PACKET_TC_2_IN_CNT" },
+	{ "TX_PACKET_TC_3_IN_CNT" },
+	{ "TX_PACKET_TC_4_IN_CNT" },
+	{ "TX_PACKET_TC_5_IN_CNT" },
+	{ "TX_PACKET_TC_6_IN_CNT" },
+	{ "TX_PACKET_TC_7_IN_CNT" },
 	{ "TX_PACKET_TC_0_OUT_CNT" },
 	{ "TX_PACKET_TC_1_OUT_CNT" },
 	{ "TX_PACKET_TC_2_OUT_CNT" },
@@ -761,8 +761,8 @@ static const struct dfx_reg_name dfx_type_bios_comm_stats[] = {
 	{ "MSIX_IRQ_CNT_ROH_0" },
 	{ "MSIX_IRQ_CNT_ROH_1" },
 	{ "MSIX_IRQ_CNT_NIC_2" },
-	{ "" },
-	{ "" },
+	{ "MSIX_IRQ_CNT_ROC_2" },
+	{ "MSIX_IRQ_CNT_ROH_2" },
 };
 
 static const struct dfx_type_name_parse g_dfx_bios_name_parse[] = {

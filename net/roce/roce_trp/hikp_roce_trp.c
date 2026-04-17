@@ -354,6 +354,8 @@ static const char *g_trp_payl_reg_name[] = {
 	"WR_PAYL_DFX_RC",
 	"WR_PAYL_DFX_RO",
 	"WR_PAYL_1_OST_NUM",
+	"WR_PAYL_DFX_0",
+	"WR_PAYL_MPT_RST_DONE",
 };
 
 static const struct reg_name_info {

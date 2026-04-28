@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <inttypes.h>
 #include "hikp_imp_log.h"
+#include "hikp_imp_reg_dump.h"
 
 static struct imp_cmd_cfg g_imp_cmd_cfg = { 0 };
 
@@ -27,6 +28,7 @@ static int hikp_imp_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 	printf("  Options:\n\n");
 	printf("    %s, %-25s %s\n", "-h", "--help", "display this help and exit");
 	printf("    %s, %-25s %s\n", "-l", "--log", "dump imp log function");
+	printf("    %s, %-25s %s\n", "-D", "--dump", "dump imp dfx register");
 	printf("    %s, %-25s %s\n", "-c", "--chip=<chip>", "chip id for dump imp dfx");
 	printf("    %s, %-25s %s\n", "-d", "--die=<die>", "die id for dump imp dfx");
 	printf("\n");
@@ -34,13 +36,50 @@ static int hikp_imp_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 	return 0;
 }
 
+static int hikp_imp_cmd_check_option(struct major_cmd_ctrl *self)
+{
+	const char *option[] = {"unknown", "-l", "-D"};
+
+	if ((g_imp_cmd_cfg.param_mask & PARAM_FUNC_MASK) != 0) {
+		snprintf(self->err_str, sizeof(self->err_str),
+			 "The %s options are already existed.",
+			 (g_imp_cmd_cfg.func_type < HIKP_ARRAY_SIZE(option)) ?
+			 option[g_imp_cmd_cfg.func_type] : "unknown");
+		self->err_no = -EINVAL;
+		return self->err_no;
+	}
+
+	return 0;
+}
+
 static int hikp_imp_cmd_dump_log(struct major_cmd_ctrl *self, const char *argv)
 {
-	HIKP_SET_USED(self);
+	int ret;
+
 	HIKP_SET_USED(argv);
+
+	ret = hikp_imp_cmd_check_option(self);
+	if (ret)
+		return ret;
 
 	g_imp_cmd_cfg.param_mask |= PARAM_FUNC_MASK;
 	g_imp_cmd_cfg.func_type = IMP_FUNC_DUMP_LOG;
+
+	return 0;
+}
+
+static int hikp_imp_cmd_dump_reg(struct major_cmd_ctrl *self, const char *argv)
+{
+	int ret;
+
+	HIKP_SET_USED(argv);
+
+	ret = hikp_imp_cmd_check_option(self);
+	if (ret)
+		return ret;
+
+	g_imp_cmd_cfg.param_mask |= PARAM_FUNC_MASK;
+	g_imp_cmd_cfg.func_type = IMP_FUNC_DUMP_REG;
 
 	return 0;
 }
@@ -92,8 +131,10 @@ static void hikp_imp_cmd_execute(struct major_cmd_ctrl *self)
 		return;
 	}
 
-	/* Currently, only the dump log function is supported. */
-	hikp_imp_dump_log(self, &g_imp_cmd_cfg);
+	if (g_imp_cmd_cfg.func_type == IMP_FUNC_DUMP_LOG)
+		hikp_imp_dump_log(self, &g_imp_cmd_cfg);
+	else
+		hikp_imp_dump_dfx_reg(self, &g_imp_cmd_cfg);
 }
 
 static void cmd_imp_dfx_init(void)
@@ -105,6 +146,7 @@ static void cmd_imp_dfx_init(void)
 
 	cmd_option_register("-h", "--help", false, hikp_imp_cmd_help);
 	cmd_option_register("-l", "--log", false, hikp_imp_cmd_dump_log);
+	cmd_option_register("-D", "--dump", false, hikp_imp_cmd_dump_reg);
 	cmd_option_register("-c", "--chip", true, hikp_imp_cmd_get_chip);
 	cmd_option_register("-d", "--die", true, hikp_imp_cmd_get_die);
 }

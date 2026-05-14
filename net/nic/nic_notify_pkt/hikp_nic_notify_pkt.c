@@ -48,10 +48,10 @@ static void hikp_nic_notify_pkt_show(const struct nic_notify_pkt_info *info)
 {
 #define HIKP_NIC_NOFITY_PKT_DATA_PEER_LINE_MAX_CNT 16
 
-	uint32_t pkt_start_en = hikp_get_bit(info->cfg, HIKP_NOTIFY_PKT_CFG_START_EN);
-	uint32_t pkt_num = hikp_get_field(info->cfg, HIKP_NOTIFY_PKT_CFG_PKT_NUM_M,
+	uint32_t pkt_start_en = HIKP_GET_BIT(info->cfg, HIKP_NOTIFY_PKT_CFG_START_EN);
+	uint32_t pkt_num = HIKP_GET_FIELD(info->cfg, HIKP_NOTIFY_PKT_CFG_PKT_NUM_M,
 					  HIKP_NOTIFY_PKT_CFG_PKT_NUM_S);
-	uint32_t pkt_en = hikp_get_bit(info->cfg, HIKP_NOTIFY_PKT_CFG_PKT_EN);
+	uint32_t pkt_en = HIKP_GET_BIT(info->cfg, HIKP_NOTIFY_PKT_CFG_PKT_EN);
 	uint32_t i;
 
 	printf("################ NIC notify pkt info ##################\n");

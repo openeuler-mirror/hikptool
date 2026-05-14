@@ -37,8 +37,8 @@
 #define BITS_PER_LONG	(sizeof(long) * 8)
 #define GENMASK(h, l) (((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
 
-#define hikp_get_field(origin, mask, shift) (((origin) & (mask)) >> (shift))
-#define hikp_get_bit(origin, shift) hikp_get_field((origin), (0x1UL << (shift)), (shift))
+#define HIKP_GET_FIELD(origin, mask, shift) (((origin) & (mask)) >> (shift))
+#define HIKP_GET_BIT(origin, shift) HIKP_GET_FIELD((origin), (0x1UL << (shift)), (shift))
 
 #define HIKP_STR_BUF_LEFT_LEN(str)	(sizeof(str) - strlen(str) - 1)
 

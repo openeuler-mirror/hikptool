@@ -15,6 +15,7 @@
 #define RAS_DUMP_DATA_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 struct rasdfx_file_header {
 	uint32_t head_magic;  // 文件头的magic数字，特定值表示有效记录。

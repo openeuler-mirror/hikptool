@@ -143,15 +143,19 @@ static int sdma_chn_status_dump_info(uint32_t chip_id, uint32_t die_id)
 		.chip_id = chip_id,
 		.die_id = die_id,
 	};
+	uint32_t i;
 	int ret;
 
-	printf("hikptool sdma_dump -s -c %u -d %u\n", cmd.chip_id, cmd.die_id);
-	printf("  sdma%u channel status\n", SDMA_DIE_CHANGE * cmd.chip_id + cmd.die_id);
 	cmd.sdma_cmd_type = SDMA_DUMP_CHN_STATUS;
-	ret = sdma_reg_dump(&cmd);
-	if (ret) {
-		HIKP_ERROR_PRINT("dump channel status failed: %d\n", ret);
-		return ret;
+	for (i = 0; i < VC_MAX_NUM; i++) {
+		printf("hikptool sdma_dump -s -c %u -d %u -n %u\n", cmd.chip_id, cmd.die_id, i);
+		printf("  sdma%u chn%u\n", SDMA_DIE_CHANGE * cmd.chip_id + cmd.die_id, i);
+		cmd.chn_id = i;
+		ret = sdma_reg_dump(&cmd);
+		if (ret) {
+			HIKP_ERROR_PRINT("dump chn%u reg failed: %d\n", i, ret);
+			return ret;
+		}
 	}
 
 	return 0;

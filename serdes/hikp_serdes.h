@@ -66,7 +66,7 @@ enum serdes_cmd_type_e {
 	SERDES_GREENBOX            = 41,
 	SERDES_GET_FW_VERSION      = 42,
 	SERDES_FW_LOAD             = 43,
-	SERDES_GET_VERSION         = 44,
+	SERDES_GET_CHIP_INFO       = 49,
 	SERDES_TYPE_NUM
 };
 
@@ -76,11 +76,6 @@ enum hilink_dump_type_e {
 	HILINK_SERDES_REG_CSDS,
 	HILINK_SERDES_REG_RAM,
 	HILINK_SUBCTRL_REG,
-	HILINK_SERDES_REG_CS_PART1 = 5,
-	HILINK_SERDES_REG_CS_PART2,
-	HILINK_SERDES_REG_DS_PART1,
-	HILINK_SERDES_REG_DS_PART2,
-	HILINK_SERDES_REG_DS_PART3,
 	HILINK_DUMP_TYPE_END
 };
 
@@ -109,6 +104,20 @@ enum hilink_ssc_type_e {
 	HILINK_MULTI_SSC_FROM_WEST,
 	HILINK_MULTI_SSC_FROM_EAST,
 	HILINK_SSC_TYPE_END
+};
+
+enum chip_type_e {
+	CHIP_TYPE_CHIP5 = 1,
+	CHIP_TYPE_CHIP6,
+	CHIP_TYPE_CHIP7,
+	CHIP_TYPE_END
+};
+
+enum lane_num_e {
+	LANE_NUM_2 = 2,
+	LANE_NUM_4 = 4,
+	LANE_NUM_6 = 6,
+	LANE_NUM_8 = 8,
 };
 
 struct cmd_serdes_param {
@@ -215,6 +224,28 @@ struct hilink_brief_info {
 	uint32_t rsvd_1;
 };
 
+struct dump_part_info {
+	uint8_t cs_part_start;
+	uint8_t cs_part_num;
+	uint8_t ds_part_start;
+	uint8_t ds_part_num;
+	uint32_t rsv;
+};
+
+#define SERDES_MACRO_NUM_MAX 32
+struct macro_info_msg {
+	uint32_t macro_num;
+	uint8_t lane_num[SERDES_MACRO_NUM_MAX];
+};
+
+struct chip_info_msg {
+	uint16_t chip_type;
+	uint16_t chip_ver;
+	struct dump_part_info dump_part;
+	struct macro_info_msg macro_info;
+};
+
 int hikp_serdes_get_reponse(struct cmd_serdes_param *cmd);
+struct chip_info_msg *hikp_serdes_get_chip_info(struct cmd_serdes_param *cmd);
 
 #endif /* HIKP_SERDES_H */

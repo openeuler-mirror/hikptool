@@ -48,17 +48,17 @@ static int hikp_nic_torus_query(const struct bdf_t *bdf,
 
 static void hikp_nic_torus_lan_prt_pair_show(const struct nic_torus_info *info)
 {
-	uint32_t mac_id = hikp_get_field(info->lan_prt_pair, NIC_TORUS_MAC_ID_M,
+	uint32_t mac_id = HIKP_GET_FIELD(info->lan_prt_pair, NIC_TORUS_MAC_ID_M,
 					 NIC_TORUS_MAC_ID_S);
-	uint32_t uc_lan_pair_en = hikp_get_bit(info->lan_prt_pair,
+	uint32_t uc_lan_pair_en = HIKP_GET_BIT(info->lan_prt_pair,
 					       NIC_TORUS_UC_LAN_PAIR_EN);
-	uint32_t mc_bc_lan_pair_en = hikp_get_bit(info->lan_prt_pair,
+	uint32_t mc_bc_lan_pair_en = HIKP_GET_BIT(info->lan_prt_pair,
 						  NIC_TORUS_MC_BC_LAN_PAIR_EN);
-	uint32_t lldp_lan_pair_en = hikp_get_bit(info->lan_prt_pair,
+	uint32_t lldp_lan_pair_en = HIKP_GET_BIT(info->lan_prt_pair,
 						 NIC_TORUS_LLDP_LAN_PAIR_EN);
-	uint32_t tc2vlanpri_mapping_en = hikp_get_bit(info->lan_prt_pair,
+	uint32_t tc2vlanpri_mapping_en = HIKP_GET_BIT(info->lan_prt_pair,
 						      NIC_TORUS_TC2VLANPRI_MAPPING_EN);
-	uint32_t torus_lpbk_drop_en = hikp_get_bit(info->lan_prt_pair,
+	uint32_t torus_lpbk_drop_en = HIKP_GET_BIT(info->lan_prt_pair,
 						   NIC_TORUS_LPBK_DROP_EN);
 
 	printf("dst mac id: %u\n", mac_id);
@@ -71,16 +71,16 @@ static void hikp_nic_torus_lan_prt_pair_show(const struct nic_torus_info *info)
 
 static void hikp_nic_torus_lan_fwd_tc_cfg_show(const struct nic_torus_info *info)
 {
-	uint32_t tc0_map_tc = hikp_get_field(info->lan_fwd_tc_cfg,
+	uint32_t tc0_map_tc = HIKP_GET_FIELD(info->lan_fwd_tc_cfg,
 					     NIC_TORUS_TC0_MAP_TC_M,
 					     NIC_TORUS_TC0_MAP_TC_S);
-	uint32_t tc1_map_tc = hikp_get_field(info->lan_fwd_tc_cfg,
+	uint32_t tc1_map_tc = HIKP_GET_FIELD(info->lan_fwd_tc_cfg,
 					     NIC_TORUS_TC1_MAP_TC_M,
 					     NIC_TORUS_TC1_MAP_TC_S);
-	uint32_t tc2_map_tc = hikp_get_field(info->lan_fwd_tc_cfg,
+	uint32_t tc2_map_tc = HIKP_GET_FIELD(info->lan_fwd_tc_cfg,
 					     NIC_TORUS_TC2_MAP_TC_M,
 					     NIC_TORUS_TC2_MAP_TC_S);
-	uint32_t tc3_map_tc = hikp_get_field(info->lan_fwd_tc_cfg,
+	uint32_t tc3_map_tc = HIKP_GET_FIELD(info->lan_fwd_tc_cfg,
 					     NIC_TORUS_TC3_MAP_TC_M,
 					     NIC_TORUS_TC3_MAP_TC_S);
 

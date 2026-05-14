@@ -82,12 +82,12 @@ int pcie_get_ltssm_trace(uint32_t port_id, uint64_t *ltssm_status, uint32_t *lts
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	ret = hikp_rsp_normal_check(cmd_ret);
 	if (ret) {
-		Err("pcie trace cmd_ret check failed, ret: %d.\n", ret);
+		ERR("pcie trace cmd_ret check failed, ret: %d.\n", ret);
 		goto free_cmd_ret;
 	}
 
 	if (cmd_ret->rsp_data_num == 0) {
-		Err("without rsp data.\n");
+		ERR("without rsp data.\n");
 		ret = -EINVAL;
 		goto free_cmd_ret;
 	}
@@ -96,13 +96,13 @@ int pcie_get_ltssm_trace(uint32_t port_id, uint64_t *ltssm_status, uint32_t *lts
 	src_size = (*ltssm_num) * sizeof(uint64_t);
 	dst_size = TRACER_DEPTH * sizeof(uint64_t);
 	if (src_size > dst_size) {
-		Err("size check failed, %zu > %zu.\n", src_size, dst_size);
+		ERR("size check failed, %zu > %zu.\n", src_size, dst_size);
 		ret = -EINVAL;
 		goto free_cmd_ret;
 	}
 
 	if ((cmd_ret->rsp_data_num - 1) * sizeof(uint32_t) != (*ltssm_num) * sizeof(uint64_t)) {
-		Err("rsp data number check failed, rsp_data_num: %u, ltssm_num: %u.\n",
+		ERR("rsp data number check failed, rsp_data_num: %u, ltssm_num: %u.\n",
 		    cmd_ret->rsp_data_num, *ltssm_num);
 		ret = -EINVAL;
 		goto free_cmd_ret;
@@ -184,17 +184,17 @@ static int pcie_print_ltssm_trace(const uint64_t *ltssm_input, uint32_t ltssm_nu
 	union ltssm_state_reg ltssm_val;
 
 	if (ltssm_num > TRACER_DEPTH || ltssm_num == 0) {
-		Err("ltssm_num(%u) is over range or zero\n", ltssm_num);
+		ERR("ltssm_num(%u) is over range or zero\n", ltssm_num);
 		return -EINVAL;
 	}
-	Info("ltssm tracer:\n");
-	Info("\ttrace mode: %" PRIx64 "\n", *ltssm_input);
-	Info("\tltssm[ii]:  63:48 47:32 31 30 29 28 27 26 25 24 23 22 21:"
+	INFO("ltssm tracer:\n");
+	INFO("\ttrace mode: %" PRIx64 "\n", *ltssm_input);
+	INFO("\tltssm[ii]:  63:48 47:32 31 30 29 28 27 26 25 24 23 22 21:"
 	     "20 19:12 11:10 9:6 5:0  ltssm\n");
 	for (i = 1; i < ltssm_num; i++) {
 		ltssm_val.val = ltssm_input[i];
 		ltssm_c = hisi_pcie_ltssm_string_get((uint32_t)ltssm_val.bits.ltssm_state);
-		Info("\tltssm[%02u]: 0x%04x %04x   %x  %x  %x  %x  %x  %x  %x  "
+		INFO("\tltssm[%02u]: 0x%04x %04x   %x  %x  %x  %x  %x  %x  %x  "
 			"%x  %x  %x  %x     %02x    %x     %x   %02x  %s\n",
 			i,
 			(uint32_t)ltssm_val.bits.txdetrx,
@@ -284,7 +284,7 @@ int pcie_ltssm_link_status_get(uint32_t port_id)
 		goto free_cmd_ret;
 
 	if (cmd_ret->rsp_data_num == 0) {
-		Err("rsp data number check failed, rsp_data_num: %u.\n",
+		ERR("rsp data number check failed, rsp_data_num: %u.\n",
 			cmd_ret->rsp_data_num);
 		ret = -EINVAL;
 		goto free_cmd_ret;
@@ -292,12 +292,12 @@ int pcie_ltssm_link_status_get(uint32_t port_id)
 	reg_val.u32 = cmd_ret->rsp_data[0];
 	ltssm_sts = hisi_pcie_ltssm_string_get(reg_val.bits.mac_ltssm_st);
 
-	Info("Port[%u] mac link information:\n", port_id);
-	Info("    ltssm status: %s\n", ltssm_sts);
-	Info("    speed: Gen%u\n", reg_val.bits.mac_cur_link_speed);
-	Info("    width: X%u\n", reg_val.bits.mac_cur_link_width);
-	Info("    link_up: %u\n", reg_val.bits.mac_link_up);
-	Info("    lane_reverse: %u\n", reg_val.bits.lane_reverse);
+	INFO("Port[%u] mac link information:\n", port_id);
+	INFO("    ltssm status: %s\n", ltssm_sts);
+	INFO("    speed: Gen%u\n", reg_val.bits.mac_cur_link_speed);
+	INFO("    width: X%u\n", reg_val.bits.mac_cur_link_width);
+	INFO("    link_up: %u\n", reg_val.bits.mac_link_up);
+	INFO("    lane_reverse: %u\n", reg_val.bits.lane_reverse);
 free_cmd_ret:
 	hikp_cmd_free(&cmd_ret);
 
@@ -317,12 +317,12 @@ static int pcie_get_pm_trace(uint32_t port_id, uint64_t *pm_status, uint32_t *pm
 	cmd_ret = hikp_cmd_alloc(&req_header, &req_data, sizeof(req_data));
 	ret = hikp_rsp_normal_check(cmd_ret);
 	if (ret) {
-		Err("pcie pm trace cmd_ret check failed, ret: %d.\n", ret);
+		ERR("pcie pm trace cmd_ret check failed, ret: %d.\n", ret);
 		goto free_cmd_ret;
 	}
 
 	if (cmd_ret->rsp_data_num == 0) {
-		Err("without rsp data.\n");
+		ERR("without rsp data.\n");
 		ret = -EINVAL;
 		goto free_cmd_ret;
 	}
@@ -331,13 +331,13 @@ static int pcie_get_pm_trace(uint32_t port_id, uint64_t *pm_status, uint32_t *pm
 	src_size = (*pm_num) * sizeof(uint64_t);
 	dst_size = TRACER_DEPTH * sizeof(uint64_t);
 	if (src_size > dst_size) {
-		Err("size check failed, %zu > %zu.\n", src_size, dst_size);
+		ERR("size check failed, %zu > %zu.\n", src_size, dst_size);
 		ret = -EINVAL;
 		goto free_cmd_ret;
 	}
 
 	if ((cmd_ret->rsp_data_num - 1) * sizeof(uint32_t) != (*pm_num) * sizeof(uint64_t)) {
-		Err("rsp data number check failed, rsp_data_num: %u, pm_num: %u.\n",
+		ERR("rsp data number check failed, rsp_data_num: %u, pm_num: %u.\n",
 		    cmd_ret->rsp_data_num, *pm_num);
 		ret = -EINVAL;
 		goto free_cmd_ret;
@@ -409,17 +409,17 @@ static int pcie_print_pm_trace(const uint64_t *pm_status, uint32_t pm_num)
 	union pm_state_reg pm_val;
 
 	if (pm_num > TRACER_DEPTH || pm_num == 0) {
-		Err("pm_num(%u) is over range or zero\n", pm_num);
+		ERR("pm_num(%u) is over range or zero\n", pm_num);
 		return -EINVAL;
 	}
-	Info("pm tracer:\n");
-	Info("\ttrace state: %" PRIx64 "\n", pm_status[0]);
-	Info("\tpm[ii]: BE8: 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 "
+	INFO("pm tracer:\n");
+	INFO("\ttrace state: %" PRIx64 "\n", pm_status[0]);
+	INFO("\tpm[ii]: BE8: 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 "
 	     "BD8:   23:6   5:0 :  pm state\n");
 	for (i = 1; i < pm_num; i++) {
 		pm_val.val = pm_status[i];
 		pm_c = hisi_pcie_pm_string_get((uint32_t)pm_val.bits.pm_state);
-		Info("\tpm[%02u]:\t     %x  %x  %x  %x  %x  %x %x %x %x %x %x "
+		INFO("\tpm[%02u]:\t     %x  %x  %x  %x  %x  %x %x %x %x %x %x "
 		     "%x %x %x %x     0x%06x  0x%02x   %s\n",
 			i,
 			(uint32_t)pm_val.bits.pm_t_dfe_time_meet,

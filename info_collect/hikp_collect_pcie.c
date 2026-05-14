@@ -27,12 +27,6 @@
 #define PCIE_DEV_PATH "/sys/bus/pci/devices"
 #define MAX_NIMBUS_NUM_ALL 8
 
-/* Optimization barrier */
-#ifndef barrier
-/* The "volatile" is due to gcc bugs */
-# define barrier() __asm__ __volatile__("": : :"memory")
-#endif
-
 struct pcie_id_info {
 	uint32_t chip_id;
 	uint32_t port_id;

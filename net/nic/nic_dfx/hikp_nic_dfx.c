@@ -940,6 +940,7 @@ static void dfx_help_info(const struct major_cmd_ctrl *self)
 	printf("    %s, %-25s %s\n", "-i", "--interface=<interface>", "device target, e.g. eth0~7");
 	printf("    %s\n", "	[-m/--module SSU/IGU_EGU/PPP/NCSI/BIOS/RCB/TXDMA/MASTER] :"
 	       "this is necessary param\n");
+	printf("  Note: For statistical register types, entries with a value of 0 are not displayed.\n\n");
 }
 
 static int hikp_cmd_dfx_help(struct major_cmd_ctrl *self, const char *argv)

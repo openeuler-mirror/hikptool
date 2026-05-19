@@ -49,7 +49,7 @@ static int op_log_write(const char *log_data)
 		return -errno;
 	}
 
-	w_size = fwrite((void *)log_data, 1U, strlen(log_data), fd);
+	w_size = fwrite((const void *)log_data, 1U, strlen(log_data), fd);
 	if (strlen(log_data) > ((uint32_t)w_size)) {
 		HIKP_ERROR_PRINT("Error data size write to file, errno is %d\n", errno);
 		(void)fclose(fd);
@@ -107,33 +107,34 @@ static double op_log_diff_timeval(const struct timeval *now, const struct timeva
 {
 	double time_val;
 
-	time_val = now->tv_sec - last->tv_sec;
-	time_val += (now->tv_usec - last->tv_usec) / OP_LOG_SEC_AND_MICROSEC_TRANS;
+	time_val = (double)now->tv_sec - (double)last->tv_sec;
+	time_val += ((double)now->tv_usec - (double)last->tv_usec) / OP_LOG_SEC_AND_MICROSEC_TRANS;
 	return time_val;
 }
 
-static int op_log_add_time_to_log(char *log_base, int *offset, uint32_t flag)
+static int op_log_add_time_to_log(char *log_base, size_t *offset, uint32_t flag)
 {
 	static struct timeval g_tv;
 	struct timeval tv = {0};
 	struct tm ptm = {0};
-	int len = 0;
+	size_t len = 0;
 	int ret;
 
 	(void)gettimeofday(&tv, NULL);
 	(void)localtime_r(&tv.tv_sec, &ptm);
 	if (flag == LOG_FLAG_DATE_TIME) {
 		g_tv = tv;
-		len = (int)strftime(log_base + *offset, (OP_LOG_FILE_W_MAXSIZE + 1 - *offset),
+		len = strftime(log_base + *offset, (OP_LOG_FILE_W_MAXSIZE + 1 - *offset),
 				    OP_LOG_TIME_TEMP, &ptm);
 		if ((*offset + len) >= (OP_LOG_FILE_W_MAXSIZE + 1))
 			return -ENOMEM;
 
 		ret = snprintf(log_base + *offset + len,
 			       (OP_LOG_FILE_W_MAXSIZE + 1 - *offset - len), OP_LOG_SEC_TIME_TEMP,
-			       tv.tv_sec + tv.tv_usec / OP_LOG_SEC_AND_MICROSEC_TRANS);
+			       (double)tv.tv_sec +
+			       (double)tv.tv_usec / OP_LOG_SEC_AND_MICROSEC_TRANS);
 	} else {
-		len = (int)strftime(log_base + *offset, (OP_LOG_FILE_W_MAXSIZE + 1 - *offset),
+		len = strftime(log_base + *offset, (OP_LOG_FILE_W_MAXSIZE + 1 - *offset),
 				    OP_LOG_RESULT_TIME_TEMP, &ptm);
 		if ((*offset + len) >= (OP_LOG_FILE_W_MAXSIZE + 1))
 			return -ENOMEM;
@@ -144,24 +145,24 @@ static int op_log_add_time_to_log(char *log_base, int *offset, uint32_t flag)
 			       op_log_diff_timeval((const struct timeval *)&tv,
 			       (const struct timeval *)&g_tv));
 	}
-	len += ret;
-	if (ret < 0 || len >= (OP_LOG_FILE_W_MAXSIZE + 1 - *offset))
+
+	if (ret < 0 || (size_t)ret >= (OP_LOG_FILE_W_MAXSIZE + 1 - *offset - len))
 		return -EINVAL;
 
-	*offset += len;
+	*offset += (len + (size_t)ret);
 
 	return 0;
 }
 
-static int op_log_add_info_to_log(char *log_base, int *offset, const char *str)
+static int op_log_add_info_to_log(char *log_base, size_t *offset, const char *str)
 {
 	int len;
 
 	len = snprintf(log_base + *offset, (OP_LOG_FILE_W_MAXSIZE + 1 - *offset), "%s", str);
-	if (len < 0 || len >= (OP_LOG_FILE_W_MAXSIZE + 1 - *offset))
+	if (len < 0 || (size_t)len >= (OP_LOG_FILE_W_MAXSIZE + 1 - *offset))
 		return -EINVAL;
 
-	*offset += len;
+	*offset += (size_t)len;
 
 	return 0;
 }
@@ -169,7 +170,7 @@ static int op_log_add_info_to_log(char *log_base, int *offset, const char *str)
 static int op_log_file_rollback(const char *op_log_backup, const char *log_dir)
 {
 	char rollback_log[OP_LOG_FILE_W_MAXSIZE + 1] = {0};
-	int offset = 0;
+	size_t offset = 0;
 	int ret;
 
 	ret = file_rollback(g_op_log, op_log_backup, OP_LOG_FILE_MAX_SIZE);
@@ -208,10 +209,10 @@ static int op_log_dir_mk(const char *log_path)
 	return 0;
 }
 
-static int op_log_dir_create(char *log_path, int log_path_len)
+static int op_log_dir_create(char *log_path, size_t log_path_len)
 {
 	int ret = 0;
-	int i;
+	size_t i;
 
 	for (i = 1; i < log_path_len; i++) {
 		if (log_path[i] == '/') {
@@ -229,7 +230,7 @@ static int op_log_dir_create(char *log_path, int log_path_len)
 
 static void op_log_record_time(void)
 {
-	int offset = 0;
+	size_t offset = 0;
 
 	(void)op_log_add_time_to_log(g_cmd_exec_time, &offset, LOG_FLAG_DATE_TIME);
 }
@@ -275,7 +276,7 @@ int op_log_initialise(const char *log_dir)
 void op_log_record_input(const int argc, const char **argv)
 {
 	char input_str[OP_LOG_FILE_W_MAXSIZE + 1] = {0};
-	int offset = 0;
+	size_t offset = 0;
 	char *arg;
 	int ret;
 
@@ -286,8 +287,9 @@ void op_log_record_input(const int argc, const char **argv)
 
 	arg = input_str;
 	for (int i = 0; i < argc; i++) {
-		ret = snprintf(arg, (sizeof(input_str) - (arg - input_str)), "%s ", argv[i]);
-		if (ret < 0 || ret >= (int)(sizeof(input_str) - (arg - input_str)))
+		ret = snprintf(arg, (sizeof(input_str) - (size_t)(arg - input_str)),
+			       "%s ", argv[i]);
+		if (ret < 0 || ret >= (int)(sizeof(input_str) - (size_t)(arg - input_str)))
 			return;
 
 		arg = arg + strlen(argv[i]) + 1;
@@ -296,22 +298,22 @@ void op_log_record_input(const int argc, const char **argv)
 
 	ret = snprintf(g_input_buf + offset, (OP_LOG_FILE_W_MAXSIZE + 1 - offset),
 		       "%s", g_cmd_exec_time);
-	if (ret < 0 || ret >= (OP_LOG_FILE_W_MAXSIZE + 1 - offset)) {
+	if (ret < 0 || (size_t)ret >= (OP_LOG_FILE_W_MAXSIZE + 1 - offset)) {
 		printf("snprintf exec time failed, ret 0x%x\n", ret);
 		return;
 	}
 
-	offset += ret;
+	offset += (size_t)ret;
 	ret = snprintf(g_input_buf + offset, (OP_LOG_FILE_W_MAXSIZE + 1 - offset),
 		       "[%s]", input_str);
-	if (ret < 0 || ret >= (OP_LOG_FILE_W_MAXSIZE + 1 - offset))
+	if (ret < 0 || (size_t)ret >= (OP_LOG_FILE_W_MAXSIZE + 1 - offset))
 		printf("snprintf exec cmd failed, ret 0x%x\n", ret);
 }
 
 void op_log_record_result(int ret, const char *tool_name, const char *log_dir)
 {
 	char result_str[OP_LOG_FILE_W_MAXSIZE + 1] = {0};
-	int offset = 0;
+	size_t offset = 0;
 	int len;
 
 	/* must to open */
@@ -320,20 +322,20 @@ void op_log_record_result(int ret, const char *tool_name, const char *log_dir)
 
 	len = snprintf(result_str + offset, (OP_LOG_FILE_W_MAXSIZE + 1 - offset), "%s",
 		       g_input_buf);
-	if (len < 0 || len >= (OP_LOG_FILE_W_MAXSIZE + 1 - offset))
+	if (len < 0 || (size_t)len >= (OP_LOG_FILE_W_MAXSIZE + 1 - offset))
 		return;
 
-	offset += len;
+	offset += (size_t)len;
 
 	if (op_log_add_time_to_log(result_str, &offset, LOG_FLAG_ONLY_TIME))
 		return;
 
 	len = snprintf(result_str + offset, (OP_LOG_FILE_W_MAXSIZE + 1 - offset),
 		       "[%s<%d>].", (ret == 0) ? "SUCCEED" : "FAILED", ret);
-	if (len < 0 || len >= (OP_LOG_FILE_W_MAXSIZE + 1 - offset))
+	if (len < 0 || (size_t)len >= (OP_LOG_FILE_W_MAXSIZE + 1 - offset))
 		return;
 
-	offset += len;
+	offset += (size_t)len;
 
 	record_syslog(tool_name, LOG_INFO, result_str);
 
@@ -349,26 +351,26 @@ static bool log_info_is_ok(void)
 static void signal_format_end_log_str(char *log_str, int signal_code)
 {
 	time_t seconds = time(NULL);
-	int sec_of_last_day = seconds % SECONDS_PER_DAY;
+	int sec_of_last_day = (int)(seconds % SECONDS_PER_DAY);
 	int hour = sec_of_last_day / SECONDS_PER_HOUR;
 	int min = (sec_of_last_day % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE;
 	int sec = (sec_of_last_day % SECONDS_PER_MINUTE);
 
 	/* end of log string format: [hh:mm:ss] [KILLED<xx>]. */
-	log_str[1] += hour / LOG_TIME_DECIMAL; /* 1: format time: tens of hour */
-	log_str[2] += hour % LOG_TIME_DECIMAL; /* 2: format time: units of hour */
-	log_str[4] += min / LOG_TIME_DECIMAL; /* 4: format time: tens of min */
-	log_str[5] += min % LOG_TIME_DECIMAL; /* 5: format time: units of min */
-	log_str[7] += sec / LOG_TIME_DECIMAL; /* 7: format time: tens of sec */
-	log_str[8] += sec % LOG_TIME_DECIMAL; /* 8: format time: units of sec */
-	log_str[19] += signal_code / LOG_TIME_DECIMAL; /* 19: tens of signal_code */
-	log_str[20] += signal_code % LOG_TIME_DECIMAL; /* 20: units of signal_code */
+	log_str[1] += (char)(hour / LOG_TIME_DECIMAL); /* 1: format time: tens of hour */
+	log_str[2] += (char)(hour % LOG_TIME_DECIMAL); /* 2: format time: units of hour */
+	log_str[4] += (char)(min / LOG_TIME_DECIMAL); /* 4: format time: tens of min */
+	log_str[5] += (char)(min % LOG_TIME_DECIMAL); /* 5: format time: units of min */
+	log_str[7] += (char)(sec / LOG_TIME_DECIMAL); /* 7: format time: tens of sec */
+	log_str[8] += (char)(sec % LOG_TIME_DECIMAL); /* 8: format time: units of sec */
+	log_str[19] += (char)(signal_code / LOG_TIME_DECIMAL); /* 19: tens of signal_code */
+	log_str[20] += (char)(signal_code % LOG_TIME_DECIMAL); /* 20: units of signal_code */
 }
 
 static int signal_fcntl(const char *name, uint32_t operation, int *fd)
 {
 	char lock_file[TOOL_LOCK_PATH_MAX_LEN] = HIKP_LOG_DIR_PATH TOOL_LOCK_FLODER_NAME;
-	int lock_file_len = 0;
+	size_t lock_file_len = 0;
 	int tmp = 0;
 	int ret;
 
@@ -394,9 +396,9 @@ static int signal_fcntl(const char *name, uint32_t operation, int *fd)
 static void signal_op_log_write(int signal_code)
 {
 	char log_str[] = "[00:00:00] [KILLED<00>].\r\n";
+	size_t start_len;
 	int op_log_fd;
-	int start_len;
-	int len;
+	ssize_t len;
 	int fd;
 
 	if (log_info_is_ok())

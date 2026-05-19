@@ -330,8 +330,9 @@ static int get_rand_str(char *str, int length)
 	};
 	uint32_t r[RANDOM_NUM];
 	uint32_t type;
-	int fd, size;
+	ssize_t size;
 	int i, j;
+	int fd;
 
 	fd = open("/dev/urandom", O_RDONLY);
 	if (fd < 0) {
@@ -348,7 +349,8 @@ static int get_rand_str(char *str, int length)
 			}
 		}
 		type = r[0] % RANDOM_CHAR_TYPE_NUM;
-		str[i] = type_arr[type].type_base + r[1] % type_arr[type].type_size;
+		str[i] = (char)((uint32_t)type_arr[type].type_base +
+			 r[1] % type_arr[type].type_size);
 	}
 	close(fd);
 

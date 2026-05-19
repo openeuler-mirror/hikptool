@@ -200,8 +200,8 @@ static void hikp_nic_ppp_show_func_uc_mac_addr(struct mac_vlan_uc_tbl *uc_tbl,
 		if (uc_entry->idx >= g_ppp_hw_res.max_key_mem_size)
 			break;
 
-		pf_id = hikp_get_field(uc_entry->e_vport, HIKP_NIC_PF_ID_MASK, HIKP_NIC_PF_ID_S);
-		vf_id = hikp_get_field(uc_entry->e_vport, HIKP_NIC_VF_ID_MASK, HIKP_NIC_VF_ID_S);
+		pf_id = HIKP_GET_FIELD(uc_entry->e_vport, HIKP_NIC_PF_ID_MASK, HIKP_NIC_PF_ID_S);
+		vf_id = HIKP_GET_FIELD(uc_entry->e_vport, HIKP_NIC_VF_ID_MASK, HIKP_NIC_VF_ID_S);
 		if (bdf->fun_id == pf_id && vf_id == func_id) {
 			hikp_ether_format_addr(mac_str, HIKP_NIC_ETH_ADDR_FMT_SIZE,
 					       uc_entry->mac_addr, HIKP_NIC_ETH_MAC_ADDR_LEN);
@@ -229,7 +229,7 @@ static void hikp_nic_ppp_show_func_mc_mac_addr(struct mac_vlan_mc_tbl *mc_tbl,
 		if (mc_entry->idx >= g_ppp_hw_res.max_key_mem_size)
 			break;
 
-		if (hikp_get_bit(mc_entry->function_bitmap[idx], offset) != 0) {
+		if (HIKP_GET_BIT(mc_entry->function_bitmap[idx], offset) != 0) {
 			hikp_ether_format_addr(mac_str, HIKP_NIC_ETH_ADDR_FMT_SIZE,
 					       mc_entry->mac_addr, HIKP_NIC_ETH_MAC_ADDR_LEN);
 			printf("\t%s\n", mac_str);
@@ -311,7 +311,7 @@ static void hikp_nic_ppp_show_port_vlan_info(const struct port_vlan_tbl *port_tb
 	printf("port VLAN id:\n\t");
 	for (i = 0; i < port_tbl->entry_size; i++) {
 		port_entry = &port_tbl->entry[i];
-		if (hikp_get_bit(port_entry->port_bitmap, mac_id) != 0) {
+		if (HIKP_GET_BIT(port_entry->port_bitmap, mac_id) != 0) {
 			printf("%4u ", port_entry->vlan_id);
 			vlan_cnt++;
 			if (vlan_cnt == HIKP_NIC_PPP_VLAN_ID_NUM_PER_LEN) {
@@ -345,7 +345,7 @@ static void hikp_nic_ppp_show_vf_vlan_info(const struct vf_vlan_tbl *vf_tbl, uin
 
 	for (i = 0; i < vf_tbl->entry_size; i++) {
 		vf_entry = &vf_tbl->entry[i];
-		if (hikp_get_bit(vf_entry->func_bitmap[idx], offset) != 0) {
+		if (HIKP_GET_BIT(vf_entry->func_bitmap[idx], offset) != 0) {
 			printf("%4u ", vf_entry->vlan_id);
 			vlan_cnt++;
 			if (vlan_cnt == HIKP_NIC_PPP_VLAN_ID_NUM_PER_LEN) {

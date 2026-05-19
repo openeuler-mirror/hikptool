@@ -13,6 +13,8 @@
 #ifndef HIKP_COLLECT_SOCIP_H
 #define HIKP_COLLECT_SOCIP_H
 
+#include "hikp_socip.h"
+
 #define MIN_DIE_ID  0
 #define NIMBUS_A_ID 0
 #define TOTEM_A_ID  1

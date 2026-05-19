@@ -20,7 +20,7 @@
 #include "tool_cmd.h"
 #include "hikp_serdes.h"
 
-static struct cmd_serdes_param g_serdes_param = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+static struct cmd_serdes_param g_serdes_param = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0, 0, 0};
 
 #define SERDES_OUTPUT_MAX_SIZE 2560
 static char g_serdes_data_out_buf[SERDES_OUTPUT_MAX_SIZE] = {0};
@@ -28,6 +28,7 @@ static struct hilink_cmd_out g_out_put = {0};
 
 static void hikp_serdes_info_print(struct cmd_serdes_param *cmd);
 static void hikp_serdes_dump_print(struct cmd_serdes_param *cmd);
+static void hikp_serdes_dump_print_reg(void);
 
 static int cmd_serdes_maininfo_help(struct major_cmd_ctrl *self, const char *argv)
 {
@@ -243,36 +244,47 @@ static void hikp_serdes_logout_init(struct hilink_cmd_out *logout, char *buffer,
 	logout->ret_val = 0;
 }
 
-static int hikp_serdes_info_para_check(struct major_cmd_ctrl *self)
+static int hikp_serdes_comm_para_check(struct major_cmd_ctrl *self, uint32_t para_check_mask)
 {
-	if (g_serdes_param.chip_id == 0xff) {
+	if (((para_check_mask & NEED_SUB_CMD) != 0) && (g_serdes_param.sub_cmd == 0xff)) {
+		self->err_no = -EINVAL;
+		snprintf(self->err_str, sizeof(self->err_str), "Need subcmd.");
+		return self->err_no;
+	}
+
+	if (((para_check_mask & NEED_CHIP_ID) != 0) && (g_serdes_param.chip_id == 0xff)) {
 		self->err_no = -EINVAL;
 		snprintf(self->err_str, sizeof(self->err_str), "Need chip id.");
 		return self->err_no;
 	}
 
-	if (g_serdes_param.macro_id == 0xff) {
+	if (((para_check_mask & NEED_MACRO_ID) != 0) && (g_serdes_param.macro_id == 0xff)) {
 		self->err_no = -EINVAL;
 		snprintf(self->err_str, sizeof(self->err_str), "Need macro id.");
 		return self->err_no;
 	}
 
-	if (g_serdes_param.start_sds_id == 0xff) {
+	if (((para_check_mask & NEED_LANE_ID) != 0) && (g_serdes_param.start_sds_id == 0xff)) {
 		self->err_no = -EINVAL;
 		snprintf(self->err_str, sizeof(self->err_str), "Need lane id.");
 		return self->err_no;
 	}
 
-	if (g_serdes_param.sds_num == 0xff) {
+	if (((para_check_mask & NEED_LANE_NUM) != 0) && (g_serdes_param.sds_num == 0xff)) {
 		self->err_no = -EINVAL;
 		snprintf(self->err_str, sizeof(self->err_str), "Need lane num.");
 		return self->err_no;
 	}
 
+	return 0;
+}
+
+static int hikp_serdes_info_para_check(struct major_cmd_ctrl *self)
+{
 	if (g_serdes_param.sub_cmd == 0xff)
 		g_serdes_param.sub_cmd = 0;
 
-	return 0;
+	return hikp_serdes_comm_para_check(self, NEED_CHIP_ID | NEED_MACRO_ID | NEED_LANE_ID | NEED_LANE_NUM);
 }
 
 static void hikp_serdes_print(struct cmd_serdes_param *cmd)
@@ -283,12 +295,13 @@ static void hikp_serdes_print(struct cmd_serdes_param *cmd)
 		hikp_serdes_dump_print(cmd);
 }
 
-int hikp_serdes_get_reponse(struct cmd_serdes_param *cmd)
+static int hikp_serdes_send_msg(struct cmd_serdes_param *cmd)
 {
 	struct hikp_cmd_header req_header = {0};
 	struct hikp_cmd_ret *cmd_ret;
 	struct hilink_cmd_in hilink_cmd = {0};
 	size_t out_out_header_size;
+	struct serdes_log_read *read_info = (struct serdes_log_read *)hilink_cmd.field;
 
 	hilink_cmd.cmd_type              = cmd->cmd_type;
 	hilink_cmd.sub_cmd               = cmd->sub_cmd;
@@ -296,8 +309,9 @@ int hikp_serdes_get_reponse(struct cmd_serdes_param *cmd)
 	hilink_cmd.cmd_para.macro_id     = cmd->macro_id;
 	hilink_cmd.cmd_para.start_sds_id = cmd->start_sds_id;
 	hilink_cmd.cmd_para.sds_num      = cmd->sds_num;
-
-	hikp_serdes_logout_init(&g_out_put, g_serdes_data_out_buf, SERDES_OUTPUT_MAX_SIZE, 0);
+	hilink_cmd.val                   = cmd->rsvd3;
+	read_info->rd_pos = cmd->rsvd1;
+	read_info->rd_size = cmd->rsvd2;
 
 	hikp_cmd_init(&req_header, SERDES_MOD, cmd->cmd_type, cmd->sub_cmd);
 	cmd_ret = hikp_cmd_alloc(&req_header, &hilink_cmd, sizeof(hilink_cmd));
@@ -321,9 +335,74 @@ int hikp_serdes_get_reponse(struct cmd_serdes_param *cmd)
 		cmd_ret->rsp_data_num * sizeof(uint32_t) - out_out_header_size);
 	hikp_cmd_free(&cmd_ret);
 
-	hikp_serdes_print(cmd);
-
 	return 0;
+}
+
+struct chip_info_msg *hikp_serdes_get_chip_info(struct cmd_serdes_param *cmd)
+{
+	int ret = 0;
+
+	if (cmd == NULL) {
+		return NULL;
+	}
+	cmd->cmd_type = SERDES_GET_CHIP_INFO;
+
+	hikp_serdes_logout_init(&g_out_put, g_serdes_data_out_buf, SERDES_OUTPUT_MAX_SIZE, 0);
+	ret = hikp_serdes_send_msg(cmd);
+	if (ret != 0 || g_out_put.ret_val != 0) {
+		printf("get chip info fail, [%d-%u]\n", ret, g_out_put.ret_val);
+		return NULL;
+	}
+	return (struct chip_info_msg *)g_out_put.out_str;
+}
+
+static int hikp_serdes_get_multi_dump_response(struct cmd_serdes_param *cmd)
+{
+	int ret = 0;
+	struct chip_info_msg *chip_info = NULL;
+	struct cmd_serdes_param temp_param = {0};
+
+	temp_param.macro_id = cmd->macro_id;
+	chip_info = hikp_serdes_get_chip_info(&temp_param);
+	if ((chip_info == NULL) || (chip_info->chip_type < CHIP_TYPE_CHIP7)) {
+		return -EINVAL;
+	}
+
+	uint8_t dump_part_start = cmd->sub_cmd == HILINK_SERDES_REG_CS ?
+		chip_info->dump_part.cs_part_start : chip_info->dump_part.ds_part_start;
+	uint8_t dump_part_num = cmd->sub_cmd == HILINK_SERDES_REG_CS ?
+		chip_info->dump_part.cs_part_num : chip_info->dump_part.ds_part_num;
+
+	printf("\n[-------Macro%uCS/DS%u-------]\nAddr   Value", cmd->macro_id, cmd->start_sds_id);
+	for (uint8_t i = dump_part_start; i < dump_part_start + dump_part_num; i++) {
+		cmd->sub_cmd = i;
+		hikp_serdes_logout_init(&g_out_put, g_serdes_data_out_buf, SERDES_OUTPUT_MAX_SIZE, 0);
+		ret = hikp_serdes_send_msg(cmd);
+		if (ret != 0 || g_out_put.ret_val != 0) {
+			printf("dump multi part: get regs fail, [%d-%u-%u]\n", ret, g_out_put.ret_val, i);
+			return -EINVAL;
+		}
+		hikp_serdes_dump_print_reg();
+	}
+	printf("\n");
+	return 0;
+}
+
+int hikp_serdes_get_reponse(struct cmd_serdes_param *cmd)
+{
+	int ret = 0;
+
+	if (cmd->cmd_type == SERDES_DUMP_REG &&
+		(cmd->sub_cmd == HILINK_SERDES_REG_CS || cmd->sub_cmd == HILINK_SERDES_REG_DS)) {
+		if (hikp_serdes_get_multi_dump_response(cmd) == 0) {
+			return 0;
+		}
+	}
+
+	hikp_serdes_logout_init(&g_out_put, g_serdes_data_out_buf, SERDES_OUTPUT_MAX_SIZE, 0);
+	ret = hikp_serdes_send_msg(cmd);
+	hikp_serdes_print(cmd);
+	return ret;
 }
 
 static void hikp_serdes_info_print(struct cmd_serdes_param *cmd)
@@ -399,8 +478,7 @@ static int cmd_serdes_dump_help(struct major_cmd_ctrl *self, const char *argv)
 
 static int cmd_serdes_dump_subcmds(struct major_cmd_ctrl *self, const char *argv)
 {
-	const char *set_cmds[HILINK_DUMP_TYPE_END] = { "cs", "ds", "csds", "ram", "subctrl",
-		"cs1", "cs2", "ds1", "ds2", "ds3"};
+	const char *set_cmds[HILINK_DUMP_TYPE_END] = {"cs", "ds", "csds", "ram", "subctrl"};
 	uint8_t i;
 
 	for (i = 0; i < HILINK_DUMP_TYPE_END; i++) {
@@ -417,7 +495,7 @@ _SERDES_DUMP_SUBCMD_PRO_:
 	return 0;
 }
 
-static void hikp_serdes_dump_print(struct cmd_serdes_param *cmd)
+static void hikp_serdes_dump_print_reg(void)
 {
 	uint32_t *dump_data = (uint32_t *)g_out_put.out_str;
 	uint32_t data_size = g_out_put.result_offset / sizeof(uint32_t);
@@ -434,41 +512,21 @@ static void hikp_serdes_dump_print(struct cmd_serdes_param *cmd)
 		return;
 	}
 
-	printf("\n[-------Macro%uCS/DS%u-------]\nAddr   Value",
-		cmd->macro_id, cmd->start_sds_id);
 	for (i = 0; i < data_size; i += 2) { /* 2: Addresses and values are paired */
 		printf("\n0x%04x 0x%08x", dump_data[i], dump_data[i + 1]);
 	}
+}
+
+static void hikp_serdes_dump_print(struct cmd_serdes_param *cmd)
+{
+	printf("\n[-------Macro%uCS/DS%u-------]\nAddr   Value", cmd->macro_id, cmd->start_sds_id);
+	hikp_serdes_dump_print_reg();
 	printf("\n");
 }
 
 static int hikp_serdes_dump_para_check(struct major_cmd_ctrl *self)
 {
-	if (g_serdes_param.sub_cmd == 0xff) {
-		self->err_no = -EINVAL;
-		snprintf(self->err_str, sizeof(self->err_str), "Need subcmd.");
-		return self->err_no;
-	}
-
-	if (g_serdes_param.chip_id == 0xff) {
-		self->err_no = -EINVAL;
-		snprintf(self->err_str, sizeof(self->err_str), "Need chip id.");
-		return self->err_no;
-	}
-
-	if (g_serdes_param.macro_id == 0xff) {
-		self->err_no = -EINVAL;
-		snprintf(self->err_str, sizeof(self->err_str), "Need macro id.");
-		return self->err_no;
-	}
-
-	if (g_serdes_param.start_sds_id == 0xff) {
-		self->err_no = -EINVAL;
-		snprintf(self->err_str, sizeof(self->err_str), "Need lane id.");
-		return self->err_no;
-	}
-
-	return 0;
+	return hikp_serdes_comm_para_check(self, NEED_CHIP_ID | NEED_MACRO_ID | NEED_LANE_ID | NEED_SUB_CMD);
 }
 
 static void hikp_serdes_dump_cmd_execute(struct major_cmd_ctrl *self)
@@ -501,5 +559,182 @@ static void cmd_serdes_dump_init(void)
 	cmd_option_register("-s", "--start_lane_id", true,  cmd_serdes_start_lane_id);
 }
 
+static int cmd_serdes_log_help(struct major_cmd_ctrl *self, const char *argv)
+{
+	HIKP_SET_USED(argv);
+
+	printf("\n  Usage: %s %s\n", self->cmd_ptr->name, "-i <chipid>");
+	printf("\n         %s, e.g. hikptool serdes_log -i 0\n", self->cmd_ptr->help_info);
+	printf("\n  Options:\n\n"
+	       "  -h    --help           display the help info\n"
+	       "  -i    --chipid         chipid, usage: -i [chip_id], e.g. -i 0\n");
+	return 0;
+}
+
+static int hikp_serdes_log_para_check(struct major_cmd_ctrl *self)
+{
+	if (g_serdes_param.val == 0xff) {
+		g_serdes_param.val = HILINK_LOG_HEAD_UPDATE_DIS;
+	}
+
+	return hikp_serdes_comm_para_check(self, NEED_CHIP_ID);
+}
+
+static struct serdes_log_mnt_info *hikp_serdes_get_log_mnt_info(struct cmd_serdes_param *cmd)
+{
+	int ret = 0;
+
+	if (cmd == NULL) {
+		return NULL;
+	}
+	cmd->sub_cmd = HILINK_CMD_LOG_INFO;
+
+	hikp_serdes_logout_init(&g_out_put, g_serdes_data_out_buf, SERDES_OUTPUT_MAX_SIZE, 0);
+	ret = hikp_serdes_send_msg(cmd);
+	if (ret != 0 || g_out_put.ret_val != 0) {
+		printf("get_log_mnt_info fail, [%d-%u]\n", ret, g_out_put.ret_val);
+		return NULL;
+	}
+	return (struct serdes_log_mnt_info *)g_out_put.out_str;
+}
+
+static int hikp_serdes_get_log_data(struct cmd_serdes_param *cmd, struct serdes_log_mnt_info *log_mnt_info,
+	uint32_t *log_size)
+{
+	int ret = 0;
+	uint32_t head, tail, que_depth;
+	uint32_t total_size = 0, cur_size = 0;
+	uint32_t rd_pos, rd_size;
+
+	head = log_mnt_info->head;
+	tail = log_mnt_info->tail;
+	que_depth = log_mnt_info->que_depth;
+	total_size = (tail - head + que_depth) % que_depth;
+	rd_pos = log_mnt_info->head;
+	cmd->sub_cmd = HILINK_CMD_LOG_READ;
+
+	while (cur_size < total_size) {
+		rd_size = SERDES_LOG_SLICE_SIZE;
+		if (rd_pos + rd_size > que_depth) {
+			rd_size = que_depth - rd_pos;
+		}
+		if (((rd_pos + rd_size) % que_depth) > tail) {
+			rd_size = HIKP_MIN((tail - rd_pos + que_depth) % que_depth, rd_size);
+		}
+
+		cmd->rsvd1 = rd_pos;
+		cmd->rsvd2 = rd_size;
+		hikp_serdes_logout_init(&g_out_put, g_serdes_data_out_buf, SERDES_OUTPUT_MAX_SIZE, 0);
+		ret = hikp_serdes_send_msg(cmd);
+		if (ret != 0 || g_out_put.ret_val != 0) {
+			printf("get log rd_pos 0x%x rd_size 0x%x fail, ret=%d, %u\n",
+				rd_pos, rd_size, ret, g_out_put.ret_val);
+			return -EINVAL;
+		}
+		printf("%s", g_out_put.out_str);
+		cur_size += rd_size;
+		rd_pos = (rd_pos + rd_size) % que_depth;
+	}
+	*log_size = total_size;
+
+	return 0;
+}
+
+static int hikp_serdes_log_head_update(struct cmd_serdes_param *cmd, uint32_t log_read_size)
+{
+	int ret = 0;
+
+	if (cmd->val == HILINK_LOG_HEAD_UPDATE_DIS) {
+		return 0;
+	}
+
+	cmd->rsvd3 = log_read_size;
+	cmd->sub_cmd = HILINK_CMD_LOG_HEAD_UPDATE;
+	hikp_serdes_logout_init(&g_out_put, g_serdes_data_out_buf, SERDES_OUTPUT_MAX_SIZE, 0);
+	ret = hikp_serdes_send_msg(cmd);
+	if (ret != 0 || g_out_put.ret_val != 0) {
+		printf("serdes_log_head_update fail, [%d-%u]\n", ret, g_out_put.ret_val);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static int hikp_serdes_log_get_reponse(struct cmd_serdes_param *cmd)
+{
+	int ret = 0;
+	struct chip_info_msg *chip_info = NULL;
+	struct serdes_log_mnt_info *log_mnt_info = NULL;
+	struct cmd_serdes_param temp_param = {0};
+	uint32_t log_read_size = 0;
+
+	chip_info = hikp_serdes_get_chip_info(&temp_param);
+	if ((chip_info == NULL) || (chip_info->chip_type < CHIP_TYPE_CHIP7)) {
+		return -EINVAL;
+	}
+
+	log_mnt_info = hikp_serdes_get_log_mnt_info(cmd);
+	if (log_mnt_info == NULL) {
+		return -EINVAL;
+	}
+
+	ret = hikp_serdes_get_log_data(cmd, log_mnt_info, &log_read_size);
+	if (ret != 0) {
+		return -EINVAL;
+	}
+
+	ret = hikp_serdes_log_head_update(cmd, log_read_size);
+	if (ret != 0) {
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static void hikp_serdes_log_cmd_execute(struct major_cmd_ctrl *self)
+{
+	int ret;
+
+	ret = hikp_serdes_log_para_check(self);
+	if (ret != 0)
+		return;
+
+	g_serdes_param.cmd_type = SERDES_LOG;
+	g_serdes_param.macro_id = 0;
+	ret = hikp_serdes_log_get_reponse(&g_serdes_param);
+	if (ret != 0) {
+		self->err_no = ret;
+		snprintf(self->err_str, sizeof(self->err_str), "serdes_log hikp_serdes_get_reponse err\n");
+		return;
+	}
+}
+
+static int cmd_serdes_log_head_update(struct major_cmd_ctrl *self, const char *argv)
+{
+	uint8_t head_update_en;
+
+	self->err_no = string_toub(argv, &head_update_en);
+	if (self->err_no || head_update_en > 1) {
+		snprintf(self->err_str, sizeof(self->err_str), "Invalid head_update_en val.");
+		return -EINVAL;
+	}
+
+	g_serdes_param.val = head_update_en;
+	return 0;
+}
+
+static void cmd_serdes_log_init(void)
+{
+	struct major_cmd_ctrl *major_cmd = get_major_cmd();
+
+	major_cmd->option_count = 0;
+	major_cmd->execute = hikp_serdes_log_cmd_execute;
+
+	cmd_option_register("-h", "--help",          false, cmd_serdes_log_help);
+	cmd_option_register("-i", "--chipid",        true,  cmd_serdes_chipid);
+	cmd_option_register("-u", "--update",        true,  cmd_serdes_log_head_update);
+}
+
 HIKP_CMD_DECLARE("serdes_dump", "serdes_dump cmd", cmd_serdes_dump_init);
 HIKP_CMD_DECLARE("serdes_info", "serdes_info cmd", cmd_serdes_maininfo_init);
+HIKP_CMD_DECLARE("serdes_log", "serdes_log cmd", cmd_serdes_log_init);

@@ -176,14 +176,14 @@ static void hikp_nic_show_fd_key_info(struct nic_fd_hw_info *hw_info)
 		printf("  fd enable key info[mask: 0x%x]:\n", key_cfg->tuple_mask);
 		fd_mask_cnt = HIKP_ARRAY_SIZE(g_tuple_key_info);
 		for (j = 0; j < fd_mask_cnt; j++) {
-			if (hikp_get_bit(key_cfg->tuple_mask, j) == 0)
+			if (HIKP_GET_BIT(key_cfg->tuple_mask, j) == 0)
 				printf("    %s\n", g_tuple_key_info[j].key_name);
 		}
 
 		printf("  fd meta info[mask: 0x%x]:\n", key_cfg->meta_data_mask);
 		fd_mask_cnt = HIKP_ARRAY_SIZE(g_meta_data_key_info);
 		for (j = 0; j < fd_mask_cnt; j++) {
-			if (hikp_get_bit(key_cfg->meta_data_mask, j) == 0)
+			if (HIKP_GET_BIT(key_cfg->meta_data_mask, j) == 0)
 				printf("    %s\n", g_meta_data_key_info[j].key_name);
 		}
 	}
@@ -370,7 +370,7 @@ static void hikp_nic_fd_print_key(const struct nic_fd_rule_info *rule,
 	key_x = rule->tcam_data;
 	key_y = rule->tcam_data + max_key_bytes;
 	for (j = 0; j < MAX_TUPLE; j++) {
-		if (hikp_get_bit(key_cfg->tuple_mask, j) == 0) {
+		if (HIKP_GET_BIT(key_cfg->tuple_mask, j) == 0) {
 			tuple_cnt = g_tuple_key_info[j].key_length / HIKP_BITS_PER_BYTE;
 			hikp_nic_print_tuple(&g_tuple_key_info[j], key_x + tcam_offset,
 					     key_y + tcam_offset);
@@ -385,7 +385,7 @@ static uint16_t hikp_nic_get_active_meta_width(uint32_t meta_mask)
 	uint16_t i;
 
 	for (i = 0; i < MAX_META_DATA; i++) {
-		if (hikp_get_bit(meta_mask, i) == 0)
+		if (HIKP_GET_BIT(meta_mask, i) == 0)
 			width += g_meta_data_key_info[i].key_length;
 	}
 
@@ -429,10 +429,10 @@ static void hikp_nic_fd_print_meta_data(struct nic_fd_rule_info *rule)
 	cur_pos = meta_bytes * HIKP_BITS_PER_BYTE;
 	end = cur_pos - 1;
 	for (i = MAX_META_DATA - 1; i >= 0; i--) {
-		if (hikp_get_bit(key_cfg->meta_data_mask, i) == 0) {
+		if (HIKP_GET_BIT(key_cfg->meta_data_mask, i) == 0) {
 			tuple_size = g_meta_data_key_info[i].key_length;
 			cur_pos -= tuple_size;
-			val = hikp_get_field(meta_data, GENMASK(end, cur_pos), cur_pos);
+			val = HIKP_GET_FIELD(meta_data, GENMASK(end, cur_pos), cur_pos);
 			printf("\t    %s: ", g_meta_data_key_info[i].key_name);
 			end -= tuple_size;
 			hikp_nic_print_meta_data(g_meta_data_key_info[i].key_type, val);
@@ -451,29 +451,29 @@ static void hikp_nic_parse_ad_data(const struct nic_fd_rule_info *rule,
 	if (action->cnt_vld) {
 		action->cnt_id = ad_data_h & HI_BIT(NIC_FD_AD_COUNTER_HIGH_BIT_B) ? 1 : 0;
 		action->cnt_id <<= NIC_FD_AD_COUNTER_HIGH_BIT;
-		action->cnt_id |= hikp_get_field(ad_data_l, NIC_FD_AD_COUNTER_NUM_M,
+		action->cnt_id |= HIKP_GET_FIELD(ad_data_l, NIC_FD_AD_COUNTER_NUM_M,
 						 NIC_FD_AD_COUNTER_NUM_S);
 	}
 	action->nxt_vld = !!(ad_data_l & HI_BIT(NIC_FD_AD_NXT_STEP_B));
 	if (action->nxt_vld)
-		action->next_input_key = hikp_get_field(ad_data_l, NIC_FD_AD_NXT_KEY_M,
+		action->next_input_key = HIKP_GET_FIELD(ad_data_l, NIC_FD_AD_NXT_KEY_M,
 							NIC_FD_AD_NXT_KEY_S);
 
 	action->rule_id_vld = !!(ad_data_h & HI_BIT(NIC_FD_AD_WR_RULE_ID_B));
 	if (action->rule_id_vld)
-		action->rule_id = hikp_get_field(ad_data_h, NIC_FD_AD_RULE_ID_M,
+		action->rule_id = HIKP_GET_FIELD(ad_data_h, NIC_FD_AD_RULE_ID_M,
 						 NIC_FD_AD_RULE_ID_S);
 
 	action->tc_ovrd_en = !!(ad_data_h & HI_BIT(NIC_FD_AD_QUEUE_REGION_EN_B));
 	if (action->tc_ovrd_en) {
-		action->queue_region_size = hikp_get_field(ad_data_h, NIC_FD_AD_QUEUE_REGION_SIZE_M,
+		action->queue_region_size = HIKP_GET_FIELD(ad_data_h, NIC_FD_AD_QUEUE_REGION_SIZE_M,
 							   NIC_FD_AD_QUEUE_REGION_SIZE_S);
 	}
 	action->q_vid = !!(ad_data_l & HI_BIT(NIC_FD_AD_DIRECT_QID_B));
 	if (action->q_vid || action->tc_ovrd_en) {
 		action->qid = ad_data_h & HI_BIT(NIC_FD_AD_QUEUE_ID_HIGH_BIT_B) ? 1 : 0;
 		action->qid <<= NIC_FD_AD_QUEUE_ID_HIGH_BIT;
-		action->qid |= hikp_get_field(ad_data_l, NIC_FD_AD_QID_M, NIC_FD_AD_QID_S);
+		action->qid |= HIKP_GET_FIELD(ad_data_l, NIC_FD_AD_QID_M, NIC_FD_AD_QID_S);
 	}
 }
 

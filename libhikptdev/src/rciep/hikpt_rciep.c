@@ -44,6 +44,11 @@ static int hikp_memcpy_io(void *dst, size_t dst_size, void const *src, size_t sr
 	for (i = 0; i < src_size / REP_DATA_BLK_SIZE; i++)
 		((uint32_t *)dst)[i] = ((uint32_t *)src)[i];
 
+	/* Ensure that the data is written to shared memory,
+	 * then notify the firmware to read the data from the memory.
+	 */
+	__sync_synchronize();
+
 	return 0;
 }
 
@@ -53,6 +58,11 @@ static void hikp_memclr_io(void)
 
 	for (i = 0; i < HIKP_REQ_DATA_MAX; i++)
 		g_hikp_req->field.data[i] = 0;
+
+	/* Ensure that the data is written to shared memory,
+	 * then notify the firmware to read the data from the memory.
+	 */
+	__sync_synchronize();
 }
 
 static int hikp_try_lock(void)
@@ -90,6 +100,10 @@ void hikp_unlock(void)
 static void hikp_init_cpl_status(void)
 {
 	g_hikp_req->field.cpl_status = 0;
+	/* Ensure that the data is written to shared memory,
+	 * then notify the firmware to read the data from the memory.
+	 */
+	__sync_synchronize();
 }
 
 static uint32_t hikp_wait_for_cpl_status(void)
@@ -185,6 +199,10 @@ static int hikp_req_first_round(uint32_t *req_data, uint32_t rep_num, uint32_t *
 		return ret;
 	}
 	g_hikp_req->field.exe_round = 0;
+	/* Ensure that the data is written to shared memory,
+	 * then notify the firmware to read the data from the memory.
+	 */
+	__sync_synchronize();
 	req_issue(); /* On the first round, an interrupt is triggered. */
 	*cpl_status = hikp_wait_for_cpl_status();
 	if (*cpl_status != HIKP_CPL_BY_TF && *cpl_status != HIKP_CPL_BY_IMU) {
@@ -225,6 +243,10 @@ static int hikp_multi_round_interact(struct hikp_cmd_ret **cmd_ret, uint32_t sta
 	for (i = 0; i < cycle; i++) {
 		if (i != 0) {
 			g_hikp_req->field.exe_round = i;
+			/* Ensure that the data is written to shared memory,
+			 * then notify the firmware to read the data from the memory.
+			 */
+			__sync_synchronize();
 			if (status == HIKP_CPL_BY_TF)
 				req_issue(); /* For next rounds, interrupt is triggered again. */
 			else

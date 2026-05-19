@@ -24,6 +24,11 @@ struct tool_ummu_reg_cmd {
 	uint8_t sync_timeout_open;
 	uint8_t rr_win_num;
 	uint8_t kcmd_entry_no;
+	uint8_t dfx_ptw_queue_probe_id;
+	uint8_t dfx_pptw_queue_probe_id;
+	uint8_t dfx_gpc_queue_probe_id;
+	uint8_t cct_que_sel_dfx;
+	uint8_t dfx_sky_queue_probe_id_sp;
 	uint8_t ummu_id;
 	bool set_flag;
 	bool reg_flag;
@@ -36,6 +41,11 @@ static struct tool_ummu_reg_cmd g_ummu_reg_cmd = {
 	.sync_timeout_open = 0,
 	.rr_win_num = 0,
 	.kcmd_entry_no = 0,
+	.dfx_ptw_queue_probe_id = 0,
+	.dfx_pptw_queue_probe_id = 0,
+	.dfx_gpc_queue_probe_id = 0,
+	.cct_que_sel_dfx = 0,
+	.dfx_sky_queue_probe_id_sp = 0,
 	.ummu_id = MAX_UMMU_NUM,
 	.set_flag = false,
 	.reg_flag = false,
@@ -82,6 +92,21 @@ static int ummu_reg_dump_help(struct major_cmd_ctrl *self, const char *argv)
 	       "when reg_type is set to kcmd, range is 0 to 15, default val is 0");
 	printf("    %s, %-25s %s\n", "-u", "--ummu_id",
 	       "set ummu_id(range from 0 to 7) to choose UMMU. By default, display all UMMU info");
+	printf("    %s, %-25s %s\n", "-a", "--dfx_ptw_queue_probe_id",
+	       "set dfx_ptw_queue_probe_id for UMMU_TCU_PTW_QUEUE_POINTER when "
+	       "reg_type is set to tcu, range is 0 to 39, default val is 0");
+	printf("    %s, %-25s %s\n", "-b", "--dfx_pptw_queue_probe_id",
+	       "set dfx_pptw_queue_probe_id for UMMU_TCU_PPTW_QUEUE_POINTER when "
+	       "reg_type is set to tcu, range is 0 to 31, default val is 0");
+	printf("    %s, %-25s %s\n", "-c", "--dfx_gpc_queue_probe_id",
+	       "set dfx_gpc_queue_probe_id for UMMU_GPC_QUEUE_POINTER when "
+	       "reg_type is set to tcu, range is 0 to 15, default val is 0");
+	printf("    %s, %-25s %s\n", "-e", "--cct_que_sel_dfx",
+	       "set cct_que_sel_dfx for UMMU_CCT_REQ_QUE_SEL_DFX when "
+	       "reg_type is set to tcu, range is 0 to 31, default val is 0");
+	printf("    %s, %-25s %s\n", "-f", "--dfx_sky_queue_probe_id_sp",
+	       "set dfx_sky_queue_probe_id_sp for UMMU_SKY_QUEUE_POINTER_SP when "
+	       "reg_type is set to sky, range is 0 to 63, default val is 0");
 	printf("\n");
 
 	g_ummu_reg_cmd.set_flag = true;
@@ -154,10 +179,15 @@ static int ummu_reg_dump_execute_process(void)
 		ret = ummu_dump_tbu_execute(g_ummu_reg_cmd.ummu_id);
 		break;
 	case UMMU_TCU_DUMP:
-		ret = ummu_dump_tcu_execute(g_ummu_reg_cmd.ummu_id);
+		ret = ummu_dump_tcu_execute(g_ummu_reg_cmd.dfx_ptw_queue_probe_id,
+					    g_ummu_reg_cmd.dfx_pptw_queue_probe_id,
+					    g_ummu_reg_cmd.dfx_gpc_queue_probe_id,
+					    g_ummu_reg_cmd.cct_que_sel_dfx,
+					    g_ummu_reg_cmd.ummu_id);
 		break;
 	case UMMU_SKY_DUMP:
-		ret = ummu_dump_sky_execute(g_ummu_reg_cmd.ummu_id);
+		ret = ummu_dump_sky_execute(g_ummu_reg_cmd.dfx_sky_queue_probe_id_sp,
+					    g_ummu_reg_cmd.ummu_id);
 		break;
 	case UMMU_CNT_DUMP:
 		if (g_ummu_reg_cmd.ummu_id != MAX_UMMU_NUM) {
@@ -199,6 +229,140 @@ static int ummu_cache_idx_set(struct major_cmd_ctrl *self, const char *argv)
 	}
 
 	g_ummu_reg_cmd.cache_idx = val;
+
+	return 0;
+}
+
+static int ummu_dfx_ptw_queue_probe_id_set(struct major_cmd_ctrl *self, const char *argv)
+{
+	uint8_t val;
+	int ret;
+
+	HIKP_SET_USED(self);
+
+	if (!argv)
+		return -EINVAL;
+
+	ret = string_toub(argv, &val);
+	if (ret) {
+		printf("ummu set dfx_ptw_queue_probe_id err %d\n", ret);
+		return ret;
+	}
+
+	if (val > MAX_DFX_PTW_QUEUE_PROBE_ID) {
+		printf("dfx_ptw_queue_probe_id[%u] is out of bound[%u]\n",
+		       val, MAX_DFX_PTW_QUEUE_PROBE_ID);
+		return -EINVAL;
+	}
+
+	g_ummu_reg_cmd.dfx_ptw_queue_probe_id = val;
+
+	return 0;
+}
+
+static int ummu_dfx_pptw_queue_probe_id_set(struct major_cmd_ctrl *self, const char *argv)
+{
+	uint8_t val;
+	int ret;
+
+	HIKP_SET_USED(self);
+
+	if (!argv)
+		return -EINVAL;
+
+	ret = string_toub(argv, &val);
+	if (ret) {
+		printf("ummu set dfx_pptw_queue_probe_id err %d\n", ret);
+		return ret;
+	}
+
+	if (val > MAX_DFX_PPTW_QUEUE_PROBE_ID) {
+		printf("dfx_pptw_queue_probe_id[%u] is out of bound[%u]\n",
+		       val, MAX_DFX_PPTW_QUEUE_PROBE_ID);
+		return -EINVAL;
+	}
+
+	g_ummu_reg_cmd.dfx_pptw_queue_probe_id = val;
+
+	return 0;
+}
+
+static int ummu_dfx_gpc_queue_probe_id_set(struct major_cmd_ctrl *self, const char *argv)
+{
+	uint8_t val;
+	int ret;
+
+	HIKP_SET_USED(self);
+
+	if (!argv)
+		return -EINVAL;
+
+	ret = string_toub(argv, &val);
+	if (ret) {
+		printf("ummu set dfx_gpc_queue_probe_id err %d\n", ret);
+		return ret;
+	}
+
+	if (val > MAX_DFX_GPC_QUEUE_PROBE_ID) {
+		printf("dfx_gpc_queue_probe_id[%u] is out of bound[%u]\n",
+		       val, MAX_DFX_GPC_QUEUE_PROBE_ID);
+		return -EINVAL;
+	}
+
+	g_ummu_reg_cmd.dfx_gpc_queue_probe_id = val;
+
+	return 0;
+}
+
+static int ummu_cct_que_sel_dfx_set(struct major_cmd_ctrl *self, const char *argv)
+{
+	uint8_t val;
+	int ret;
+
+	HIKP_SET_USED(self);
+
+	if (!argv)
+		return -EINVAL;
+
+	ret = string_toub(argv, &val);
+	if (ret) {
+		printf("ummu set cct_que_sel_dfx err %d\n", ret);
+		return ret;
+	}
+
+	if (val > MAX_CCT_QUE_SEL_DFX) {
+		printf("cct_que_sel_dfx[%u] is out of bound[%u]\n", val, MAX_CCT_QUE_SEL_DFX);
+		return -EINVAL;
+	}
+
+	g_ummu_reg_cmd.cct_que_sel_dfx = val;
+
+	return 0;
+}
+
+static int ummu_dfx_sky_queue_probe_id_sp_set(struct major_cmd_ctrl *self, const char *argv)
+{
+	uint8_t val;
+	int ret;
+
+	HIKP_SET_USED(self);
+
+	if (!argv)
+		return -EINVAL;
+
+	ret = string_toub(argv, &val);
+	if (ret) {
+		printf("ummu set dfx_sky_queue_probe_id_sp err %d\n", ret);
+		return ret;
+	}
+
+	if (val > MAX_DFX_SKY_QUEUE_PROBE_ID_SP) {
+		printf("dfx_sky_queue_probe_id_sp[%u] is out of bound[%u]\n",
+		       val, MAX_DFX_SKY_QUEUE_PROBE_ID_SP);
+		return -EINVAL;
+	}
+
+	g_ummu_reg_cmd.dfx_sky_queue_probe_id_sp = val;
 
 	return 0;
 }
@@ -428,6 +592,15 @@ static void cmd_ummu_reg_dump_init(void)
 	cmd_option_register("-h", "--help", false, ummu_reg_dump_help);
 	cmd_option_register("-d", "--dump", true, ummu_reg_dump_type_set);
 	cmd_option_register("-i", "--cache_idx", true, ummu_cache_idx_set);
+	cmd_option_register("-a", "--dfx_ptw_queue_probe_id", true,
+			    ummu_dfx_ptw_queue_probe_id_set);
+	cmd_option_register("-b", "--dfx_pptw_queue_probe_id", true,
+			    ummu_dfx_pptw_queue_probe_id_set);
+	cmd_option_register("-c", "--dfx_gpc_queue_probe_id", true,
+			    ummu_dfx_gpc_queue_probe_id_set);
+	cmd_option_register("-e", "--cct_que_sel_dfx", true, ummu_cct_que_sel_dfx_set);
+	cmd_option_register("-f", "--dfx_sky_queue_probe_id_sp", true,
+			    ummu_dfx_sky_queue_probe_id_sp_set);
 	cmd_option_register("-s", "--sync_timeout_set", true, ummu_sync_timeout_set);
 	cmd_option_register("-r", "--rr_win_num", true, ummu_rr_win_num_set);
 	cmd_option_register("-k", "--kcmd_entry_no", true, ummu_kcmd_entry_no_set);

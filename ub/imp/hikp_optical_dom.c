@@ -196,12 +196,42 @@ static uint16_t read_u16_be(const uint8_t *data, uint8_t cmis_byte)
 	return DOM_U16_BE_AT(data, DOM_CIS_SLOT_IDX(cmis_byte));
 }
 
+/* Helpers: read u16 little-endian from page slot data (use DOM_CIS_SLOT_IDX) */
+static uint16_t read_u16_le(const uint8_t *data, uint8_t cmis_byte)
+{
+	/* 128 or 254：upper page range check */
+	if (cmis_byte < 128 || cmis_byte > 254)
+		return 0;
+
+	return DOM_U16_LE_AT(data, DOM_CIS_SLOT_IDX(cmis_byte));
+}
+
+static uint8_t optical_dom_get_lane_cnt(uint8_t identifier)
+{
+	switch (identifier) {
+	case ID_SFP:
+	case ID_SFP_PLUS_CMIS:
+		return 0x1;
+	case ID_SFP_DD:
+	case ID_SFP_DD_CMIS:
+		return 0x2;
+	case ID_QSFP:
+	case ID_QSFP_PLUS:
+	case ID_QSFP28:
+	case ID_QSFP_PLUS_CMIS:
+		return 0x4;
+	case ID_QSFP_DD:
+	case ID_OSFP:
+		return 0x8;
+	default:
+		/* Current default x4 mode. */
+		return 0x4;
+	}
+}
+
 static void optical_dom_parse_lower_page(const uint8_t *lp,
 					 struct optical_dom_parse_data *out)
 {
-	uint8_t host_lc;
-	uint8_t media_lc;
-
 	/* 256.0 = signed 1/256th degC */
 	out->temperature = (double)(int16_t)DOM_U16_BE_AT(lp, DOM_CIS_CUR_TEMP_OFFSET) / 256.0;
 	/* 10000.0 = 0.1uW units to Volt */
@@ -213,13 +243,8 @@ static void optical_dom_parse_lower_page(const uint8_t *lp,
 	else
 		out->media_type = MEDIA_TYPE_UNDEFINED;
 
-	host_lc = (lp[DOM_CIS_HOST_LANE_OFFSET] >> DOM_CIS_HOST_LANE_CNT_SHIFT)
-		  & DOM_CIS_HOST_LANE_CNT_MSK;
-	media_lc = lp[DOM_CIS_HOST_LANE_OFFSET] & DOM_CIS_MEDIA_LANE_CNT_MSK;
-	out->host_lane_count = host_lc > OPTICAL_DOM_MAX_LANES ?
-			       OPTICAL_DOM_MAX_LANES : host_lc;
-	out->media_lane_count = media_lc > OPTICAL_DOM_MAX_LANES ?
-				OPTICAL_DOM_MAX_LANES : media_lc;
+	out->host_lane_count = optical_dom_get_lane_cnt(lp[DOM_CIS_IDENT_OFFSET]);
+	out->media_lane_count = optical_dom_get_lane_cnt(lp[DOM_CIS_IDENT_OFFSET]);
 }
 
 static void optical_dom_parse_page00(const uint8_t *p00,
@@ -400,25 +425,12 @@ static void optical_dom_parse_page11(const uint8_t *p11,
 static void optical_dom_parse_page14(const uint8_t *p14,
 				     struct optical_dom_parse_data *out)
 {
-	uint16_t raw_val;
-	int i;
+	for (uint32_t i = 0; i < OPTICAL_DOM_MAX_LANES; i++) {
+		/* 208: host snr, +2 per lane, divided by 256.0 = 1/256 dB units */
+		out->host_snr[i] = (double)read_u16_le(p14, 208 + 2 * i) / 256.0;
 
-	for (i = 0; i < OPTICAL_DOM_MAX_LANES; i++) {
-		/* CMIS 208: Host SNR, +2 per lane */
-		raw_val = read_u16_be(p14, 208 + 2 * i);
-		if (raw_val == LANE_DATA_INVALID_FFFF)
-			out->host_snr[i] = 0.0;
-		else
-			/* *0.1 = dB resolution */
-			out->host_snr[i] = (double)raw_val * 0.1;
-
-		/* CMIS 240: Media SNR, +2 per lane */
-		raw_val = read_u16_be(p14, 240 + 2 * i);
-		if (raw_val == LANE_DATA_INVALID_FFFF)
-			out->media_snr[i] = 0.0;
-		else
-			/* *0.1 = dB resolution */
-			out->media_snr[i] = (double)raw_val * 0.1;
+		/* 240: media snr, +2 per lane, divided by 256.0 = 1/256 dB units */
+		out->media_snr[i] = (double)read_u16_le(p14, 240 + 2 * i) / 256.0;
 	}
 }
 
@@ -478,8 +490,8 @@ static const char *optical_dom_id_name(uint8_t id)
 		return "OSFP";
 	case ID_SFP_DD:
 		return "SFP-DD";
-	case ID_QSFP112:
-		return "QSFP112";
+	case ID_QSFP_PLUS_CMIS:
+		return "QSFP+(CMIS)";
 	default:
 		return "Unknown";
 	}
@@ -633,13 +645,13 @@ static int cmd_optical_dom_help(struct major_cmd_ctrl *self, const char *argv)
 	HIKP_SET_USED(argv);
 
 	printf("\n  Usage: %s %s\n", self->cmd_ptr->name,
-	       "-c <chip_id> -p <port_id> -d <die_id> [-r]");
+	       "-c <chip_id> -d <die_id> -p <port_id> [-r]");
 	printf("\n         %s\n", self->cmd_ptr->help_info);
 	printf("\n  Options:\n\n");
 	printf("    -h, %-15s %s\n", "--help", "display this help and exit");
 	printf("    -c, %-15s %s\n", "--chip", "chip id");
-	printf("    -p, %-15s %s\n", "--port", "port id");
 	printf("    -d, %-15s %s\n", "--die", "die id");
+	printf("    -p, %-15s %s\n", "--port", "port id");
 	printf("    -r, %-15s %s\n", "--raw", "dump raw binary data with protocol offsets");
 	printf("\n");
 

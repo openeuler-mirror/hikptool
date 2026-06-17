@@ -46,14 +46,17 @@ enum optical_dom_sub_cmd {
 #define OPTICAL_DOM_DATA_BLK_SIZE	232
 
 enum sff_identifier {
-	ID_UNKNOWN	= 0,
-	ID_SFP		= 3,
-	ID_QSFP_PLUS	= 13,
-	ID_QSFP28	= 17,
-	ID_QSFP_DD	= 24,
-	ID_OSFP		= 25,
-	ID_SFP_DD	= 26,
-	ID_QSFP112	= 30,
+	ID_UNKNOWN		= 0x0,
+	ID_SFP			= 0x3,  /* SFP/SFP+/SFP28 */
+	ID_QSFP			= 0xC,  /* QSFP */
+	ID_QSFP_PLUS		= 0xD,  /* QSFP+ */
+	ID_QSFP28		= 0x11, /* QSFP28 */
+	ID_QSFP_DD		= 0x18, /* QSFP-DD 8X */
+	ID_OSFP			= 0x19, /* OSFP 8X */
+	ID_SFP_DD		= 0x1A, /* SFP-DD 2X */
+	ID_QSFP_PLUS_CMIS	= 0x1E, /* QSFP+ with CMIS */
+	ID_SFP_DD_CMIS		= 0x1F, /* SFP-DD with CMIS */
+	ID_SFP_PLUS_CMIS	= 0x20, /* SFP+ with CMIS */
 };
 
 enum optical_dom_media_type {
@@ -87,10 +90,6 @@ struct dump_annotation {
 #define DOM_CIS_CUR_TEMP_OFFSET			14
 #define DOM_CIS_CUR_VCC_OFFSET			16
 #define DOM_CIS_MODULE_TYPE_OFFSET		85
-#define DOM_CIS_HOST_LANE_OFFSET		88
-#define DOM_CIS_HOST_LANE_CNT_SHIFT		4
-#define DOM_CIS_HOST_LANE_CNT_MSK		0x0F
-#define DOM_CIS_MEDIA_LANE_CNT_MSK		0x0F
 
 /* Page 00h upper (CMIS byte address; use DOM_CIS_SLOT_IDX) */
 #define DOM_CIS_VENDOR_NAME_START		129
@@ -213,6 +212,9 @@ struct opti_dynamic_container {
 
 /* Big-endian 16-bit read from raw byte pointer; caller casts result as needed */
 #define DOM_U16_BE_AT(ptr, off) (((ptr)[(off)] << 8) | (ptr)[(off) + 1])
+
+/* Little-endian 16-bit read from raw byte pointer; caller casts result as needed */
+#define DOM_U16_LE_AT(ptr, off) ((ptr)[(off)] | ((ptr)[(off) + 1] << 8))
 
 #define OPTICAL_DOM_PG_LOWER	HI_BIT(0)
 #define OPTICAL_DOM_PG_00H	HI_BIT(1)

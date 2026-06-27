@@ -51,7 +51,8 @@ enum cmd_module_type {
 	HCCS_MOD = 16,
 	SDMA_MOD = 17,
 	CORE_RING_MOD = 18,
-	RAS_MOD = 19
+	RAS_MOD = 19,
+	OPTICAL_DOM_MOD = 20
 };
 
 void hikp_unlock(void);

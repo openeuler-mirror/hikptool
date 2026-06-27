@@ -16,10 +16,6 @@
 #include "tool_cmd.h"
 #include "hikp_imp_cmd.h"
 
-enum imp_log_cmd {
-	IMP_MOD_DUMP_LOG_CMD = 1,
-};
-
 enum imp_log_sub_cmd {
 	DUMP_LOG_DATA = 1,
 };

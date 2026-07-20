@@ -103,11 +103,17 @@ static int nic_led_cmd_help(struct major_cmd_ctrl *self, const char *argv)
 
 static int nic_led_get_target(struct major_cmd_ctrl *self, const char *argv)
 {
+	int ret;
+
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &g_led_cmd_info.port_dev);
 	if (self->err_no != 0) {
 		snprintf(self->err_str, sizeof(self->err_str), "unknown device!");
 		return self->err_no;
 	}
+
+	ret = hikp_net_check_pf_only(self, &g_led_cmd_info.port_dev.bdf);
+	if (ret != 0)
+		return ret;
 
 	g_led_cmd_info.cmd_flag |= LED_PORT_TARGET_BIT;
 

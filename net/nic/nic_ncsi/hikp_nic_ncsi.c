@@ -291,11 +291,18 @@ static void nic_ncsi_cmd_execute(struct major_cmd_ctrl *self)
 
 static int nic_ncsi_cmd_get_port_info(struct major_cmd_ctrl *self, const char *argv)
 {
+	int ret;
+
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &g_ncsi_cmd_info.target);
 	if (self->err_no) {
 		snprintf(self->err_str, sizeof(self->err_str), "Unknown device %s.", argv);
 		return self->err_no;
 	}
+
+	ret = hikp_net_check_pf_only(self, &g_ncsi_cmd_info.target.bdf);
+	if (ret != 0)
+		return ret;
+
 	g_ncsi_cmd_info.cmd_flag |= NCSI_PORT_TARGET_BIT;
 
 	return 0;

@@ -140,6 +140,7 @@ enum nic_get_ncsi_entry_sub_cmd {
 
 int hikp_net_creat_sock(void);
 int tool_check_and_get_valid_bdf_id(const char *name, struct tool_target *target);
+int hikp_net_check_pf_only(struct major_cmd_ctrl *self, const struct bdf_t *bdf);
 bool is_dev_valid_and_special(int sockfd, struct tool_target *target);
 int get_revision_id_by_bdf(const struct bdf_t *bdf, char *revision_id, size_t id_len);
 int get_dev_name_by_bdf(const struct bdf_t *bdf, char *dev_name, size_t name_len);

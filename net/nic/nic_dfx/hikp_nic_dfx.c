@@ -959,7 +959,7 @@ int hikp_nic_cmd_dfx_target(struct major_cmd_ctrl *self, const char *argv)
 		return self->err_no;
 	}
 
-	return 0;
+	return hikp_net_check_pf_only(self, &g_dfx_param.target.bdf);
 }
 
 static int hikp_nic_dfx_get_blk(struct hikp_cmd_ret **cmd_ret,

@@ -332,24 +332,31 @@ static int collect_one_nic_hikp_log(void *net_name)
 	struct collect_nic_hikp_log_meta {
 		const char *module_name;
 		collect_cmd_handler_t hikp_pfn;
+		bool hip11_support;
 	} nic_hikp_log_meta[] = {
-		{ "nic_fd", collect_hikp_nic_fd_log },
-		{ "nic_gro", collect_hikp_nic_gro_log },
-		{ "nic_ppp", collect_hikp_nic_ppp_log },
-		{ "nic_qos", collect_hikp_nic_qos_log },
-		{ "nic_queue", collect_hikp_nic_queue_log },
-		{ "nic_rss", collect_hikp_nic_rss_log },
-		{ "nic_torus", collect_hikp_nic_torus_log },
-		{ "nic_fec", collect_hikp_nic_fec_log },
-		{ "nic_dfx", collect_hikp_nic_dfx_log },
-		{ "nic_info", collect_hikp_nic_info_log },
-		{ "nic_notify_pkt", collect_hikp_nic_notify_pkt_log },
-		{ "nic_port_fault", collect_hikp_nic_port_fault_log },
+		{ "nic_fd", collect_hikp_nic_fd_log, false },
+		{ "nic_gro", collect_hikp_nic_gro_log, false },
+		{ "nic_ppp", collect_hikp_nic_ppp_log, true },
+		{ "nic_qos", collect_hikp_nic_qos_log, true },
+		{ "nic_queue", collect_hikp_nic_queue_log, true },
+		{ "nic_rss", collect_hikp_nic_rss_log, true },
+		{ "nic_torus", collect_hikp_nic_torus_log, true },
+		{ "nic_fec", collect_hikp_nic_fec_log, true },
+		{ "nic_dfx", collect_hikp_nic_dfx_log, true },
+		{ "nic_info", collect_hikp_nic_info_log, true },
+		{ "nic_notify_pkt", collect_hikp_nic_notify_pkt_log, true },
+		{ "nic_port_fault", collect_hikp_nic_port_fault_log, true },
 	};
+	bool is_hip11 = false;
 	size_t i;
 	int ret;
 
+	if (get_chip_type() == CHIP_HIP11)
+		is_hip11 = true;
+
 	for (i = 0; i < HIKP_ARRAY_SIZE(nic_hikp_log_meta); ++i) {
+		if (is_hip11 && !nic_hikp_log_meta[i].hip11_support)
+			continue;
 		ret = collect_one_nic_hikp_log_compact((char *)net_name,
 					nic_hikp_log_meta[i].module_name,
 					nic_hikp_log_meta[i].hikp_pfn);

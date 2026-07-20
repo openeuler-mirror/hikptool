@@ -14,6 +14,7 @@
 #include "hikp_collect_lib.h"
 #include "hikp_collect.h"
 #include "tool_lib.h"
+#include "hikp_net_lib.h"
 #include "hikp_nic_fd.h"
 #include "hikp_nic_gro.h"
 #include "hikp_nic_ppp.h"
@@ -333,29 +334,38 @@ static int collect_one_nic_hikp_log(void *net_name)
 		const char *module_name;
 		collect_cmd_handler_t hikp_pfn;
 		bool hip11_support;
+		bool pf_only;
 	} nic_hikp_log_meta[] = {
-		{ "nic_fd", collect_hikp_nic_fd_log, false },
-		{ "nic_gro", collect_hikp_nic_gro_log, false },
-		{ "nic_ppp", collect_hikp_nic_ppp_log, true },
-		{ "nic_qos", collect_hikp_nic_qos_log, true },
-		{ "nic_queue", collect_hikp_nic_queue_log, true },
-		{ "nic_rss", collect_hikp_nic_rss_log, true },
-		{ "nic_torus", collect_hikp_nic_torus_log, true },
-		{ "nic_fec", collect_hikp_nic_fec_log, true },
-		{ "nic_dfx", collect_hikp_nic_dfx_log, true },
-		{ "nic_info", collect_hikp_nic_info_log, true },
-		{ "nic_notify_pkt", collect_hikp_nic_notify_pkt_log, true },
-		{ "nic_port_fault", collect_hikp_nic_port_fault_log, true },
+		{ "nic_fd", collect_hikp_nic_fd_log, false, true },
+		{ "nic_gro", collect_hikp_nic_gro_log, false, false },
+		{ "nic_ppp", collect_hikp_nic_ppp_log, true, true },
+		{ "nic_qos", collect_hikp_nic_qos_log, true, true },
+		{ "nic_queue", collect_hikp_nic_queue_log, true, false },
+		{ "nic_rss", collect_hikp_nic_rss_log, true, false },
+		{ "nic_torus", collect_hikp_nic_torus_log, true, true },
+		{ "nic_fec", collect_hikp_nic_fec_log, true, true },
+		{ "nic_dfx", collect_hikp_nic_dfx_log, true, true },
+		{ "nic_info", collect_hikp_nic_info_log, true, false },
+		{ "nic_notify_pkt", collect_hikp_nic_notify_pkt_log, true, true },
+		{ "nic_port_fault", collect_hikp_nic_port_fault_log, true, true },
 	};
+	struct tool_target target = {0};
 	bool is_hip11 = false;
+	bool is_vf = false;
 	size_t i;
 	int ret;
 
 	if (get_chip_type() == CHIP_HIP11)
 		is_hip11 = true;
 
+	ret = tool_check_and_get_valid_bdf_id((char *)net_name, &target);
+	if (ret == 0 && target.bdf.dev_id != 0)
+		is_vf = true;
+
 	for (i = 0; i < HIKP_ARRAY_SIZE(nic_hikp_log_meta); ++i) {
 		if (is_hip11 && !nic_hikp_log_meta[i].hip11_support)
+			continue;
+		if (is_vf && nic_hikp_log_meta[i].pf_only)
 			continue;
 		ret = collect_one_nic_hikp_log_compact((char *)net_name,
 					nic_hikp_log_meta[i].module_name,

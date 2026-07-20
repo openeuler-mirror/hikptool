@@ -718,11 +718,17 @@ static int hikp_xsfp_show_help(struct major_cmd_ctrl *self, const char *argv)
 
 static int hikp_xsfp_get_target(struct major_cmd_ctrl *self, const char *argv)
 {
+	int ret;
+
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &g_xsfp_dump.target);
 	if (self->err_no) {
 		snprintf(self->err_str, sizeof(self->err_str), "Unknown device %s.", argv);
 		return self->err_no;
 	}
+
+	ret = hikp_net_check_pf_only(self, &g_xsfp_dump.target.bdf);
+	if (ret != 0)
+		return ret;
 
 	g_xsfp_dump.dump_param |= XSFP_TARGET_BIT;
 

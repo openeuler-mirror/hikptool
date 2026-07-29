@@ -104,13 +104,7 @@ int hikp_nic_notify_pkt_get_target(struct major_cmd_ctrl *self, const char *argv
 		return self->err_no;
 	}
 
-	if (g_notify_pkt_target.bdf.dev_id != 0) {
-		snprintf(self->err_str, sizeof(self->err_str), "VF does not support query!");
-		self->err_no = -EOPNOTSUPP;
-		return self->err_no;
-	}
-
-	return 0;
+	return hikp_net_check_pf_only(self, &g_notify_pkt_target.bdf);
 }
 
 static void cmd_nic_notify_pkt_init(void)

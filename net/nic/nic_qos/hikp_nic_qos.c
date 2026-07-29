@@ -263,11 +263,8 @@ void hikp_nic_qos_cmd_execute(struct major_cmd_ctrl *self)
 	struct qos_cmd_info qos_data = {0};
 	int ret;
 
-	if (bdf->dev_id != 0) {
-		snprintf(self->err_str, sizeof(self->err_str), "VF does not support query!");
-		self->err_no = -EINVAL;
+	if (hikp_net_check_pf_only(self, bdf) != 0)
 		return;
-	}
 
 	if (g_qos_param.feature_idx == -1) {
 		hikp_nic_qos_cmd_help(self, NULL);

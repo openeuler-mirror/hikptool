@@ -67,7 +67,7 @@ static int hikp_roce_scc_target(struct major_cmd_ctrl *self, const char *argv)
 		return self->err_no;
 	}
 
-	return 0;
+	return hikp_net_check_pf_only(self, &g_roce_scc_param_t.target.bdf);
 }
 
 static int hikp_roce_scc_module_select(struct major_cmd_ctrl *self, const char *argv)

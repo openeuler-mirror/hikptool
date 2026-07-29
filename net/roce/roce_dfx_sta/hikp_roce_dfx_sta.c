@@ -39,10 +39,12 @@ static int hikp_roce_dfx_sta_help(struct major_cmd_ctrl *self, const char *argv)
 static int hikp_roce_dfx_sta_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &(g_roce_dfx_sta_param_t.target));
-	if (self->err_no != 0)
+	if (self->err_no != 0) {
 		snprintf(self->err_str, sizeof(self->err_str), "Unknown device %s.", argv);
+		return self->err_no;
+	}
 
-	return self->err_no;
+	return hikp_net_check_pf_only(self, &g_roce_dfx_sta_param_t.target.bdf);
 }
 
 static int hikp_roce_dfx_sta_clear_set(struct major_cmd_ctrl *self, const char *argv)

@@ -51,7 +51,7 @@ static int hikp_roce_mdb_target(struct major_cmd_ctrl *self, const char *argv)
 		return self->err_no;
 	}
 
-	return 0;
+	return hikp_net_check_pf_only(self, &g_roce_mdb_param.target.bdf);
 }
 
 static int hikp_roce_mdb_clear_set(struct major_cmd_ctrl *self, const char *argv)

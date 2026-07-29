@@ -14,6 +14,7 @@
 #include "hikp_collect_lib.h"
 #include "hikp_collect.h"
 #include "tool_lib.h"
+#include "hikp_net_lib.h"
 #include "hikp_roce_bond.h"
 #include "hikp_roce_global_cfg.h"
 #include "hikp_roce_rst.h"
@@ -490,7 +491,13 @@ static int collect_one_roce_hikp_log(void *net_name)
 		{ "roce_gmv", collect_hikp_roce_gmv_log },
 		{ "roce_dfx_sta", collect_hikp_roce_dfx_sta_log },
 	};
+	struct tool_target target = {0};
 	size_t i;
+	int ret;
+
+	ret = tool_check_and_get_valid_bdf_id((char *)net_name, &target);
+	if (ret == 0 && target.bdf.dev_id != 0)
+		return 0;
 
 	for (i = 0; i < HIKP_ARRAY_SIZE(roce_hikp_log_meta); ++i) {
 		collect_one_roce_hikp_log_compact((char *)net_name,

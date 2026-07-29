@@ -36,7 +36,8 @@ static int hikp_roh_show_bp_target(struct major_cmd_ctrl *self, const char *argv
 		snprintf(self->err_str, sizeof(self->err_str), "Unknown device %s.", argv);
 		return self->err_no;
 	}
-	return 0;
+
+	return hikp_net_check_pf_only(self, &g_roh_show_bp_param.target.bdf);
 }
 
 static int hikp_roh_show_bp(struct major_cmd_ctrl *self)

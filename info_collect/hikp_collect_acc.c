@@ -189,10 +189,10 @@ static int acc_save_link_files(struct info_collect_cmd *link_cmd)
 		return -ENOENT;
 	}
 
-	/* 1 is sizeof ".", 2 is sizeof ".." */
+	/* skip "." and ".." directory entries */
 	while ((dev_dir = readdir(link_dir)) != NULL) {
-		if (!strncmp(dev_dir->d_name, ".", 1) ||
-		    !strncmp(dev_dir->d_name, "..", sizeof("..")))
+		if (!strcmp(dev_dir->d_name, ".") ||
+		    !strcmp(dev_dir->d_name, ".."))
 			continue;
 
 		ret = acc_collect_file(link_cmd, root_path, dev_dir->d_name);

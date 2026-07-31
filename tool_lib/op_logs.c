@@ -372,16 +372,13 @@ static int signal_fcntl(const char *name, uint32_t operation, int *fd)
 	char lock_file[TOOL_LOCK_PATH_MAX_LEN] = HIKP_LOG_DIR_PATH TOOL_LOCK_FLODER_NAME;
 	size_t lock_file_len = 0;
 	int tmp = 0;
-	int ret;
 
 	while (lock_file[lock_file_len] != '\0')
 		lock_file_len++;
 
-	if (!is_dir_exist(lock_file)) {
-		ret = op_log_dir_create(lock_file, lock_file_len);
-		if (ret)
-			return ret;
-	}
+	/* 0700: rwx for owner only */
+	if (mkdir(lock_file, 0700) != 0 && errno != EEXIST)
+		return -errno;
 
 	while (name[tmp] != '\0') {
 		lock_file[lock_file_len] = name[tmp];

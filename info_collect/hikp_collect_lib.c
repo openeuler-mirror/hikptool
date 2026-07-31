@@ -243,14 +243,12 @@ int hikp_collect_exec(void *data)
 	echo_cmd.args[ARGS_IDX1] = result;
 	echo_cmd.args[ARGS_IDX2] = NULL;
 	for (i = 0; i < ARGS_MAX_NUM && cmd->args[i] != NULL; i++) {
-		ret = snprintf(result + len,
-				MAX_LOG_NAME_LEN - len - 1,
-				"%s ", cmd->args[i]);
-		len += ret;
-		if (ret < 0 || len >= (MAX_LOG_NAME_LEN - 1)) {
+		ret = snprintf(result + len, MAX_LOG_NAME_LEN - len - 1, "%s ", cmd->args[i]);
+		if (ret < 0 || ret >= MAX_LOG_NAME_LEN - len - 1) {
 			HIKP_INFO_PRINT("Error getting command args");
 			break;
 		}
+		len += ret;
 	}
 
 	ret = hikp_collect_cmd_exec(&echo_cmd);
@@ -265,9 +263,9 @@ int hikp_collect_log(char *group, char *log_name, collect_cmd_handler_t func, vo
 	unsigned char file_name[MAX_LOG_NAME_LEN] = {0};
 	char file_dir[LOG_FILE_PATH_MAX_LEN] = {0};
 	char file_path[LOG_FILE_PATH_MAX_LEN] = {0};
-	int stdout_fd = dup(STDOUT_FILENO);
-	int stderr_fd = dup(STDERR_FILENO);
 	FILE *log_file;
+	int stdout_fd;
+	int stderr_fd;
 	int ret;
 
 	if (log_name == NULL) {
@@ -295,6 +293,20 @@ int hikp_collect_log(char *group, char *log_name, collect_cmd_handler_t func, vo
 		HIKP_ERROR_PRINT("open %s failed.", file_path);
 		return -ENOENT;
 	 }
+
+	stdout_fd = dup(STDOUT_FILENO);
+	if (stdout_fd < 0) {
+		HIKP_ERROR_PRINT("dup stdout failed");
+		fclose(log_file);
+		return -EBADF;
+	}
+	stderr_fd = dup(STDERR_FILENO);
+	if (stderr_fd < 0) {
+		HIKP_ERROR_PRINT("dup stderr failed");
+		close(stdout_fd);
+		fclose(log_file);
+		return -EBADF;
+	}
 
 	(void)chmod(file_path, S_IRUSR | S_IWUSR | S_IRGRP);
 
@@ -459,6 +471,7 @@ int hikp_collect_cat_glob_exec(void *data)
 	ret = glob(cmd->args[ARGS_IDX1], GLOB_TILDE, NULL, &glb_buff);
 	if (ret) {
 		HIKP_ERROR_PRINT("failed to generate cat paths: %s\n", cmd->args[ARGS_IDX1]);
+		globfree(&glb_buff);
 		return ret;
 	}
 
@@ -492,6 +505,7 @@ int hikp_collect_cp_glob_exec(void *data)
 	ret = glob(cmd->args[ARGS_IDX2], GLOB_TILDE, NULL, &glb_buff);
 	if (ret) {
 		HIKP_ERROR_PRINT("failed to generate cp paths: %s\n", cmd->args[ARGS_IDX2]);
+		globfree(&glb_buff);
 		return ret;
 	}
 

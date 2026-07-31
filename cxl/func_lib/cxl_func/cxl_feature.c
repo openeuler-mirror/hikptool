@@ -312,7 +312,7 @@ static int cxl_data_unit_buf_check(uint32_t data_offset,
 	size_t expect_end_pos;
 	size_t rsp_data_end_pos;
 
-	expect_end_pos = data_offset * sizeof(uint32_t) + data_len;
+	expect_end_pos = data_offset * sizeof(uint32_t) + data_len * sizeof(struct cxl_data_unit);
 	rsp_data_end_pos = rsp_data_num * sizeof(uint32_t);
 	if (expect_end_pos > rsp_data_end_pos)
 		return -EINVAL;

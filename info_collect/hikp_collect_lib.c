@@ -458,7 +458,7 @@ int hikp_save_files(struct info_collect_cmd *save_cmd)
 int hikp_collect_cat_glob_exec(void *data)
 {
 	struct info_collect_cmd *cmd = (struct info_collect_cmd *)data;
-	glob_t glb_buff;
+	glob_t glb_buff = {0};
 	size_t i;
 	int ret;
 
@@ -492,7 +492,7 @@ int hikp_collect_cp_glob_exec(void *data)
 	struct info_collect_cmd *cmd = (struct info_collect_cmd *)data;
 	char log_name[MAX_LOG_NAME_LEN] = {0};
 	char tmp[MAX_LOG_NAME_LEN] = {0};
-	glob_t glb_buff;
+	glob_t glb_buff = {0};
 	size_t i;
 	int ret;
 

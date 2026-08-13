@@ -61,8 +61,8 @@ static int op_log_write(const char *log_data)
 
 static int op_log_write_buffer(const char *log_data, const char *log_dir)
 {
+	int op_lock_fd = 0;
 	sigset_t sigset;
-	int op_lock_fd;
 	int ret;
 
 	sigfillset(&sigset);
@@ -70,13 +70,13 @@ static int op_log_write_buffer(const char *log_data, const char *log_dir)
 	ret = tool_flock(OP_LOG_LOCK_NAME, UDA_FLOCK_BLOCK, &op_lock_fd, log_dir);
 	if (ret == -ENOENT) {
 		HIKP_ERROR_PRINT("Folder or file required by the operation is not exist.\n");
-		return ret;
+		goto out;
 	}
 
 	if (ret) {
 		HIKP_ERROR_PRINT("Multi-user operate in the meantime will causes fault(%d).\n",
 				 ret);
-		return ret;
+		goto out;
 	}
 
 	ret = op_log_write(log_data);
@@ -84,6 +84,8 @@ static int op_log_write_buffer(const char *log_data, const char *log_dir)
 		g_log_info = true;
 
 	tool_unlock(&op_lock_fd, UDA_FLOCK_BLOCK);
+
+out:
 	(void)sigprocmask(SIG_UNBLOCK, &sigset, NULL);
 	return ret;
 }
@@ -112,7 +114,7 @@ static double op_log_diff_timeval(const struct timeval *now, const struct timeva
 	return time_val;
 }
 
-static int op_log_add_time_to_log(char *log_base, size_t *offset, uint32_t flag)
+static int op_log_add_time_to_log(char *log_base, size_t buf_len, size_t *offset, uint32_t flag)
 {
 	static struct timeval g_tv;
 	struct timeval tv = {0};
@@ -124,29 +126,29 @@ static int op_log_add_time_to_log(char *log_base, size_t *offset, uint32_t flag)
 	(void)localtime_r(&tv.tv_sec, &ptm);
 	if (flag == LOG_FLAG_DATE_TIME) {
 		g_tv = tv;
-		len = strftime(log_base + *offset, (OP_LOG_FILE_W_MAXSIZE + 1 - *offset),
+		len = strftime(log_base + *offset, (buf_len - *offset),
 				    OP_LOG_TIME_TEMP, &ptm);
-		if ((*offset + len) >= (OP_LOG_FILE_W_MAXSIZE + 1))
+		if ((*offset + len) >= buf_len)
 			return -ENOMEM;
 
 		ret = snprintf(log_base + *offset + len,
-			       (OP_LOG_FILE_W_MAXSIZE + 1 - *offset - len), OP_LOG_SEC_TIME_TEMP,
+			       (buf_len - *offset - len), OP_LOG_SEC_TIME_TEMP,
 			       (double)tv.tv_sec +
 			       (double)tv.tv_usec / OP_LOG_SEC_AND_MICROSEC_TRANS);
 	} else {
-		len = strftime(log_base + *offset, (OP_LOG_FILE_W_MAXSIZE + 1 - *offset),
+		len = strftime(log_base + *offset, (buf_len - *offset),
 				    OP_LOG_RESULT_TIME_TEMP, &ptm);
-		if ((*offset + len) >= (OP_LOG_FILE_W_MAXSIZE + 1))
+		if ((*offset + len) >= buf_len)
 			return -ENOMEM;
 
 		ret = snprintf(log_base + *offset + len,
-			       (OP_LOG_FILE_W_MAXSIZE + 1 - *offset - len),
+			       (buf_len - *offset - len),
 			       OP_LOG_SEC_TIME_TEMP,
 			       op_log_diff_timeval((const struct timeval *)&tv,
 			       (const struct timeval *)&g_tv));
 	}
 
-	if (ret < 0 || (size_t)ret >= (OP_LOG_FILE_W_MAXSIZE + 1 - *offset - len))
+	if (ret < 0 || (size_t)ret >= (buf_len - *offset - len))
 		return -EINVAL;
 
 	*offset += (len + (size_t)ret);
@@ -182,7 +184,7 @@ static int op_log_file_rollback(const char *op_log_backup, const char *log_dir)
 		return ret;
 	}
 
-	ret = op_log_add_time_to_log(rollback_log, &offset, LOG_FLAG_DATE_TIME);
+	ret = op_log_add_time_to_log(rollback_log, sizeof(rollback_log), &offset, LOG_FLAG_DATE_TIME);
 	if (ret)
 		return ret;
 
@@ -232,7 +234,7 @@ static void op_log_record_time(void)
 {
 	size_t offset = 0;
 
-	(void)op_log_add_time_to_log(g_cmd_exec_time, &offset, LOG_FLAG_DATE_TIME);
+	(void)op_log_add_time_to_log(g_cmd_exec_time, sizeof(g_cmd_exec_time), &offset, LOG_FLAG_DATE_TIME);
 }
 
 int op_log_initialise(const char *log_dir)
@@ -327,7 +329,7 @@ void op_log_record_result(int ret, const char *tool_name, const char *log_dir)
 
 	offset += (size_t)len;
 
-	if (op_log_add_time_to_log(result_str, &offset, LOG_FLAG_ONLY_TIME))
+	if (op_log_add_time_to_log(result_str, sizeof(result_str), &offset, LOG_FLAG_ONLY_TIME))
 		return;
 
 	len = snprintf(result_str + offset, (OP_LOG_FILE_W_MAXSIZE + 1 - offset),
@@ -381,6 +383,8 @@ static int signal_fcntl(const char *name, uint32_t operation, int *fd)
 		return -errno;
 
 	while (name[tmp] != '\0') {
+		if (lock_file_len + 1 >= TOOL_LOCK_PATH_MAX_LEN)
+			return -ENAMETOOLONG;
 		lock_file[lock_file_len] = name[tmp];
 		lock_file_len++;
 		tmp++;

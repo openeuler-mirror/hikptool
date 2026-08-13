@@ -103,6 +103,9 @@ static const char *g_ub_ubus_cmd_list[] = {
 static const char *g_ub_ummu_cmd_list[] = {
 	"ummu",
 };
+static const char *g_ub_sub_health_cmd_list[] = {
+	"sub_health",
+};
 
 static const char *g_optical_dom_cmd_list[] = {
 	"optical_dom",
@@ -149,6 +152,7 @@ const struct cmd_list_info g_chip_hip12_cmd_list[] = {
 	{g_ub_ubctl_cmd_list,       HIKP_ARRAY_SIZE(g_ub_ubctl_cmd_list)},
 	{g_ub_ubus_cmd_list,        HIKP_ARRAY_SIZE(g_ub_ubus_cmd_list)},
 	{g_ub_ummu_cmd_list,        HIKP_ARRAY_SIZE(g_ub_ummu_cmd_list)},
+	{g_ub_sub_health_cmd_list,   HIKP_ARRAY_SIZE(g_ub_sub_health_cmd_list)},
 	{g_optical_dom_cmd_list,    HIKP_ARRAY_SIZE(g_optical_dom_cmd_list)},
 };
 

@@ -201,15 +201,29 @@ static int parse_xml_line(const char *line,
 			  int *cur_eid_idx)
 {
 	struct static_urma_eid *eid;
+	int info_idx;
 
-	if (strstr(line, "<static-urma-eid>")) {
+	if (line == NULL ||
+	    in_static_urma_eid == NULL ||
+	    in_urma_eid_infos == NULL ||
+	    in_urma_eid_info == NULL ||
+	    cur_eid_idx == NULL)
+		return -EINVAL;
+
+	/* 进入一个 static-urma-eid 条目。 */
+	if (strstr(line, "<static-urma-eid>") != NULL) {
+		if (*in_static_urma_eid ||
+		    *in_urma_eid_infos ||
+		    *in_urma_eid_info ||
+		    *cur_eid_idx >= 0)
+			return -EINVAL;
+
 		if (g_eid_count >= MAX_EID_COUNT)
 			return -EINVAL;
 
-		*in_static_urma_eid = 1;
 		*cur_eid_idx = g_eid_count;
-
 		eid = &g_eids[*cur_eid_idx];
+
 		memset(eid, 0, sizeof(*eid));
 
 		eid->slot_id = -1;
@@ -217,22 +231,34 @@ static int parse_xml_line(const char *line,
 		eid->iou_id = -1;
 		eid->entity_id = -1;
 
-		g_eid_count++;
+		*in_static_urma_eid = 1;
 		return 0;
 	}
 
-	if (strstr(line, "</static-urma-eid>")) {
-		if (!*in_static_urma_eid)
+	/* 离开一个 static-urma-eid 条目。 */
+	if (strstr(line, "</static-urma-eid>") != NULL) {
+		if (!*in_static_urma_eid ||
+		    *in_urma_eid_infos ||
+		    *in_urma_eid_info ||
+		    *cur_eid_idx < 0 ||
+		    *cur_eid_idx >= MAX_EID_COUNT)
 			return -EINVAL;
 
 		eid = &g_eids[*cur_eid_idx];
-		if (eid->slot_id < 0 ||
-			eid->ubpu_id < 0 ||
-			eid->iou_id < 0 ||
-			eid->entity_id < 0) {
-			g_eid_count--;
+
+		/*
+		 * 只有基础信息完整，并且至少包含一个有效 EID，
+		 * 才将当前条目计入 g_eid_count。
+		 */
+		if (eid->slot_id >= 0 &&
+		    eid->ubpu_id >= 0 &&
+		    eid->iou_id >= 0 &&
+		    eid->entity_id >= 0 &&
+		    eid->eid_info_num > 0) {
+			g_eid_count++;
+		} else {
 			memset(eid, 0, sizeof(*eid));
-			}
+		}
 
 		*in_static_urma_eid = 0;
 		*in_urma_eid_infos = 0;
@@ -241,34 +267,153 @@ static int parse_xml_line(const char *line,
 		return 0;
 	}
 
+	/* 不在 static-urma-eid 条目中，忽略当前行。 */
 	if (!*in_static_urma_eid)
 		return 0;
 
-	/* 原来的 urma-eid-infos 状态处理保持 */
+	if (*cur_eid_idx < 0 || *cur_eid_idx >= MAX_EID_COUNT)
+		return -EINVAL;
 
 	eid = &g_eids[*cur_eid_idx];
 
-	if (strstr(line, "<slot-id>") &&
-		parse_int_from_tag(line, "slot-id", &eid->slot_id) != 0)
-		return -EINVAL;
+	/* 进入 urma-eid-infos 容器。 */
+	if (strstr(line, "<urma-eid-infos>") != NULL) {
+		if (*in_urma_eid_infos || *in_urma_eid_info)
+			return -EINVAL;
 
-	if (strstr(line, "<ubpu-id>") &&
-		parse_int_from_tag(line, "ubpu-id", &eid->ubpu_id) != 0)
-		return -EINVAL;
+		*in_urma_eid_infos = 1;
+		return 0;
+	}
 
-	if (strstr(line, "<iou-id>") &&
-		parse_int_from_tag(line, "iou-id", &eid->iou_id) != 0)
-		return -EINVAL;
+	/* 离开 urma-eid-infos 容器。 */
+	if (strstr(line, "</urma-eid-infos>") != NULL) {
+		if (!*in_urma_eid_infos || *in_urma_eid_info)
+			return -EINVAL;
 
-	if (strstr(line, "<entity-id>") &&
-		parse_int_from_tag(line, "entity-id", &eid->entity_id) != 0)
-		return -EINVAL;
+		*in_urma_eid_infos = 0;
+		return 0;
+	}
 
-	if (strstr(line, "<label>") &&
-		extract_tag_value(line, "label",
-				  eid->label, sizeof(eid->label)) != 0)
-		return -EINVAL;
+	/* 进入一个 urma-eid-info 条目。 */
+	if (strstr(line, "<urma-eid-info>") != NULL) {
+		if (!*in_urma_eid_infos || *in_urma_eid_info)
+			return -EINVAL;
 
+		if (eid->eid_info_num >= MAX_EID_INFO_NUM)
+			return -EINVAL;
+
+		info_idx = eid->eid_info_num;
+
+		memset(&eid->eid_infos[info_idx], 0,
+		       sizeof(eid->eid_infos[info_idx]));
+		eid->eid_infos[info_idx].port_group_id = -1;
+
+		*in_urma_eid_info = 1;
+		return 0;
+	}
+
+	/* 离开一个 urma-eid-info 条目。 */
+	if (strstr(line, "</urma-eid-info>") != NULL) {
+		if (!*in_urma_eid_info ||
+		    eid->eid_info_num >= MAX_EID_INFO_NUM)
+			return -EINVAL;
+
+		info_idx = eid->eid_info_num;
+
+		/*
+		 * 只有 EID 和 port-group-id 都有效，
+		 * 才将当前条目计入 eid_info_num。
+		 */
+		if (eid->eid_infos[info_idx].eid[0] != '\0' &&
+		    eid->eid_infos[info_idx].port_group_id >= 0) {
+			eid->eid_info_num++;
+		} else {
+			memset(&eid->eid_infos[info_idx], 0,
+			       sizeof(eid->eid_infos[info_idx]));
+		}
+
+		*in_urma_eid_info = 0;
+		return 0;
+	}
+
+	/* 解析 urma-eid-info 内的字段。 */
+	if (*in_urma_eid_info) {
+		info_idx = eid->eid_info_num;
+
+		if (info_idx >= MAX_EID_INFO_NUM)
+			return -EINVAL;
+
+		if (strstr(line, "<urma-eid>") != NULL) {
+			if (extract_tag_value(
+				    line,
+				    "urma-eid",
+				    eid->eid_infos[info_idx].eid,
+				    sizeof(eid->eid_infos[info_idx].eid)) != 0)
+				return -EINVAL;
+
+			return 0;
+		}
+
+		if (strstr(line, "<port-group-id>") != NULL) {
+			if (parse_int_from_tag(
+				    line,
+				    "port-group-id",
+				    &eid->eid_infos[info_idx].port_group_id) != 0)
+				return -EINVAL;
+
+			return 0;
+		}
+
+		/*
+		 * physical-port 当前不需要保存。
+		 * 其他未使用的 urma-eid-info 字段直接忽略。
+		 */
+		return 0;
+	}
+
+	/* 解析 static-urma-eid 的基础字段。 */
+	if (strstr(line, "<slot-id>") != NULL) {
+		if (parse_int_from_tag(line, "slot-id",
+				       &eid->slot_id) != 0)
+			return -EINVAL;
+
+		return 0;
+	}
+
+	if (strstr(line, "<ubpu-id>") != NULL) {
+		if (parse_int_from_tag(line, "ubpu-id",
+				       &eid->ubpu_id) != 0)
+			return -EINVAL;
+
+		return 0;
+	}
+
+	if (strstr(line, "<iou-id>") != NULL) {
+		if (parse_int_from_tag(line, "iou-id",
+				       &eid->iou_id) != 0)
+			return -EINVAL;
+
+		return 0;
+	}
+
+	if (strstr(line, "<entity-id>") != NULL) {
+		if (parse_int_from_tag(line, "entity-id",
+				       &eid->entity_id) != 0)
+			return -EINVAL;
+
+		return 0;
+	}
+
+	if (strstr(line, "<label>") != NULL) {
+		if (extract_tag_value(line, "label",
+				      eid->label,
+				      sizeof(eid->label)) != 0)
+			return -EINVAL;
+
+		return 0;
+	}
+
+	/* 未使用的 XML 标签直接忽略。 */
 	return 0;
 }
 

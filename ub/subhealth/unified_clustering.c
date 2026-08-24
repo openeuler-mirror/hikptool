@@ -22,11 +22,17 @@
 
 /* 聚类簇数组容量上限（肘部法最大 K 值 + 1，用于数组定界） */
 #define MAX_CLUSTER_K (MAX_ELBOW_K + 1)
-
 /* ========================================================================
  * Filter positive values (> 0)
  * ======================================================================== */
+#define BASELINE_SUPPORT_PERCENT 10
 
+static int get_min_baseline_support(int valid_count)
+{
+	int support;
+	support = (valid_count * BASELINE_SUPPORT_PERCENT + 99) / 100;
+	return support;
+}
 static int filter_positive(const double *values, int count,
 			   double **out_vals, int **out_indices, int *out_n)
 {
@@ -327,7 +333,7 @@ static double compute_inertia(const double *data, int n, int k)
 		return DBL_MAX;
 	}
 
-	if (run_kmeans(data, n, k, centers, labels, &iter) != 0) {
+	if (run_kmeans(norm, n, k, centers, labels, &iter) != 0) {
 		free(centers);
 		free(labels);
 		return DBL_MAX;
@@ -416,6 +422,16 @@ static int compute_cluster_means(const double *orig, int n,
 	return 0;
 }
 
+/*
+ * 判断候选簇与基准簇之间的差异是否足够显著。
+ * 同时满足相对倍数和绝对均值差，才判定为异常簇。
+ */
+static bool is_anomaly_cluster(double candidate_mean,
+				   double baseline_mean)
+{
+	return candidate_mean >
+			   baseline_mean * CLUSTER_RATIO_THRESHOLD;
+}
 /* ========================================================================
  * Extract all anomalous clusters: any non-empty cluster whose mean exceeds
  * the minimum-mean cluster by CLUSTER_RATIO_THRESHOLD is extracted.
@@ -426,9 +442,10 @@ static int compute_cluster_means(const double *orig, int n,
 static uc_cluster_result_t *extract_anomaly_clusters(
 	const double *orig, const int *orig_indices,
 	int n, const int *labels, int k,
-	const double *means, const int *counts)
+	const double *means, const int *counts,
+	int min_support)
 {
-	int min_idx = -1;
+	int baseline_idx = -1;
 	int total_count = 0;
 	double total_sum = 0.0;
 	uc_cluster_result_t *res;
@@ -437,22 +454,32 @@ static uc_cluster_result_t *extract_anomaly_clusters(
 	int i, j, pos, c;
 	bool found = false;
 
-	/* 1. 找到最小均值簇（非空），作为"正常"基线 */
+	/*
+	 * 只从样本数达到 min_support 的簇中，
+	 * 选择均值最小的簇作为正常基准。
+	 */
 	for (i = 0; i < k; i++) {
-		if (counts[i] == 0)
+		if (counts[i] < min_support)
 			continue;
-		if (min_idx < 0 || means[i] < means[min_idx])
-			min_idx = i;
+
+		if (baseline_idx < 0 ||
+		    means[i] < means[baseline_idx])
+			baseline_idx = i;
 	}
 
-	if (min_idx < 0)
+	if (baseline_idx < 0)
 		return NULL;
 
-	/* 2. 统计需要提取的异常簇（均值满足倍数关系） */
+	/*
+	 * 统计异常簇。
+	 * 这里只排除空簇，不限制异常簇的样本数量。
+	 */
 	for (i = 0; i < k; i++) {
-		if (i == min_idx || counts[i] == 0)
+		if (i == baseline_idx || counts[i] == 0)
 			continue;
-		if (means[i] > means[min_idx] * CLUSTER_RATIO_THRESHOLD) {
+
+		if (is_anomaly_cluster(means[i],
+				       means[baseline_idx])) {
 			found = true;
 			total_count += counts[i];
 		}
@@ -461,20 +488,22 @@ static uc_cluster_result_t *extract_anomaly_clusters(
 	if (!found)
 		return NULL;
 
-	res = (uc_cluster_result_t *)calloc(1, sizeof(uc_cluster_result_t));
-	if (!res)
+	res = calloc(1, sizeof(*res));
+	if (res == NULL)
 		return NULL;
 
-	res->indices = (int *)malloc((size_t)total_count * sizeof(int));
-	res->values = (double *)malloc((size_t)total_count * sizeof(double));
-	if (!res->indices || !res->values) {
+	res->indices = malloc((size_t)total_count *
+			      sizeof(*res->indices));
+	res->values = malloc((size_t)total_count *
+			     sizeof(*res->values));
+	if (res->indices == NULL || res->values == NULL) {
 		uc_free_result(res);
 		return NULL;
 	}
 
-	/* 3. 簇按均值降序排列 → 从大到小遍历 */
-	order = (int *)malloc((size_t)k * sizeof(int));
-	if (!order) {
+	/* 按照簇均值从大到小排列。 */
+	order = malloc((size_t)k * sizeof(*order));
+	if (order == NULL) {
 		uc_free_result(res);
 		return NULL;
 	}
@@ -483,39 +512,50 @@ static uc_cluster_result_t *extract_anomaly_clusters(
 	for (i = 0; i < k; i++) {
 		if (counts[i] == 0)
 			continue;
-		/* 插入排序（k ≤ MAX_ELBOW_K=11，O(k^2) 可忽略） */
+
 		pos = order_count;
-		while (pos > 0 && means[i] > means[order[pos - 1]]) {
+		while (pos > 0 &&
+		       means[i] > means[order[pos - 1]]) {
 			order[pos] = order[pos - 1];
 			pos--;
 		}
+
 		order[pos] = i;
 		order_count++;
 	}
 
-	/* 4. 按均值从大到小遍历，提取每个满足条件的异常簇 */
+	/*
+	 * 提取异常簇。
+	 * 即使异常簇只有一个样本，也允许被提取。
+	 */
 	pos = 0;
 	for (j = 0; j < order_count; j++) {
 		i = order[j];
-		if (i == min_idx)
+
+		if (i == baseline_idx)
 			continue;
-		if (!(means[i] > means[min_idx] * CLUSTER_RATIO_THRESHOLD))
+
+		if (!is_anomaly_cluster(means[i],
+					means[baseline_idx]))
 			continue;
 
 		for (c = 0; c < n; c++) {
-			if (labels[c] == i) {
-				res->indices[pos] = orig_indices ?
-					orig_indices[c] : c;
-				res->values[pos] = orig[c];
-				total_sum += orig[c];
-				pos++;
-			}
+			if (labels[c] != i)
+				continue;
+
+			res->indices[pos] = orig_indices ?
+					    orig_indices[c] : c;
+			res->values[pos] = orig[c];
+			total_sum += orig[c];
+			pos++;
 		}
 	}
 
 	free(order);
-	res->count = total_count;
-	res->mean = (total_count > 0) ? total_sum / (double)total_count : 0.0;
+
+	res->count = pos;
+	res->mean = pos > 0 ? total_sum / (double)pos : 0.0;
+
 	return res;
 }
 /*
@@ -538,7 +578,7 @@ static uc_cluster_result_t *cluster_core(const double *values,
 	double means[MAX_CLUSTER_K];
 	int cluster_counts[MAX_CLUSTER_K];
 	double centers[MAX_CLUSTER_K];
-	int filtered_n, best_k, iter;
+	int filtered_n, best_k, max_k, min_support, iter;
 	int ret;
 	uc_cluster_result_t *result;
 
@@ -549,7 +589,11 @@ static uc_cluster_result_t *cluster_core(const double *values,
 			    &filtered_indices, &filtered_n) != 0 ||
 	    filtered_n < 2)
 		return NULL;
+	min_support = get_min_baseline_support(filtered_n);
 
+	max_k = filtered_n / min_support;
+	if (max_k > MAX_ELBOW_K)
+		max_k = MAX_ELBOW_K;
 	/* Step 2: Z-score normalize */
 	if (z_score_normalize(filtered_vals, filtered_n,
 			      &norm, &mean, &std) != 0) {
@@ -559,9 +603,7 @@ static uc_cluster_result_t *cluster_core(const double *values,
 	}
 
 	/* Step 3: Elbow method for best K */
-	best_k = elbow_find_best_k(filtered_vals, filtered_n,
-				   filtered_n < MAX_ELBOW_K ?
-				   filtered_n : MAX_ELBOW_K);
+	best_k = elbow_find_best_k(filtered_vals, filtered_n,max_k);
 	if (best_k < 2)
 		best_k = 2;
 
@@ -597,7 +639,8 @@ static uc_cluster_result_t *cluster_core(const double *values,
 	/* Step 7: 提取异常簇 */
 	result = extract_anomaly_clusters(filtered_vals, filtered_indices,
 					  filtered_n, labels, best_k,
-					  means, cluster_counts);
+					  means, cluster_counts,
+					  min_support);
 	if (result == NULL) {
 		free(labels);
 		free(norm);

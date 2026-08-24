@@ -43,7 +43,15 @@ extern "C" {
 #define MAX_PATH_LEN        512
 #define MAX_JSON_BUF_SIZE   (30 * 1024 * 1024)  /* 30MB */
 #define MAX_L1_EID_NUM      256
+/* JSON 中间文件类型与版本 */
+#define SUB_HEALTH_META_KEY           "_sub_health_meta"
+#define SUB_HEALTH_FILE_TYPE_KEY      "file_type"
+#define SUB_HEALTH_SCHEMA_VERSION_KEY "schema_version"
 
+#define SUB_HEALTH_FILE_PROBE_PLAN    "probe_plan"
+#define SUB_HEALTH_FILE_PROBE_RESULT  "probe_result"
+
+#define SUB_HEALTH_SCHEMA_VERSION     1
 /* 4.1 拓扑相关 */
 #define CPU_PORT_COUNT       2
 #define MAX_CANDIDATE_PER_L1 3
@@ -196,8 +204,8 @@ int sub_health_probe_plan(const char *topology_file, uint32_t coverage_k,
 			  uint32_t packet_size, const char *output_file);
 
 /* probe_execute.c */
-int sub_health_probe_execute(const char *plan_file, const char *result_file,
-				 uint32_t coverage_k);
+int sub_health_probe_execute(const char *plan_file,
+				 const char *result_file);
 
 /* sub_health_detect.c */
 int sub_health_detect(const char *probe_result_file, const char *output_file,

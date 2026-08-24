@@ -12,7 +12,7 @@
  */
 
 #include "sub_health.h"
-#include "cJSON.h"
+#include "sh_json.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -578,38 +578,38 @@ static void group_by_ip(void)
  * 格式：{ "l2_switches": [], "l1_switches": { "1D-FULLMESSH": {...} } }
  * ======================================================================== */
 
-static cJSON *build_topology_json(void)
+static sh_json *build_topology_json(void)
 {
-	cJSON *root = NULL;
-	cJSON *l2_switches = NULL;
-	cJSON *l1_switches = NULL;
-	cJSON *l1_obj = NULL;
+	sh_json *root = NULL;
+	sh_json *l2_switches = NULL;
+	sh_json *l1_switches = NULL;
+	sh_json *l1_obj = NULL;
 	int i;
 
-	root = cJSON_CreateObject();
+	root = sh_json_create_obj();
 	if (root == NULL)
 		return NULL;
 
-	l2_switches = cJSON_CreateArray();
+	l2_switches = sh_json_create_arr();
 	if (l2_switches == NULL)
 		goto err;
 
-	if (!cJSON_AddItemToObjectChecked(root, "l2_switches",
+	if (!sh_json_attach_checked(root, "l2_switches",
 					  l2_switches)) {
-		cJSON_Delete(l2_switches);
+		sh_json_delete(l2_switches);
 		goto err;
 					  }
 
 	/* Ownership of l2_switches has been transferred to root. */
 	l2_switches = NULL;
 
-	l1_switches = cJSON_CreateObject();
+	l1_switches = sh_json_create_obj();
 	if (l1_switches == NULL)
 		goto err;
 
-	if (!cJSON_AddItemToObjectChecked(root, "l1_switches",
+	if (!sh_json_attach_checked(root, "l1_switches",
 					  l1_switches)) {
-		cJSON_Delete(l1_switches);
+		sh_json_delete(l1_switches);
 		goto err;
 					  }
 
@@ -617,14 +617,14 @@ static cJSON *build_topology_json(void)
 	 * Ownership of l1_switches has been transferred to root.
 	 * The pointer remains valid and is used to add child objects.
 	 */
-	l1_obj = cJSON_CreateObject();
+	l1_obj = sh_json_create_obj();
 	if (l1_obj == NULL)
 		goto err;
 
-	if (!cJSON_AddItemToObjectChecked(l1_switches,
+	if (!sh_json_attach_checked(l1_switches,
 					  "1D-FULLMESSH",
 					  l1_obj)) {
-		cJSON_Delete(l1_obj);
+		sh_json_delete(l1_obj);
 		goto err;
 					  }
 
@@ -634,10 +634,10 @@ static cJSON *build_topology_json(void)
 	 */
 	for (i = 0; i < g_ip_entry_count; i++) {
 		struct ip_entry *entry = &g_ip_entries[i];
-		cJSON *ip_obj;
+		sh_json *ip_obj;
 		int j;
 
-		ip_obj = cJSON_CreateObject();
+		ip_obj = sh_json_create_obj();
 		if (ip_obj == NULL)
 			goto err;
 
@@ -649,20 +649,20 @@ static cJSON *build_topology_json(void)
 					   entry->ubpu_ids[j]);
 			if (written < 0 ||
 				(size_t)written >= sizeof(ubpu_key)) {
-				cJSON_Delete(ip_obj);
+				sh_json_delete(ip_obj);
 				goto err;
 				}
 
-			if (!cJSON_AddStringToObjectChecked(
+			if (!sh_json_put_str_checked(
 					ip_obj, ubpu_key, entry->eids[j])) {
-				cJSON_Delete(ip_obj);
+				sh_json_delete(ip_obj);
 				goto err;
 					}
 		}
 
-		if (!cJSON_AddItemToObjectChecked(l1_obj, entry->ip,
+		if (!sh_json_attach_checked(l1_obj, entry->ip,
 						  ip_obj)) {
-			cJSON_Delete(ip_obj);
+			sh_json_delete(ip_obj);
 			goto err;
 						  }
 
@@ -672,7 +672,7 @@ static cJSON *build_topology_json(void)
 	return root;
 
 	err:
-		cJSON_Delete(root);
+		sh_json_delete(root);
 	return NULL;
 }
 
@@ -684,7 +684,7 @@ int generate_topology_from_restconf(const char *output_file)
 {
 	char *xml_buf = NULL;
 	char *json_str = NULL;
-	cJSON *root = NULL;
+	sh_json *root = NULL;
 	FILE *fp = NULL;
 	size_t json_len;
 	int saved_errno;
@@ -723,8 +723,8 @@ int generate_topology_from_restconf(const char *output_file)
 	if (root == NULL)
 		return -ENOMEM;
 
-	json_str = cJSON_Print(root);
-	cJSON_Delete(root);
+	json_str = sh_json_write(root);
+	sh_json_delete(root);
 	root = NULL;
 	if (json_str == NULL)
 		return -ENOMEM;

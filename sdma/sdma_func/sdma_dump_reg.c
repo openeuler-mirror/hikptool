@@ -17,6 +17,7 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <errno.h>
+#include "tool_lib.h"
 #include "hikptdev_plug.h"
 #include "sdma_common.h"
 #include "sdma_dump_reg.h"
@@ -120,17 +121,145 @@ static int sdma_get_reg(const struct tool_sdma_cmd *cmd, uint32_t *reg_save, uin
 	return 0;
 }
 
-static void sdma_print_reg(const uint32_t *reg_save, uint32_t reg_num)
+/* DON'T change the order of these arrays or add entries between! */
+static const char *g_sdma_chn_reg_name[] = {
+	"SDMAM_CH_CTRL",
+	"SDMAM_CH_TEST",
+	"SDMAM_CH_TYPER",
+	"SDMAM_IRQ_STATUS",
+	"SDMAM_IRQ_CTRL",
+	"SDMAM_CH_BYPASS_CTRL",
+	"SDMAM_CH_CQE_STATUS",
+	"SDMAM_CH_STATUS",
+	"SDMAM_CH_SECURITY",
+	"SDMAM_CH_SQBASER_L",
+	"SDMAM_CH_SQBASER_H",
+	"SDMAM_CH_SQ_ATTR",
+	"SDMAM_CH_SQTDBR",
+	"SDMAM_CH_SQHDBR",
+	"SDMAM_CH_CQBASER_L",
+	"SDMAM_CH_CQBASER_H",
+	"SDMAM_CH_CQ_ATTR",
+	"SDMAM_CH_CQTDBR",
+	"SDMAM_CH_CQHDBR",
+	"SDMAM_CH_ICDT_OSTD_TH",
+	"SDMAM_ATOMICERR_MASK",
+	"SDMAM_ERRSTATUS_MASK",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"reserve",
+	"CH_DFX_INFO0",
+	"SDMAM_DBP_CONFIG0",
+};
+
+static const char *g_sdma_pc_reg_name[] = {
+	"DFX_PC_SEL_INFO0",
+	"DFX_PC_SEL_INFO1",
+	"DFX_PC_SEL_INFO2",
+	"DFX_PC_SEL_INFO3",
+	"DFX_PC_SEL_INFO4",
+	"DFX_PC_SEL_INFO5",
+	"DFX_PC_SEL_INFO6",
+	"DFX_PC_SEL_INFO7",
+	"DFX_PC_SEL_INFO8",
+	"DFX_PC_SEL_INFO9",
+	"DFX_PC_SEL_INFO10",
+	"DFX_PC_SEL_INFO11",
+	"DFX_PC_SEL_INFO12",
+	"DFX_PC_SEL_INFO13",
+	"DFX_PC_SEL_INFO14",
+	"DFX_PC_SEL_INFO15",
+	"DFX_PC_SEL_INFO16",
+	"DFX_PC_SEL_INFO17",
+	"DFX_PC_SEL_INFO18",
+	"DFX_PC_SEL_INFO19",
+	"DFX_PC_SEL_INFO20",
+	"DFX_PC_SEL_INFO21",
+	"DFX_PC_SEL_INFO22",
+	"DFX_PC_SEL_INFO23",
+	"DFX_PC_SEL_INFO24",
+	"DFX_PC_SEL_INFO25",
+	"DFX_PC_SEL_INFO26",
+};
+
+static const char *g_sdma_vc_reg_name[] = {
+	"DFX_VC_SEL_INFO0",
+	"DFX_VC_SEL_INFO1",
+	"DFX_VC_SEL_INFO2",
+	"DFX_VC_SEL_INFO3",
+	"DFX_VC_SEL_INFO4",
+	"DFX_VC_SEL_INFO5",
+	"DFX_VC_SEL_INFO6",
+	"DFX_VC_SEL_INFO7",
+	"DFX_VC_SEL_INFO8",
+	"DFX_VC_SEL_INFO9",
+	"DFX_VC_SEL_INFO10",
+	"DFX_VC_SEL_INFO11",
+	"DFX_VC_SEL_INFO12",
+	"DFX_VC_SEL_INFO13",
+	"DFX_VC_SEL_INFO14",
+	"DFX_VC_SEL_INFO15",
+	"DFX_VC_SEL_INFO16",
+	"DFX_VC_SEL_INFO17",
+	"DFX_VC_SEL_INFO18",
+};
+
+static const struct reg_name_info {
+	enum sdma_dump_cmd_type sub_cmd;
+	const char **reg_name;
+	uint8_t arr_len;
+} g_sdma_reg_name_info_table[] = {
+	{DUMP_CHN_STATUS, g_sdma_chn_reg_name, HIKP_ARRAY_SIZE(g_sdma_chn_reg_name)},
+	{DUMP_CHN_PC, g_sdma_pc_reg_name, HIKP_ARRAY_SIZE(g_sdma_pc_reg_name)},
+	{DUMP_CHN_VC, g_sdma_vc_reg_name, HIKP_ARRAY_SIZE(g_sdma_vc_reg_name)},
+};
+
+static void sdma_print_reg(const uint32_t *reg_save, uint32_t reg_num, uint32_t sub_cmd)
 {
-	uint32_t i;
+	const char **reg_name;
+	uint32_t index = 0;
+	uint8_t arr_len;
 
 	if (reg_num == 0) {
 		printf("SDMA dump is failed\n");
 		return;
 	}
+
+	for (index = 0; index < HIKP_ARRAY_SIZE(g_sdma_reg_name_info_table); index++) {
+		if (g_sdma_reg_name_info_table[index].sub_cmd != sub_cmd)
+			continue;
+		arr_len = g_sdma_reg_name_info_table[index].arr_len;
+		reg_name = g_sdma_reg_name_info_table[index].reg_name;
+		break;
+	}
+
+	if (index == HIKP_ARRAY_SIZE(g_sdma_reg_name_info_table)) {
+		printf("can't find reg name table for sdma sub_cmd %u.\n",
+		       sub_cmd);
+		return;
+	}
+
 	printf("  sdma reg dump list:\n");
-	for (i = 0; i < reg_num; i++)
-		printf("    0x%08x\n", reg_save[i]);
+	printf("%-40s  reg_data\n", "reg_name");
+	for (index = 0; index < reg_num; index++) {
+		if(strcmp(reg_name[index], "reserve") != 0)
+			printf("%-40s  0x%08x\n",
+			       index < arr_len ? reg_name[index] : "",
+			       reg_save[index]);
+	}
 }
 
 int sdma_reg_dump(struct tool_sdma_cmd *cmd)
@@ -156,7 +285,7 @@ int sdma_reg_dump(struct tool_sdma_cmd *cmd)
 	if (ret)
 		return ret;
 
-	sdma_print_reg(sdma_reg_save, sdma_reg_num);
+	sdma_print_reg(sdma_reg_save, sdma_reg_num, cmd->sdma_cmd_type);
 
 	return 0;
 }

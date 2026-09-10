@@ -76,7 +76,8 @@ static int ummu_reg_dump_help(struct major_cmd_ctrl *self, const char *argv)
 	printf("    %s, %-25s %s\n", "-d", "--dump", "dump registers");
 	printf("    usage: -d [reg_type] -[k, i, r, u] [val], e.g. -d kcmd -k 1 -u 0\n");
 	printf("    reg_type includes [kcmd, umcmd, ubif, tbu, tcu, sky, cnt]\n");
-	printf("    [cnt] will display the number of UMMU, choose one of them to display info\n");
+	printf("        [cnt] will display the number of UMMU, "
+	       "choose one of them to display info\n");
 	printf("    %s, %-25s %s\n", "-s", "--sync_timeout_set",
 	       "set sync_timeout_open register which can prevent system freeze");
 	printf("    usage: -s 1: validate sync_timeout_open; -s 0: invalidate sync_timeout_open\n");
@@ -91,7 +92,8 @@ static int ummu_reg_dump_help(struct major_cmd_ctrl *self, const char *argv)
 	       "set kcmd_entry_no for UMMU_SWIF_KCMDQ_DFX_CMD_ENTRY_STATUS "
 	       "when reg_type is set to kcmd, range is 0 to 15, default val is 0");
 	printf("    %s, %-25s %s\n", "-u", "--ummu_id",
-	       "set ummu_id(range from 0 to 7) to choose UMMU. By default, display all UMMU info");
+	       "set ummu_id(start from 0, limit by ummu cnt) to choose UMMU. "
+	       "By default, display all UMMU info");
 	printf("    %s, %-25s %s\n", "-a", "--dfx_ptw_queue_probe_id",
 	       "set dfx_ptw_queue_probe_id for UMMU_TCU_PTW_QUEUE_POINTER when "
 	       "reg_type is set to tcu, range is 0 to 39, default val is 0");

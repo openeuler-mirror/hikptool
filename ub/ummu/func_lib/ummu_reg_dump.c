@@ -442,13 +442,13 @@ static void dump_tcu_reg_parse(struct ummu_tcu_reg *reg, int id)
 	       reg->ummu_tcu_ptw_queue_stat, 0, id);
 	printf("ummu_tcu_pptw_queue_pointer\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_tcu_pptw_queue_pointer, 0, id);
-	printf("ummu_tcu_pptw_queue_stat\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	printf("ummu_tcu_pptw_queue_stat\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_tcu_pptw_queue_stat, 0, id);
 	printf("ummu_dfx_ecc_monitor_1\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_dfx_ecc_monitor_1, 0, id);
-	printf("ummu_err_status_0\t\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	printf("ummu_err_status_0\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_err_status_0, 0, id);
-	printf("ummu_err_misc1_0\t\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	printf("ummu_err_misc1_0\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_err_misc1_0, 0, id);
 	printf("ummu_dfx_ecc_monitor_2\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_dfx_ecc_monitor_2, 0, id);
@@ -458,11 +458,11 @@ static void dump_tcu_reg_parse(struct ummu_tcu_reg *reg, int id)
 	       reg->ummu_tcu_pptw_queue_stat1, 0, id);
 	printf("ummu_gpc_queue_pointer\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_gpc_queue_pointer, 0, id);
-	printf("ummu_gpc_queue_stat\t\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	printf("ummu_gpc_queue_stat\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_gpc_queue_stat, 0, id);
-	printf("ummu_tcu_itf_stat0\t\t\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	printf("ummu_tcu_itf_stat0\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_tcu_itf_stat0, 0, id);
-	printf("ummu_cct_req_que_sel_dfx\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	printf("ummu_cct_req_que_sel_dfx\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_cct_req_que_sel_dfx, 0, id);
 	printf("ummu_cct_req_que_info0_dfx\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_cct_req_que_info0_dfx, 0, id);
@@ -474,7 +474,7 @@ static void dump_tcu_reg_parse(struct ummu_tcu_reg *reg, int id)
 	       reg->ummu_cct_req_que_info3_dfx, 0, id);
 	printf("ummu_cct_req_que_info4_dfx\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_cct_req_que_info4_dfx, 0, id);
-	printf("ummu_tcu_queue_stat\t\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	printf("ummu_tcu_queue_stat\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_tcu_queue_stat, 0, id);
 	printf("\n");
 }

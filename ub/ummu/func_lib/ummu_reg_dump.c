@@ -120,6 +120,20 @@ static void dump_kcmd_reg_parse(struct ummu_kcmd_reg *reg, int id)
 	       reg->ummu_err_addr_0, 0, id);
 	printf("ummu_err_addr_1\t\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_err_addr_1, 0, id);
+	printf("ummu_swif_fsm_status_dfx0\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_swif_fsm_status_dfx0, 0, id);
+	printf("ummu_swif_fsm_status_dfx1\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_swif_fsm_status_dfx1, 0, id);
+	printf("ummu_swif_fsm_status_dfx2\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_swif_fsm_status_dfx2, 0, id);
+	printf("ummu_swif_fsm_status_dfx3\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_swif_fsm_status_dfx3, 0, id);
+	printf("ummu_swif_fsm_status_dfx4\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_swif_fsm_status_dfx4, 0, id);
+	printf("ummu_swif_dfx_qid_status0\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_swif_dfx_qid_status0, 0, id);
+	printf("ummu_swif_dfx_qid_status1\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_swif_dfx_qid_status1, 0, id);
 	printf("\n");
 }
 
@@ -204,6 +218,8 @@ static void dump_umcmd_reg_parse(struct ummu_umcmd_reg *reg, int id)
 	       reg->ummu_err_addr_0, 0, id);
 	printf("ummu_err_addr_1\t\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_err_addr_1, 0, id);
+	printf("ummu_swif_umcmd_no_ready\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_swif_umcmd_no_ready, 0, id);
 	printf("\n");
 }
 
@@ -279,6 +295,10 @@ static void dump_ubif_reg_parse(struct ummu_ubif_reg *reg, int id)
 	       reg->ummu_err_addr_0, 0, id);
 	printf("ummu_err_addr_1\t\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_err_addr_1, 0, id);
+	printf("ummu_ubif_queue_dfx\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_ubif_queue_dfx, 0, id);
+	printf("ummu_ubif_kv_cache_dfx\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_ubif_kv_cache_dfx, 0, id);
 	printf("\n");
 }
 
@@ -361,6 +381,16 @@ static void dump_tbu_reg_parse(struct ummu_tbu_reg *reg, int id)
 	       reg->ummu_err_status_0, 0, id);
 	printf("ummu_err_misc1_0\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_err_misc1_0, 0, id);
+	printf("ummu_tbu_iopf_sts0\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_tbu_iopf_sts0, 0, id);
+	printf("ummu_tbu_iopf_sts1\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_tbu_iopf_sts1, 0, id);
+	printf("ummu_tbu_iopf_sts2\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_tbu_iopf_sts2, 0, id);
+	printf("ummu_tbu_iopf_sts3\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_tbu_iopf_sts3, 0, id);
+	printf("ummu_tbu_rab_tect_tag_info\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_tbu_rab_tect_tag_info, 0, id);
 	printf("\n");
 }
 
@@ -410,6 +440,8 @@ static void dump_tcu_reg_parse(struct ummu_tcu_reg *reg, int id)
 {
 	printf("ummu_tcu_ptw_queue_stat\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_tcu_ptw_queue_stat, 0, id);
+	printf("ummu_tcu_pptw_queue_pointer\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_tcu_pptw_queue_pointer, 0, id);
 	printf("ummu_tcu_pptw_queue_stat\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_tcu_pptw_queue_stat, 0, id);
 	printf("ummu_dfx_ecc_monitor_1\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
@@ -418,10 +450,38 @@ static void dump_tcu_reg_parse(struct ummu_tcu_reg *reg, int id)
 	       reg->ummu_err_status_0, 0, id);
 	printf("ummu_err_misc1_0\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_err_misc1_0, 0, id);
+	printf("ummu_dfx_ecc_monitor_2\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_dfx_ecc_monitor_2, 0, id);
+	printf("ummu_tcu_ptw_queue_pointer\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_tcu_ptw_queue_pointer, 0, id);
+	printf("ummu_tcu_pptw_queue_stat1\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_tcu_pptw_queue_stat1, 0, id);
+	printf("ummu_gpc_queue_pointer\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_gpc_queue_pointer, 0, id);
+	printf("ummu_gpc_queue_stat\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_gpc_queue_stat, 0, id);
+	printf("ummu_tcu_itf_stat0\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_tcu_itf_stat0, 0, id);
+	printf("ummu_cct_req_que_sel_dfx\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_cct_req_que_sel_dfx, 0, id);
+	printf("ummu_cct_req_que_info0_dfx\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_cct_req_que_info0_dfx, 0, id);
+	printf("ummu_cct_req_que_info1_dfx\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_cct_req_que_info1_dfx, 0, id);
+	printf("ummu_cct_req_que_info2_dfx\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_cct_req_que_info2_dfx, 0, id);
+	printf("ummu_cct_req_que_info3_dfx\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_cct_req_que_info3_dfx, 0, id);
+	printf("ummu_cct_req_que_info4_dfx\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_cct_req_que_info4_dfx, 0, id);
+	printf("ummu_tcu_queue_stat\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_tcu_queue_stat, 0, id);
 	printf("\n");
 }
 
-int ummu_dump_tcu_execute(uint8_t ummu_id)
+int ummu_dump_tcu_execute(uint8_t dfx_ptw_queue_probe_id, uint8_t dfx_pptw_queue_probe_id,
+			  uint8_t dfx_gpc_queue_probe_id, uint8_t cct_que_sel_dfx,
+			  uint8_t ummu_id)
 {
 	struct ummu_reg_dump_para req_para = { 0 };
 	struct hikp_cmd_header req_header = { 0 };
@@ -430,6 +490,10 @@ int ummu_dump_tcu_execute(uint8_t ummu_id)
 	size_t expected_size;
 	int ret, cnt, idx;
 
+	req_para.dfx_ptw_queue_probe_id = dfx_ptw_queue_probe_id;
+	req_para.dfx_pptw_queue_probe_id = dfx_pptw_queue_probe_id;
+	req_para.dfx_gpc_queue_probe_id = dfx_gpc_queue_probe_id;
+	req_para.cct_que_sel_dfx = cct_que_sel_dfx;
 	req_para.ummu_id = ummu_id;
 
 	hikp_cmd_init(&req_header, UMMU_MOD, UMMU_CMD_DUMP, UMMU_TCU_DUMP);
@@ -471,10 +535,24 @@ static void dump_sky_reg_parse(struct ummu_sky_reg *reg, int id)
 	       reg->ummu_err_addr_0, 0, id);
 	printf("ummu_err_addr_1\t\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
 	       reg->ummu_err_addr_1, 0, id);
+	printf("ummu_sky_queue_pointer_sp\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_sky_queue_pointer_sp, 0, id);
+	printf("ummu_sky_queue_addr_low_sp\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_sky_queue_addr_low_sp, 0, id);
+	printf("ummu_sky_queue_addr_high_sp\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_sky_queue_addr_high_sp, 0, id);
+	printf("ummu_sky_queue_stat0_sp\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_sky_queue_stat0_sp, 0, id);
+	printf("ummu_sky_queue_stat1_sp\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_sky_queue_stat1_sp, 0, id);
+	printf("ummu_sky_queue_stat2_sp\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_sky_queue_stat2_sp, 0, id);
+	printf("ummu_sky_queue_stat3_sp\t\t\t\t0x%08x\t\t\t0x%08x\t\t\t%d\n",
+	       reg->ummu_sky_queue_stat3_sp, 0, id);
 	printf("\n");
 }
 
-int ummu_dump_sky_execute(uint8_t ummu_id)
+int ummu_dump_sky_execute(uint8_t dfx_sky_queue_probe_id_sp, uint8_t ummu_id)
 {
 	struct ummu_reg_dump_para req_para = { 0 };
 	struct hikp_cmd_header req_header = { 0 };
@@ -483,6 +561,7 @@ int ummu_dump_sky_execute(uint8_t ummu_id)
 	size_t expected_size;
 	int ret, cnt, idx;
 
+	req_para.dfx_sky_queue_probe_id_sp = dfx_sky_queue_probe_id_sp;
 	req_para.ummu_id = ummu_id;
 
 	hikp_cmd_init(&req_header, UMMU_MOD, UMMU_CMD_DUMP, UMMU_SKY_DUMP);

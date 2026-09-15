@@ -14,7 +14,9 @@
 #ifndef SDMA_COMMON_H
 #define SDMA_COMMON_H
 
-#define RESP_MAX_NUM 160
+#define RESP_MAX_NUM     160
+#define SDMA_MAX_CHN_NUM 160
+#define SDMA_MAX_PC_NUM  32
 
 /* SDMA command code */
 enum sdma_cmd_type {

@@ -45,9 +45,9 @@ static int sdma_dump_help(struct major_cmd_ctrl *self, const char *argv)
 	printf("\n  Options:\n\n");
 	printf("    %s, %-25s %s\n", "-h", "--help", "display this help and exit\n");
 	printf("    %s, %-25s %s\n", "-s", "--chnstatus", "dump sdma channel status dfx reg\n");
-	printf("\tParameter Limitation: -c --chipid and -d --dieid is necessary,");
-	printf(" -n --chnid is invalid\n");
-	printf("\tUsage: -s -c [chipid] -d [dieid], e.g. -s -c 0 -d 0\n\n");
+	printf("\tParameter Limitation: All three parameters are necessary,");
+	printf(" the -n --chnid range is limited to 0-159\n");
+	printf("\tUsage: -s -c [chipid] -d [dieid] -n [chnid], e.g. -s -c 0 -d 0 -n 1\n\n");
 	printf("    %s, %-25s %s\n", "-p", "--pc", "dump sdma pc channel dfx reg\n");
 	printf("\tParameter Limitation: All three parameters are necessary,");
 	printf(" the -n --chnid range is limited to 0-31\n");

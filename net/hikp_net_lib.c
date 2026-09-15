@@ -176,8 +176,11 @@ static int tool_get_bdf_by_dev_name(const char *name, struct tool_target *target
 		HIKP_ERROR_PRINT("parameter of target name is too long.\n");
 		return -EINVAL;
 	}
-	strncpy(target->dev_name, name, sizeof(target->dev_name));
-	target->dev_name[sizeof(target->dev_name) - 1] = '\0';
+
+	if (target->dev_name != name) {
+		strncpy(target->dev_name, name, sizeof(target->dev_name));
+		target->dev_name[sizeof(target->dev_name) - 1] = '\0';
+	}
 
 	sockfd = hikp_net_creat_sock();
 	if (sockfd < 0)

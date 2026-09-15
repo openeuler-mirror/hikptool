@@ -16,14 +16,14 @@
 
 #define LOG_PCIE "[PCIE]"
 
-#define Info(x, args...) printf(x, ##args)
+#define INFO(x, args...) printf(x, ##args)
 
-#define Err(x, args...) Info("[ ERROE ] " x, ##args)
+#define ERR(x, args...) INFO("[ ERROR ] " x, ##args)
 
-#define Warn(x, args...) Info("[ WARN ] " x, ##args)
+#define WARN(x, args...) INFO("[ WARN ] " x, ##args)
 
-#define Debug(x, args...) Info("[ DEBUG ] " x, ##args)
+#define DEBUG(x, args...) INFO("[ DEBUG ] " x, ##args)
 
-#define Tips(x, args...) Info("[ TIPS ] " x, ##args)
+#define TIPS(x, args...) INFO("[ TIPS ] " x, ##args)
 
 #endif /* OS_COMMON_H */

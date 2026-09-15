@@ -14,6 +14,8 @@
 #ifndef SDMA_TOOLS_INCLUDE_H
 #define SDMA_TOOLS_INCLUDE_H
 
+#include <stdint.h>
+
 struct tool_sdma_cmd {
 	uint32_t sdma_cmd_type;
 	uint32_t chip_id;

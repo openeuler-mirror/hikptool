@@ -30,11 +30,11 @@ static int sas_get_res(const struct tool_sas_cmd *cmd, uint32_t *reg_save, uint3
 	req_data.die_id = cmd->die_id;
 	req_data.phy_id = cmd->phy_id;
 
-	if (cmd->sas_cmd_type == ANADQ_NUM)
+	if (cmd->sas_cmd_type == (uint32_t)ANADQ_NUM)
 		hikp_cmd_init(&req_header, SAS_MOD, SAS_ANADQ, ANADQ_NUM);
-	else if (cmd->sas_cmd_type == ANACQ_NUM)
+	else if (cmd->sas_cmd_type == (uint32_t)ANACQ_NUM)
 		hikp_cmd_init(&req_header, SAS_MOD, SAS_ANACQ, ANACQ_NUM);
-	else if (cmd->sas_cmd_type == ANADQ_PRT)
+	else if (cmd->sas_cmd_type == (uint32_t)ANADQ_PRT)
 		hikp_cmd_init(&req_header, SAS_MOD, SAS_ANADQ, ANADQ_PRT);
 	else
 		hikp_cmd_init(&req_header, SAS_MOD, SAS_ANACQ, ANACQ_PRT);
@@ -107,9 +107,9 @@ int sas_analy_cmd(struct tool_sas_cmd *cmd)
 	if (ret)
 		return ret;
 
-	if (cmd->sas_cmd_type == ANADQ_NUM)
+	if (cmd->sas_cmd_type == (uint32_t)ANADQ_NUM)
 		sas_print_dqnum(reg_save, reg_num);
-	else if (cmd->sas_cmd_type == ANACQ_NUM)
+	else if (cmd->sas_cmd_type == (uint32_t)ANACQ_NUM)
 		sas_print_cqnum(reg_save, reg_num);
 	else
 		sas_print_prt(reg_save, reg_num);

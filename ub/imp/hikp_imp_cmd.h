@@ -21,6 +21,12 @@
 
 enum imp_func_type {
 	IMP_FUNC_DUMP_LOG = 1,
+	IMP_FUNC_DUMP_REG,
+};
+
+enum imp_module_cmd {
+	IMP_MOD_DUMP_LOG_CMD = 1,
+	IMP_MOD_DUMP_REG_CMD,
 };
 
 struct imp_cmd_cfg {

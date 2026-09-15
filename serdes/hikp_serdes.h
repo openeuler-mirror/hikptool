@@ -66,7 +66,8 @@ enum serdes_cmd_type_e {
 	SERDES_GREENBOX            = 41,
 	SERDES_GET_FW_VERSION      = 42,
 	SERDES_FW_LOAD             = 43,
-	SERDES_GET_VERSION         = 44,
+	SERDES_LOG                 = 48,
+	SERDES_GET_CHIP_INFO       = 49,
 	SERDES_TYPE_NUM
 };
 
@@ -76,12 +77,31 @@ enum hilink_dump_type_e {
 	HILINK_SERDES_REG_CSDS,
 	HILINK_SERDES_REG_RAM,
 	HILINK_SUBCTRL_REG,
-	HILINK_SERDES_REG_CS_PART1 = 5,
-	HILINK_SERDES_REG_CS_PART2,
-	HILINK_SERDES_REG_DS_PART1,
-	HILINK_SERDES_REG_DS_PART2,
-	HILINK_SERDES_REG_DS_PART3,
 	HILINK_DUMP_TYPE_END
+};
+
+enum hilink_log_sub_e {
+	HILINK_CMD_LOG_LEVEL = 0,
+	HILINK_CMD_LOG_PRINT,
+	HILINK_CMD_LOG_CFG,
+	HILINK_CMD_LOG_TEST,
+	HILINK_CMD_LOG_READ,
+	HILINK_CMD_LOG_INFO,
+	HILINK_CMD_LOG_HEAD_UPDATE,
+	HILINK_CMD_LOG_END
+};
+
+enum hilink_log_head_update_e {
+	HILINK_LOG_HEAD_UPDATE_DIS = 0,
+	HILINK_LOG_HEAD_UPDATE_EN,
+};
+
+enum hilink_para_check_e {
+	NEED_CHIP_ID = 0x1,
+	NEED_MACRO_ID = 0x2,
+	NEED_LANE_ID = 0x4,
+	NEED_LANE_NUM = 0x8,
+	NEED_SUB_CMD = 0x10,
 };
 
 enum hilink_use_mode_e {
@@ -111,6 +131,20 @@ enum hilink_ssc_type_e {
 	HILINK_SSC_TYPE_END
 };
 
+enum chip_type_e {
+	CHIP_TYPE_CHIP5 = 1,
+	CHIP_TYPE_CHIP6,
+	CHIP_TYPE_CHIP7,
+	CHIP_TYPE_END
+};
+
+enum lane_num_e {
+	LANE_NUM_2 = 2,
+	LANE_NUM_4 = 4,
+	LANE_NUM_6 = 6,
+	LANE_NUM_8 = 8,
+};
+
 struct cmd_serdes_param {
 	uint8_t chip_id;
 	uint8_t macro_id;
@@ -119,7 +153,10 @@ struct cmd_serdes_param {
 	uint8_t val;
 	uint8_t sub_cmd;
 	uint8_t cmd_type;
-	uint8_t rsvd2;
+	uint8_t rsvd0; /* not used, only for 4-byte alignment */
+	uint32_t rsvd1; /* used as temporary rd_pos in serdes_log function */
+	uint32_t rsvd2; /* used as temporary rd_size in serdes_log function */
+	uint32_t rsvd3; /* used as final rd_size in serdes_log function */
 };
 
 struct hilink_cmd_general {
@@ -215,6 +252,40 @@ struct hilink_brief_info {
 	uint32_t rsvd_1;
 };
 
+struct dump_part_info {
+	uint8_t cs_part_start;
+	uint8_t cs_part_num;
+	uint8_t ds_part_start;
+	uint8_t ds_part_num;
+	uint32_t rsv;
+};
+
+#define SERDES_MACRO_NUM_MAX 32
+struct macro_info_msg {
+	uint32_t macro_num;
+	uint8_t lane_num[SERDES_MACRO_NUM_MAX];
+};
+
+#define SERDES_LOG_SLICE_SIZE 2048
+struct serdes_log_mnt_info {
+    uint32_t head;
+    uint32_t tail;
+    uint32_t que_depth;
+};
+
+struct serdes_log_read {
+    uint32_t rd_pos;
+    uint32_t rd_size;
+};
+
+struct chip_info_msg {
+	uint16_t chip_type;
+	uint16_t chip_ver;
+	struct dump_part_info dump_part;
+	struct macro_info_msg macro_info;
+};
+
 int hikp_serdes_get_reponse(struct cmd_serdes_param *cmd);
+struct chip_info_msg *hikp_serdes_get_chip_info(struct cmd_serdes_param *cmd);
 
 #endif /* HIKP_SERDES_H */

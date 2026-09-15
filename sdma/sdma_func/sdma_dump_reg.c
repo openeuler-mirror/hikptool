@@ -25,6 +25,31 @@
 #define PREFIX "HISI0431"
 #define PREFIX_LEN 8
 
+static int sdma_check_params(struct tool_sdma_cmd *cmd)
+{
+	switch(cmd->sdma_cmd_type) {
+	case DUMP_CHN_STATUS:
+	case DUMP_CHN_VC:
+		if (cmd->chn_id >= SDMA_MAX_CHN_NUM) {
+			printf("Dump chn_id = %u is invalid\n", cmd->chn_id);
+			return -EINVAL;
+		}
+		break;
+	case DUMP_CHN_PC:
+		if (cmd->chn_id >= SDMA_MAX_PC_NUM) {
+			printf("Dump chn_id = %u is invalid\n", cmd->chn_id);
+			return -EINVAL;
+		}
+		break;
+	case DUMP_UNKNOWN:
+	default:
+		printf("Dump status = %u is invalid\n", cmd->sdma_cmd_type);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
 int sdma_dev_check(void)
 {
 	struct dirent *entry;
@@ -116,6 +141,10 @@ int sdma_reg_dump(struct tool_sdma_cmd *cmd)
 
 	if (cmd == NULL)
 		return -EINVAL;
+
+	ret = sdma_check_params(cmd);
+	if (ret)
+		return ret;
 
 	ret = sdma_dev_check();
 	if (ret) {

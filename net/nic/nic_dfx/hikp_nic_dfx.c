@@ -22,7 +22,7 @@
 #include "hikp_net_lib.h"
 #include "hikp_nic_dfx.h"
 
-#define dfx_get_max_reg_bffer_size(rsp_head) \
+#define DFX_GET_MAX_REG_BUFFER_SIZE(rsp_head) \
 	(uint32_t)((rsp_head)->total_blk_num * MAX_DFX_DATA_NUM * sizeof(uint32_t))
 
 struct nic_dfx_param g_dfx_param = { 0 };
@@ -940,6 +940,7 @@ static void dfx_help_info(const struct major_cmd_ctrl *self)
 	printf("    %s, %-25s %s\n", "-i", "--interface=<interface>", "device target, e.g. eth0~7");
 	printf("    %s\n", "	[-m/--module SSU/IGU_EGU/PPP/NCSI/BIOS/RCB/TXDMA/MASTER] :"
 	       "this is necessary param\n");
+	printf("  Note: For statistical register types, entries with a value of 0 are not displayed.\n\n");
 }
 
 static int hikp_cmd_dfx_help(struct major_cmd_ctrl *self, const char *argv)
@@ -995,7 +996,7 @@ static int hikp_nic_get_first_blk_dfx(struct nic_dfx_rsp_head_t *rsp_head, uint3
 		rsp_head->total_type_num = 0;
 		goto err_out;
 	}
-	*max_dfx_size = dfx_get_max_reg_bffer_size(rsp_head);
+	*max_dfx_size = DFX_GET_MAX_REG_BUFFER_SIZE(rsp_head);
 	*reg_data = (uint32_t *)calloc(1, *max_dfx_size);
 	if (*reg_data == NULL) {
 		HIKP_ERROR_PRINT("malloc log memory 0x%x failed.\n", *max_dfx_size);
@@ -1188,7 +1189,7 @@ static void hikp_nic_dfx_print(const struct nic_dfx_rsp_head_t *rsp_head, uint32
 	bool show_title;
 	uint8_t i;
 
-	max_size = dfx_get_max_reg_bffer_size(rsp_head);
+	max_size = DFX_GET_MAX_REG_BUFFER_SIZE(rsp_head);
 	for (i = 0; i < rsp_head->total_type_num; i++) {
 		type_head = (struct nic_dfx_type_head *)ptr;
 		num_u32 = type_head->reg_num * WORD_NUM_PER_REG + 1; /* including type_head */

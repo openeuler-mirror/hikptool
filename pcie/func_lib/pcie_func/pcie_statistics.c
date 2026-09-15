@@ -37,13 +37,13 @@ int port_distribution_rsp_data_check(const struct hikp_cmd_ret *cmd_ret, uint32_
 
 	ret = hikp_rsp_normal_check(cmd_ret);
 	if (ret) {
-		Err("port distribution cmd_ret normal check failed, ret: %d.\n", ret);
+		ERR("port distribution cmd_ret normal check failed, ret: %d.\n", ret);
 		return ret;
 	}
 	rsp_data_size = cmd_ret->rsp_data_num * sizeof(uint32_t);
 	/* Check whether enough data of a port unit */
 	if (rsp_data_size < sizeof(struct pcie_port_info)) {
-		Err("port distribution rsp check failed, size: %zu.\n", rsp_data_size);
+		ERR("port distribution rsp check failed, size: %zu.\n", rsp_data_size);
 		return -EINVAL;
 	}
 	/* Check whether enough data of n pairs */
@@ -52,7 +52,7 @@ int port_distribution_rsp_data_check(const struct hikp_cmd_ret *cmd_ret, uint32_
 	expect_data_size = sizeof(struct pcie_port_info) +
 		sizeof(struct pcie_info_distribution_pair) * (*port_num);
 	if (expect_data_size > rsp_data_size) {
-		Err("port distribution data size check failed, size: %zu, expect size: %zu.\n",
+		ERR("port distribution data size check failed, size: %zu, expect size: %zu.\n",
 		    rsp_data_size, expect_data_size);
 		return -EINVAL;
 	}
@@ -66,19 +66,19 @@ static int pcie_portid_serdes_relation(const struct pcie_macro_info *macro_info,
 	uint32_t i, j;
 
 	if (ndie_id >= HIKP_ARRAY_SIZE(g_global_ndie_name)) {
-		Info("ndie_id [%u]: %s\n", ndie_id, "UNKNOWN_NDIE");
+		INFO("ndie_id [%u]: %s\n", ndie_id, "UNKNOWN_NDIE");
 		return -1;
 	}
 
 	if (macro_num > MAX_MACRO_ONEPORT) {
-		Info("macro_num [%u] exceeds the maximum array length\n", macro_num);
+		INFO("macro_num [%u] exceeds the maximum array length\n", macro_num);
 		return -1;
 	}
 
-	Info("\tndie_id: %s\n", g_global_ndie_name[ndie_id]);
+	INFO("\tndie_id: %s\n", g_global_ndie_name[ndie_id]);
 	for (i = 0; i < macro_num; i++) {
 		for (j = macro_info[i].lane_s; j <= macro_info[i].lane_e; j++)
-			Info("\t\tmacro %u \t lane: %u\n", macro_info[i].id, j);
+			INFO("\t\tmacro %u \t lane: %u\n", macro_info[i].id, j);
 	}
 	return 0;
 }
@@ -102,14 +102,14 @@ int pcie_port_distribution_get(uint32_t chip_id)
 		goto free_cmd_ret;
 
 	port_info = (struct pcie_port_info *)cmd_ret->rsp_data;
-	Info("Port Distribution Info (CHIP : 0x%x)Port_id Port_width\n", chip_id);
+	INFO("Port Distribution Info (CHIP : 0x%x)Port_id Port_width\n", chip_id);
 	for (i = 0; i < pair_num; i++) {
 		if (port_info->info_pair[i].port_width >= HIKP_ARRAY_SIZE(g_global_width_name)) {
-			Info("port_id[%u] %s\n", port_info->info_pair[i].port_id,
+			INFO("port_id[%u] %s\n", port_info->info_pair[i].port_id,
 			"UNKNOWN_WIDTH");
 			continue;
 		}
-		Info("port_id[%u] %s\n", port_info->info_pair[i].port_id,
+		INFO("port_id[%u] %s\n", port_info->info_pair[i].port_id,
 			g_global_width_name[port_info->info_pair[i].port_width]);
 		pcie_portid_serdes_relation(port_info->info_pair[i].macro_info,
 					    port_info->info_pair[i].macro_num,
@@ -128,12 +128,12 @@ static int port_err_state_rsp_data_check(struct hikp_cmd_ret *cmd_ret)
 
 	ret = hikp_rsp_normal_check(cmd_ret);
 	if (ret) {
-		Err("error state get cmd_ret normal check failed, ret: %d.\n", ret);
+		ERR("error state get cmd_ret normal check failed, ret: %d.\n", ret);
 		return ret;
 	}
 	rsp_data_size = cmd_ret->rsp_data_num * sizeof(uint32_t);
 	if (rsp_data_size < sizeof(struct pcie_err_state)) {
-		Err("err state get rsp size check failed, rsp size: %zu, expect size:%zu.\n",
+		ERR("err state get rsp size check failed, rsp size: %zu, expect size:%zu.\n",
 		    rsp_data_size, sizeof(struct pcie_err_state));
 		return -EINVAL;
 	}
@@ -159,17 +159,17 @@ int pcie_error_state_get(uint32_t port_id)
 
 	state = (struct pcie_err_state *)cmd_ret->rsp_data;
 
-	Info("phy_lane_err_counter = %u\n", state->test_cnt.bits.phy_lane_err_counter);
-	Info("symbol_unlock_counter = %u\n",
+	INFO("phy_lane_err_counter = %u\n", state->test_cnt.bits.phy_lane_err_counter);
+	INFO("symbol_unlock_counter = %u\n",
 	     state->symbol_unlock_cnt.bits.symbol_unlock_counter);
-	Info("mac_int_status = 0x%x\n", state->mac_int_status);
-	Info("loop_back_link_data_err_cnt = %u\n",
+	INFO("mac_int_status = 0x%x\n", state->mac_int_status);
+	INFO("loop_back_link_data_err_cnt = %u\n",
 	     state->loop_link_data_err_cnt.bits.loop_back_link_data_err_cnt);
-	Info("pcs_rx_err_cnt = %u\n", state->rx_err_cnt.bits.pcs_rx_err_cnt);
-	Info("reg_framing_err_count = %u\n",
+	INFO("pcs_rx_err_cnt = %u\n", state->rx_err_cnt.bits.pcs_rx_err_cnt);
+	INFO("reg_framing_err_count = %u\n",
 	     state->framing_err_cnt.bits.reg_framing_err_count);
-	Info("dl_lcrc_err_num = %u\n", state->lcrc_err_num.bits.dl_lcrc_err_num);
-	Info("dl_dcrc_err_num = %u\n", state->dcrc_err_num.bits.dl_dcrc_err_num);
+	INFO("dl_lcrc_err_num = %u\n", state->lcrc_err_num.bits.dl_lcrc_err_num);
+	INFO("dl_dcrc_err_num = %u\n", state->dcrc_err_num.bits.dl_dcrc_err_num);
 free_cmd_ret:
 	hikp_cmd_free(&cmd_ret);
 

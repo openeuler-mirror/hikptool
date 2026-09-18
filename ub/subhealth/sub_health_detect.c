@@ -13,12 +13,14 @@
 
 #include "sub_health.h"
 #include "unified_clustering.h"
-#include "cJSON.h"
+#include "sh_json.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
+#include <arpa/inet.h>
+#include <float.h>
 
 #define DETECT_LOG_FILE "sub_health_detect.log"
 #define MAX_SUPPORTED_UBPU 2
@@ -100,57 +102,273 @@ struct ubpu_ctx {
  * JSON 解析
  * ======================================================================== */
 
-static int parse_latency_list(cJSON *obj, const char *key, double *latencies,
+static int parse_supported_ubpu_id(const char *text, int *ubpu_id)
+{
+	if (text == NULL || ubpu_id == NULL)
+		return -EINVAL;
+
+	if (strcmp(text, "0") == 0) {
+		*ubpu_id = 0;
+		return 0;
+	}
+
+	if (strcmp(text, "1") == 0) {
+		*ubpu_id = 1;
+		return 0;
+	}
+
+	return -EINVAL;
+}
+
+static bool is_valid_eid(const char *eid)
+{
+	struct in6_addr addr;
+
+	if (eid == NULL || eid[0] == '\0' || strlen(eid) >= MAX_EID_LEN)
+		return false;
+
+	return inet_pton(AF_INET6, eid, &addr) == 1;
+}
+
+static int get_uint32_field(sh_json *obj, const char *key,
+			    uint32_t min_value, uint32_t max_value)
+{
+	sh_json *item;
+	double value;
+
+	if (obj == NULL || key == NULL)
+		return -EINVAL;
+
+	item = sh_json_get_item_cs(obj, key);
+	if (item == NULL || item->kind != SH_JSON_NUM)
+		return -EINVAL;
+
+	value = item->dval;
+	if (!isfinite(value) || value < (double)min_value ||
+	    value > (double)max_value ||
+	    fabs(value - (double)(uint32_t)value) > DBL_EPSILON)
+		return -EINVAL;
+
+	return 0;
+}
+
+static int validate_latency_pair(sh_json *ubpu_obj, const char *dst_key,
+				 const char *latency_key, int *sample_count)
+{
+	sh_json *dst_array;
+	sh_json *latency_array;
+	int dst_count;
+	int latency_count;
+	int i;
+
+	if (ubpu_obj == NULL || dst_key == NULL || latency_key == NULL ||
+	    sample_count == NULL)
+		return -EINVAL;
+
+	dst_array = sh_json_get_item_cs(ubpu_obj, dst_key);
+	latency_array = sh_json_get_item_cs(ubpu_obj, latency_key);
+	if (dst_array == NULL || dst_array->kind != SH_JSON_SEQ ||
+	    latency_array == NULL || latency_array->kind != SH_JSON_SEQ)
+		return -EINVAL;
+
+	dst_count = sh_json_item_count(dst_array);
+	latency_count = sh_json_item_count(latency_array);
+	if (dst_count < 0 || dst_count > MAX_PROBE_TARGETS ||
+	    dst_count != latency_count)
+		return -EINVAL;
+
+	for (i = 0; i < dst_count; i++) {
+		sh_json *dst = sh_json_item_at(dst_array, i);
+		sh_json *latency = sh_json_item_at(latency_array, i);
+
+		if (dst == NULL || dst->kind != SH_JSON_BUF ||
+		    !is_valid_eid(dst->str) || latency == NULL ||
+		    latency->kind != SH_JSON_NUM ||
+		    !isfinite(latency->dval) || latency->dval <= 0.0)
+			return -EINVAL;
+	}
+
+	*sample_count = dst_count;
+	return 0;
+}
+
+static int validate_l1_maps(sh_json *root)
+{
+	sh_json *maps;
+	sh_json *map;
+	int map_count = 0;
+
+	maps = sh_json_get_item_cs(root, "_l1_maps");
+	if (maps == NULL || maps->kind != SH_JSON_MAP)
+		return -EINVAL;
+
+	for (map = maps->head; map != NULL; map = map->fwd) {
+		sh_json *eid;
+		int eid_count;
+
+		if (map_count >= MAX_L1_SWITCH_NUM || map->name == NULL ||
+		    map->name[0] == '\0' || strlen(map->name) >= 64 ||
+		    map->kind != SH_JSON_SEQ)
+			return -EINVAL;
+
+		eid_count = sh_json_item_count(map);
+		if (eid_count <= 0 || eid_count > MAX_L1_EID_NUM)
+			return -EINVAL;
+
+		for (eid = map->head; eid != NULL; eid = eid->fwd) {
+			if (eid->kind != SH_JSON_BUF ||
+			    !is_valid_eid(eid->str))
+				return -EINVAL;
+		}
+
+		map_count++;
+	}
+
+	return map_count > 0 ? 0 : -EINVAL;
+}
+
+static int validate_result_ubpu(sh_json *ubpu_obj, int *sample_count)
+{
+	sh_json *src_eid;
+	int intra_count;
+	int inter_count;
+
+	if (ubpu_obj == NULL || ubpu_obj->kind != SH_JSON_MAP ||
+	    sample_count == NULL)
+		return -EINVAL;
+
+	src_eid = sh_json_get_item_cs(ubpu_obj, "src_eid");
+	if (src_eid == NULL || src_eid->kind != SH_JSON_BUF ||
+	    !is_valid_eid(src_eid->str))
+		return -EINVAL;
+
+	if (get_uint32_field(ubpu_obj, "packet_count_intra", 1, 4096) != 0 ||
+	    get_uint32_field(ubpu_obj, "packet_count_inter", 0, 4096) != 0 ||
+	    get_uint32_field(ubpu_obj, "packet_size", 4,
+			     DEFAULT_PACKET_SIZE) != 0 ||
+	    validate_latency_pair(ubpu_obj, "intra_l1_dst_eids",
+				  "intra_l1_latencies", &intra_count) != 0 ||
+	    validate_latency_pair(ubpu_obj, "inter_l1_dst_eids",
+				  "inter_l1_latencies", &inter_count) != 0)
+		return -EINVAL;
+
+	*sample_count = intra_count + inter_count;
+	return 0;
+}
+
+static int validate_result_node(sh_json *node_obj, int *sample_count)
+{
+	bool seen[MAX_SUPPORTED_UBPU] = { false };
+	sh_json *ubpu;
+	int ubpu_count = 0;
+
+	if (node_obj == NULL || node_obj->kind != SH_JSON_MAP ||
+	    sample_count == NULL)
+		return -EINVAL;
+
+	for (ubpu = node_obj->head; ubpu != NULL; ubpu = ubpu->fwd) {
+		int ubpu_samples;
+		int ubpu_id;
+
+		if (parse_supported_ubpu_id(ubpu->name, &ubpu_id) != 0 ||
+		    seen[ubpu_id] ||
+		    validate_result_ubpu(ubpu, &ubpu_samples) != 0)
+			return -EINVAL;
+
+		seen[ubpu_id] = true;
+		*sample_count += ubpu_samples;
+		ubpu_count++;
+	}
+
+	return ubpu_count > 0 ? 0 : -EINVAL;
+}
+
+static int validate_probe_result(sh_json *root, int *sample_count)
+{
+	struct in_addr addr;
+	sh_json *top;
+	int maps_count = 0;
+	int node_count = 0;
+
+	if (sample_count == NULL ||
+	    validate_l1_maps(root) != 0)
+		return -EINVAL;
+
+	*sample_count = 0;
+	for (top = root->head; top != NULL; top = top->fwd) {
+		if (top->name == NULL)
+			return -EINVAL;
+
+		if (strcmp(top->name, "_l1_maps") == 0) {
+			maps_count++;
+			continue;
+		}
+
+		if (node_count >= MAX_NODE_NUM || top->kind != SH_JSON_MAP ||
+		    inet_pton(AF_INET, top->name, &addr) != 1 ||
+		    validate_result_node(top, sample_count) != 0)
+			return -EINVAL;
+
+		node_count++;
+	}
+
+	if (maps_count != 1 || node_count == 0)
+		return -EINVAL;
+
+	return 0;
+}
+
+static int parse_latency_list(sh_json *obj, const char *key, double *latencies,
 			      int max_num)
 {
-	cJSON *item;
+	sh_json *item;
 	int count = 0;
 
-	item = cJSON_GetObjectItem(obj, key);
-	if (!item || item->type != cJSON_Array)
+	item = sh_json_get_item(obj, key);
+	if (!item || item->kind != SH_JSON_SEQ)
 		return 0;
 
-	for (cJSON *e = item->child; e && count < max_num; e = e->next) {
-		if (e->type != cJSON_Number)
+	for (sh_json *e = item->head; e && count < max_num; e = e->fwd) {
+		if (e->kind != SH_JSON_NUM)
 			continue;
-		latencies[count] = e->valuedouble;
+		latencies[count] = e->dval;
 		count++;
 	}
 	return count;
 }
 
-static int parse_dst_list(cJSON *obj, const char *key, const char *alias,
+static int parse_dst_list(sh_json *obj, const char *key, const char *alias,
 			  char (*eids)[MAX_EID_LEN], int max_num)
 {
-	cJSON *item;
+	sh_json *item;
 	int count = 0;
 
-	item = cJSON_GetObjectItem(obj, key);
+	item = sh_json_get_item(obj, key);
 	if (!item && alias)
-		item = cJSON_GetObjectItem(obj, alias);
-	if (!item || item->type != cJSON_Array)
+		item = sh_json_get_item(obj, alias);
+	if (!item || item->kind != SH_JSON_SEQ)
 		return 0;
 
-	for (cJSON *e = item->child; e && count < max_num; e = e->next) {
-		if (e->type != cJSON_String)
+	for (sh_json *e = item->head; e && count < max_num; e = e->fwd) {
+		if (e->kind != SH_JSON_BUF)
 			continue;
-		snprintf(eids[count], MAX_EID_LEN, "%s", e->valuestring);
+		snprintf(eids[count], MAX_EID_LEN, "%s", e->str);
 		count++;
 	}
 	return count;
 }
 
-static void parse_ubpu_data(cJSON *ubpu_obj, struct ubpu_probe_data *ubpu)
+static void parse_ubpu_data(sh_json *ubpu_obj, struct ubpu_probe_data *ubpu)
 {
-	cJSON *item;
+	sh_json *item;
 
 	ubpu->present = true;
 
-	item = cJSON_GetObjectItem(ubpu_obj, "src_eid");
+	item = sh_json_get_item(ubpu_obj, "src_eid");
 	if (!item)
-		item = cJSON_GetObjectItem(ubpu_obj, "src_port_eid");
-	if (item && item->type == cJSON_String)
-		snprintf(ubpu->src_eid, MAX_EID_LEN, "%s", item->valuestring);
+		item = sh_json_get_item(ubpu_obj, "src_port_eid");
+	if (item && item->kind == SH_JSON_BUF)
+		snprintf(ubpu->src_eid, MAX_EID_LEN, "%s", item->str);
 
 	{
 		int n_dst;
@@ -178,7 +396,7 @@ static void parse_ubpu_data(cJSON *ubpu_obj, struct ubpu_probe_data *ubpu)
 }
 
 /* 解析单个节点下的全部 UBPU 数据（含 L1 EID 映射表） */
-static void parse_node_data(cJSON *node_obj, struct ubpu_probe_data *ubpus,
+static void parse_node_data(sh_json *node_obj, struct ubpu_probe_data *ubpus,
 			    const struct l1_map *global_maps,
 			    int global_map_count)
 {
@@ -186,15 +404,14 @@ static void parse_node_data(cJSON *node_obj, struct ubpu_probe_data *ubpus,
 
 	memset(ubpus, 0, MAX_SUPPORTED_UBPU * sizeof(*ubpus));
 
-	for (cJSON *child = node_obj->child; child; child = child->next) {
+	for (sh_json *child = node_obj->head; child; child = child->fwd) {
 		int ubpu_id;
 
-		if (!child->string)
+		if (!child->name)
 			continue;
 
-		/* "0"/"1" 是 UBPU 端口 key */
-		ubpu_id = atoi(child->string);
-		if (ubpu_id < 0 || ubpu_id >= MAX_SUPPORTED_UBPU)
+		/* 输入已校验，这里仍使用严格解析，避免非数字 key 落到 UBPU 0。 */
+		if (parse_supported_ubpu_id(child->name, &ubpu_id) != 0)
 			continue;
 
 		parse_ubpu_data(child, &ubpus[ubpu_id]);
@@ -680,29 +897,29 @@ static void write_detect_log(FILE *log_fp, const struct ubpu_ctx *ctx)
  * JSON 检测结果输出
  * ======================================================================== */
 
-static void add_ubpu_result_json(cJSON *ubpu_obj, const struct ubpu_ctx *ctx)
+static void add_ubpu_result_json(sh_json *ubpu_obj, const struct ubpu_ctx *ctx)
 {
-	cJSON *eids_arr = cJSON_CreateArray();
-	cJSON *lats_arr = cJSON_CreateArray();
-	cJSON *domain_arr = cJSON_CreateArray();
+	sh_json *eids_arr = sh_json_create_arr();
+	sh_json *lats_arr = sh_json_create_arr();
+	sh_json *domain_arr = sh_json_create_arr();
 	int i;
 
-	cJSON_AddStringToObject(ubpu_obj, "src_eid", ctx->data->src_eid);
+	sh_json_put_str(ubpu_obj, "src_eid", ctx->data->src_eid);
 
 	for (i = 0; i < ctx->abnormal_count; i++) {
-		cJSON_AddItemToArray(eids_arr,
-				     cJSON_CreateString(ctx->abnormal_eids[i]));
-		cJSON_AddItemToArray(lats_arr,
-				     cJSON_CreateNumber(ctx->abnormal_latencies[i]));
+		sh_json_push(eids_arr,
+				     sh_json_create_str(ctx->abnormal_eids[i]));
+		sh_json_push(lats_arr,
+				     sh_json_create_num(ctx->abnormal_latencies[i]));
 	}
 	for (i = 0; i < ctx->domain_count; i++) {
-		cJSON_AddItemToArray(domain_arr,
-				     cJSON_CreateString(g_domain_full_names[ctx->domains[i]]));
+		sh_json_push(domain_arr,
+				     sh_json_create_str(g_domain_full_names[ctx->domains[i]]));
 	}
 
-	cJSON_AddItemToObject(ubpu_obj, "sub_health_dst_eids", eids_arr);
-	cJSON_AddItemToObject(ubpu_obj, "sub_health_latencies", lats_arr);
-	cJSON_AddItemToObject(ubpu_obj, "sub_health_domain", domain_arr);
+	sh_json_attach(ubpu_obj, "sub_health_dst_eids", eids_arr);
+	sh_json_attach(ubpu_obj, "sub_health_latencies", lats_arr);
+	sh_json_attach(ubpu_obj, "sub_health_domain", domain_arr);
 }
 
 /* ========================================================================
@@ -713,13 +930,14 @@ int sub_health_detect(const char *probe_result_file, const char *output_file,
 		      uint32_t time_threshold)
 {
 	struct l1_map *global_maps = NULL;
-	cJSON *result_root = NULL;
+	sh_json *result_root = NULL;
 	char *json_str = NULL;
 	char *content = NULL;
-	cJSON *root = NULL;
+	sh_json *root = NULL;
 	FILE *log_fp = NULL;
 	FILE *output_fp = NULL;
 	int global_map_count = 0;
+	int valid_sample_count = 0;
 	int ret = 0;
 
 	if (!probe_result_file)
@@ -758,11 +976,32 @@ int sub_health_detect(const char *probe_result_file, const char *output_file,
 		content[fsize] = '\0';
 	}
 
-	root = cJSON_Parse(content);
+	root = sh_json_parse(content);
 	free(content);
 	content = NULL;
-	if (!root)
+	if (!root) {
+		fprintf(stderr,
+			"[ERROR] Invalid probe result file '%s': invalid JSON.\n",
+			probe_result_file);
 		return -EINVAL;
+	}
+
+	ret = validate_probe_result(root, &valid_sample_count);
+	if (ret != 0) {
+		fprintf(stderr,
+			"[ERROR] Invalid probe result file '%s': expected a "
+			"Step 2 output with file_type='%s', schema_version=%d, "
+			"valid UBPU fields and paired EID/latency arrays.\n",
+			probe_result_file, SUB_HEALTH_FILE_PROBE_RESULT,
+			SUB_HEALTH_SCHEMA_VERSION);
+		sh_json_delete(root);
+		return ret;
+	}
+
+	if (valid_sample_count == 0)
+		fprintf(stderr,
+			"[WARN] Probe result file '%s' contains no valid latency "
+			"samples.\n", probe_result_file);
 
 	/* 诊断日志：每次运行清空重写 */
 	log_fp = fopen(DETECT_LOG_FILE, "w");
@@ -780,26 +1019,26 @@ int sub_health_detect(const char *probe_result_file, const char *output_file,
 	}
 
 	{
-		cJSON *l1_maps_obj = cJSON_GetObjectItem(root, "_l1_maps");
+		sh_json *l1_maps_obj = sh_json_get_item(root, "_l1_maps");
 
-		if (l1_maps_obj && l1_maps_obj->type == cJSON_Object) {
-			for (cJSON *map = l1_maps_obj->child;
+		if (l1_maps_obj && l1_maps_obj->kind == SH_JSON_MAP) {
+			for (sh_json *map = l1_maps_obj->head;
 			     map && global_map_count < MAX_L1_SWITCH_NUM;
-			     map = map->next) {
+			     map = map->fwd) {
 				int eid_count = 0;
 
-				if (!map->string || map->type != cJSON_Array)
+				if (!map->name || map->kind != SH_JSON_SEQ)
 					continue;
 				snprintf(global_maps[global_map_count].name,
 					 sizeof(global_maps[global_map_count].name),
-					 "%s", map->string);
-				for (cJSON *e = map->child;
+					 "%s", map->name);
+				for (sh_json *e = map->head;
 				     e && eid_count < MAX_L1_EID_NUM;
-				     e = e->next) {
-					if (e->type != cJSON_String)
+				     e = e->fwd) {
+					if (e->kind != SH_JSON_BUF)
 						continue;
 					snprintf(global_maps[global_map_count].eids[eid_count],
-						 MAX_EID_LEN, "%s", e->valuestring);
+						 MAX_EID_LEN, "%s", e->str);
 					eid_count++;
 				}
 				global_maps[global_map_count].eid_num = eid_count;
@@ -810,7 +1049,7 @@ int sub_health_detect(const char *probe_result_file, const char *output_file,
 
 	/* 如需结构化输出，先创建结果根节点，再与日志共用同一轮检测。 */
 	if (output_file && strlen(output_file) > 0) {
-		result_root = cJSON_CreateObject();
+		result_root = sh_json_create_obj();
 		if (!result_root) {
 			ret = -ENOMEM;
 			goto out;
@@ -818,13 +1057,14 @@ int sub_health_detect(const char *probe_result_file, const char *output_file,
 	}
 
 	/* 每个 UBPU 只检测一次，检测结果同时用于日志和可选 JSON 输出。 */
-	for (cJSON *node = root->child; node; node = node->next) {
+	for (sh_json *node = root->head; node; node = node->fwd) {
 		struct ubpu_probe_data *ubpus = NULL;
 		int u;
 
-		if (!node->string || node->type != cJSON_Object)
+		if (!node->name || node->kind != SH_JSON_MAP)
 			continue;
-		if (strcmp(node->string, "_l1_maps") == 0)
+		if (strcmp(node->name, SUB_HEALTH_META_KEY) == 0 ||
+		    strcmp(node->name, "_l1_maps") == 0)
 			continue;
 
 		/* 堆分配以避免超大栈帧（ubpu_probe_data 含 l1_maps[256] → ~4MB/个） */
@@ -837,8 +1077,8 @@ int sub_health_detect(const char *probe_result_file, const char *output_file,
 
 		for (u = 0; u < MAX_SUPPORTED_UBPU; u++) {
 			struct ubpu_ctx *ctx;
-			cJSON *node_obj;
-			cJSON *ubpu_obj;
+			sh_json *node_obj;
+			sh_json *ubpu_obj;
 			char ubpu_key[16];
 
 			if (!ubpus[u].present)
@@ -848,7 +1088,7 @@ int sub_health_detect(const char *probe_result_file, const char *output_file,
 			if (!ctx)
 				continue;
 
-			snprintf(ctx->node_ip, sizeof(ctx->node_ip), "%s", node->string);
+			snprintf(ctx->node_ip, sizeof(ctx->node_ip), "%s", node->name);
 			ctx->ubpu_id = u;
 			ctx->data = &ubpus[u];
 			ctx->time_threshold = (double)time_threshold;
@@ -862,17 +1102,17 @@ int sub_health_detect(const char *probe_result_file, const char *output_file,
 				continue;
 			}
 
-			node_obj = cJSON_GetObjectItem(result_root, node->string);
+			node_obj = sh_json_get_item(result_root, node->name);
 			if (!node_obj) {
-				node_obj = cJSON_CreateObject();
+				node_obj = sh_json_create_obj();
 				if (!node_obj) {
 					free(ctx);
 					continue;
 				}
-				cJSON_AddItemToObject(result_root, node->string, node_obj);
+				sh_json_attach(result_root, node->name, node_obj);
 			}
 
-			ubpu_obj = cJSON_CreateObject();
+			ubpu_obj = sh_json_create_obj();
 			if (!ubpu_obj) {
 				free(ctx);
 				continue;
@@ -880,7 +1120,7 @@ int sub_health_detect(const char *probe_result_file, const char *output_file,
 
 			add_ubpu_result_json(ubpu_obj, ctx);
 			snprintf(ubpu_key, sizeof(ubpu_key), "%d", u);
-			cJSON_AddItemToObject(node_obj, ubpu_key, ubpu_obj);
+			sh_json_attach(node_obj, ubpu_key, ubpu_obj);
 			free(ctx);
 		}
 
@@ -893,7 +1133,7 @@ int sub_health_detect(const char *probe_result_file, const char *output_file,
 	if (result_root) {
 		size_t json_len;
 
-		json_str = cJSON_Print(result_root);
+		json_str = sh_json_write(result_root);
 		if (!json_str) {
 			ret = -ENOMEM;
 			goto out;
@@ -925,8 +1165,8 @@ out:
 	if (log_fp)
 		fclose(log_fp);
 	free(json_str);
-	cJSON_Delete(result_root);
+	sh_json_delete(result_root);
 	free(global_maps);
-	cJSON_Delete(root);
+	sh_json_delete(root);
 	return ret;
 }

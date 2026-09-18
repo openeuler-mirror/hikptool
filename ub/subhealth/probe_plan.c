@@ -12,7 +12,7 @@
  */
 
 #include "sub_health.h"
-#include "cJSON.h"
+#include "sh_json.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include "sub_health.h"
-#include "cJSON.h"
+#include "sh_json.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -57,18 +57,6 @@ static struct plan_l1 g_l1s[MAX_L1_SWITCH_NUM];
 static int g_l1_count = 0;
 
 static uint32_t g_l2_num = 0;
-
-/* ========================================================================
- * 输入文件格式检测：已是探测对格式则直接复制
- * ======================================================================== */
-
-static int is_probe_pairs_file(const char *content)
-{
-	if (strstr(content, "\"intra_l1_dst_eids\"") ||
-	    strstr(content, "\"inter_l1_dst_eids\""))
-		return 1;
-	return 0;
-}
 
 static int read_file_content(const char *file, char **out_content)
 {
@@ -130,69 +118,6 @@ static int read_file_content(const char *file, char **out_content)
 	return 0;
 }
 
-static int copy_file(const char *src, const char *dst)
-{
-	char *content = NULL;
-	FILE *fp;
-	struct stat src_stat;
-	struct stat dst_stat;
-	size_t len;
-	int saved_errno;
-	int ret;
-
-	if (src == NULL || dst == NULL)
-		return -EINVAL;
-
-	/*
-	 * 防止 src 和 dst 指向同一个文件。
-	 * 可以识别相同路径、硬链接以及指向 src 的符号链接。
-	 */
-	if (stat(src, &src_stat) != 0)
-		return -errno;
-
-	if (stat(dst, &dst_stat) == 0) {
-		if (src_stat.st_dev == dst_stat.st_dev &&
-			src_stat.st_ino == dst_stat.st_ino)
-			return -EINVAL;
-	} else if (errno != ENOENT) {
-		return -errno;
-	}
-
-	ret = read_file_content(src, &content);
-	if (ret != 0)
-		return ret;
-
-	/*
-	 * 当前仅用于复制以 '\0' 结尾的 JSON/文本文件。
-	 */
-	len = strlen(content);
-
-	fp = fopen(dst, "wb");
-	if (fp == NULL) {
-		saved_errno = errno;
-		free(content);
-		return -saved_errno;
-	}
-
-	if (fwrite(content, 1, len, fp) != len) {
-		saved_errno = errno != 0 ? errno : EIO;
-		(void)fclose(fp);
-		free(content);
-		(void)unlink(dst);
-		return -saved_errno;
-	}
-
-	if (fclose(fp) != 0) {
-		saved_errno = errno != 0 ? errno : EIO;
-		free(content);
-		(void)unlink(dst);
-		return -saved_errno;
-	}
-
-	free(content);
-	return 0;
-}
-
 /* ========================================================================
  * 解析拓扑 JSON（格式见 spec §7.1）
  * ======================================================================== */
@@ -238,39 +163,39 @@ static int parse_ubpu_id(const char *text, int *ubpu_id)
 	return 0;
 }
 
-static int parse_ubpu_entries(cJSON *node_obj,
+static int parse_ubpu_entries(sh_json *node_obj,
 			      struct plan_node *node)
 {
 	bool seen[MAX_UBPU_NUM] = { false };
-	cJSON *port_item;
+	sh_json *port_item;
 	int valid_count = 0;
 	int i;
 
 	if (node_obj == NULL || node == NULL)
 		return -EINVAL;
 
-	for (port_item = node_obj->child;
+	for (port_item = node_obj->head;
 	     port_item != NULL;
-	     port_item = port_item->next) {
+	     port_item = port_item->fwd) {
 		int ubpu_id;
 		int written;
 		int ret;
 
-		if (port_item->string == NULL ||
-		    port_item->type != cJSON_String ||
-		    port_item->valuestring == NULL ||
-		    port_item->valuestring[0] == '\0') {
+		if (port_item->name == NULL ||
+		    port_item->kind != SH_JSON_BUF ||
+		    port_item->str == NULL ||
+		    port_item->str[0] == '\0') {
 			HIKP_ERROR_PRINT(
 				"Invalid UBPU entry for node %s\n",
 				node->ip);
 			return -EINVAL;
 		}
 
-		ret = parse_ubpu_id(port_item->string, &ubpu_id);
+		ret = parse_ubpu_id(port_item->name, &ubpu_id);
 		if (ret != 0) {
 			HIKP_ERROR_PRINT(
 				"Invalid UBPU ID '%s' for node %s\n",
-				port_item->string, node->ip);
+				port_item->name, node->ip);
 			return ret;
 		}
 
@@ -283,7 +208,7 @@ static int parse_ubpu_entries(cJSON *node_obj,
 
 		written = snprintf(node->ubpu_eids[ubpu_id],
 				   sizeof(node->ubpu_eids[ubpu_id]),
-				   "%s", port_item->valuestring);
+				   "%s", port_item->str);
 		if (written < 0 ||
 		    (size_t)written >= sizeof(node->ubpu_eids[ubpu_id])) {
 			HIKP_ERROR_PRINT(
@@ -325,25 +250,25 @@ static int parse_ubpu_entries(cJSON *node_obj,
 	return 0;
 }
 
-static int parse_l1_nodes(cJSON *l1_obj,
+static int parse_l1_nodes(sh_json *l1_obj,
 			  struct plan_l1 *l1_info)
 {
-	cJSON *ip_item;
+	sh_json *ip_item;
 
 	if (l1_obj == NULL || l1_info == NULL)
 		return -EINVAL;
 
-	for (ip_item = l1_obj->child;
+	for (ip_item = l1_obj->head;
 	     ip_item != NULL;
-	     ip_item = ip_item->next) {
+	     ip_item = ip_item->fwd) {
 		struct plan_node *node;
 		struct in_addr addr;
 		int written;
 		int ret;
 
-		if (ip_item->string == NULL ||
-		    ip_item->type != cJSON_Object ||
-		    inet_pton(AF_INET, ip_item->string, &addr) != 1) {
+		if (ip_item->name == NULL ||
+		    ip_item->kind != SH_JSON_MAP ||
+		    inet_pton(AF_INET, ip_item->name, &addr) != 1) {
 			HIKP_ERROR_PRINT(
 				"Invalid node under L1 %s\n",
 				l1_info->name);
@@ -367,12 +292,12 @@ static int parse_l1_nodes(cJSON *l1_obj,
 		node = &g_nodes[g_node_count];
 
 		written = snprintf(node->ip, sizeof(node->ip),
-				   "%s", ip_item->string);
+				   "%s", ip_item->name);
 		if (written < 0 ||
 		    (size_t)written >= sizeof(node->ip)) {
 			HIKP_ERROR_PRINT(
 				"Node IP is too long: %s\n",
-				ip_item->string);
+				ip_item->name);
 			return -E2BIG;
 		}
 
@@ -397,24 +322,24 @@ static int parse_l1_nodes(cJSON *l1_obj,
 	return 0;
 }
 
-static int parse_l1_switches(cJSON *l1_switches)
+static int parse_l1_switches(sh_json *l1_switches)
 {
-	cJSON *l1;
+	sh_json *l1;
 
 	if (l1_switches == NULL ||
-	    l1_switches->type != cJSON_Object)
+	    l1_switches->kind != SH_JSON_MAP)
 		return -EINVAL;
 
-	for (l1 = l1_switches->child;
+	for (l1 = l1_switches->head;
 	     l1 != NULL;
-	     l1 = l1->next) {
+	     l1 = l1->fwd) {
 		struct plan_l1 *l1_info;
 		int written;
 		int ret;
 
-		if (l1->type != cJSON_Object ||
-		    l1->string == NULL ||
-		    l1->string[0] == '\0') {
+		if (l1->kind != SH_JSON_MAP ||
+		    l1->name == NULL ||
+		    l1->name[0] == '\0') {
 			HIKP_ERROR_PRINT("Invalid L1 switch entry\n");
 			return -EINVAL;
 		}
@@ -430,12 +355,12 @@ static int parse_l1_switches(cJSON *l1_switches)
 
 		written = snprintf(l1_info->name,
 				   sizeof(l1_info->name),
-				   "%s", l1->string);
+				   "%s", l1->name);
 		if (written < 0 ||
 		    (size_t)written >= sizeof(l1_info->name)) {
 			HIKP_ERROR_PRINT(
 				"L1 switch name is too long: %s\n",
-				l1->string);
+				l1->name);
 			return -E2BIG;
 		}
 
@@ -460,10 +385,10 @@ static int parse_l1_switches(cJSON *l1_switches)
 
 static int parse_topology(const char *content)
 {
-	cJSON *root = NULL;
-	cJSON *l2_arr;
-	cJSON *l2_item;
-	cJSON *l1_switches;
+	sh_json *root = NULL;
+	sh_json *l2_arr;
+	sh_json *l2_item;
+	sh_json *l1_switches;
 	int l2_count;
 	int ret = -EINVAL;
 
@@ -477,25 +402,25 @@ static int parse_topology(const char *content)
 		return -EINVAL;
 	}
 
-	root = cJSON_Parse(content);
+	root = sh_json_parse(content);
 	if (root == NULL) {
 		HIKP_ERROR_PRINT("Failed to parse topology JSON\n");
 		return -EINVAL;
 	}
 
-	if (root->type != cJSON_Object) {
+	if (root->kind != SH_JSON_MAP) {
 		HIKP_ERROR_PRINT(
 			"Topology JSON root must be an object\n");
 		goto out;
 	}
 
-	l2_arr = cJSON_GetObjectItem(root, "l2_switches");
-	if (l2_arr == NULL || l2_arr->type != cJSON_Array) {
+	l2_arr = sh_json_get_item(root, "l2_switches");
+	if (l2_arr == NULL || l2_arr->kind != SH_JSON_SEQ) {
 		HIKP_ERROR_PRINT("Invalid l2_switches field\n");
 		goto out;
 	}
 
-	l2_count = cJSON_GetArraySize(l2_arr);
+	l2_count = sh_json_item_count(l2_arr);
 	if (l2_count > MAX_L2_SWITCH_NUM) {
 		HIKP_ERROR_PRINT(
 			"Too many L2 switches: count=%d, maximum=%d\n",
@@ -504,12 +429,12 @@ static int parse_topology(const char *content)
 		goto out;
 	}
 
-	for (l2_item = l2_arr->child;
+	for (l2_item = l2_arr->head;
 	     l2_item != NULL;
-	     l2_item = l2_item->next) {
-		if (l2_item->type != cJSON_String ||
-		    l2_item->valuestring == NULL ||
-		    l2_item->valuestring[0] == '\0') {
+	     l2_item = l2_item->fwd) {
+		if (l2_item->kind != SH_JSON_BUF ||
+		    l2_item->str == NULL ||
+		    l2_item->str[0] == '\0') {
 			HIKP_ERROR_PRINT(
 				"Invalid L2 switch entry\n");
 			goto out;
@@ -518,9 +443,9 @@ static int parse_topology(const char *content)
 
 	g_l2_num = (uint32_t)l2_count;
 
-	l1_switches = cJSON_GetObjectItem(root, "l1_switches");
+	l1_switches = sh_json_get_item(root, "l1_switches");
 	if (l1_switches == NULL ||
-	    l1_switches->type != cJSON_Object) {
+	    l1_switches->kind != SH_JSON_MAP) {
 		HIKP_ERROR_PRINT("Invalid l1_switches field\n");
 		goto out;
 	}
@@ -539,7 +464,7 @@ static int parse_topology(const char *content)
 	ret = 0;
 
 out:
-	cJSON_Delete(root);
+	sh_json_delete(root);
 
 	if (ret != 0)
 		reset_topology();
@@ -613,7 +538,7 @@ static void calc_packet_counts(uint32_t coverage_k, uint32_t l2_num,
  * intra-L1 目的端口列表：同 L1 下同索引 ubpu 互探
  * ======================================================================== */
 static int collect_intra_dsts(const struct plan_node *src_node, int ubpu_id,
-				  cJSON *dst_array)
+				  sh_json *dst_array)
 {
 	const struct plan_l1 *l1;
 	int i;
@@ -627,14 +552,14 @@ static int collect_intra_dsts(const struct plan_node *src_node, int ubpu_id,
 	if (ubpu_id < 0 || ubpu_id >= src_node->ubpu_num)
 		return -EINVAL;
 
-	if (dst_array->type != cJSON_Array)
+	if (dst_array->kind != SH_JSON_SEQ)
 		return -EINVAL;
 
 	l1 = &g_l1s[src_node->l1_id];
 
 	for (i = 0; i < l1->node_count; i++) {
 		const struct plan_node *other;
-		cJSON *dst_item;
+		sh_json *dst_item;
 		int node_index = l1->node_indices[i];
 
 		if (node_index < 0 || node_index >= g_node_count)
@@ -651,11 +576,11 @@ static int collect_intra_dsts(const struct plan_node *src_node, int ubpu_id,
 		if (other->ubpu_eids[ubpu_id][0] == '\0')
 			continue;
 
-		dst_item = cJSON_CreateString(other->ubpu_eids[ubpu_id]);
+		dst_item = sh_json_create_str(other->ubpu_eids[ubpu_id]);
 		if (dst_item == NULL)
 			return -ENOMEM;
 
-		cJSON_AddItemToArray(dst_array, dst_item);
+		sh_json_push(dst_array, dst_item);
 	}
 
 	return 0;
@@ -664,7 +589,7 @@ static int collect_intra_dsts(const struct plan_node *src_node, int ubpu_id,
  * inter-L1 目的端口列表：先去重再遍历，每候选 L1 最多 3 个节点
  * ======================================================================== */
 static int collect_inter_dsts(const struct plan_node *src_node, int ubpu_id,
-				  cJSON *dst_array)
+				  sh_json *dst_array)
 {
 	const struct plan_l1 *src_l1;
 	int i;
@@ -678,7 +603,7 @@ static int collect_inter_dsts(const struct plan_node *src_node, int ubpu_id,
 	if (ubpu_id < 0 || ubpu_id >= src_node->ubpu_num)
 		return -EINVAL;
 
-	if (dst_array->type != cJSON_Array)
+	if (dst_array->kind != SH_JSON_SEQ)
 		return -EINVAL;
 
 	src_l1 = &g_l1s[src_node->l1_id];
@@ -703,7 +628,7 @@ static int collect_inter_dsts(const struct plan_node *src_node, int ubpu_id,
 		for (j = 0; j < cand->node_count &&
 				select_num < MAX_CANDIDATE_PER_L1; j++) {
 			const struct plan_node *other;
-			cJSON *dst_item;
+			sh_json *dst_item;
 			int node_index = cand->node_indices[j];
 
 			if (node_index < 0 || node_index >= g_node_count)
@@ -718,11 +643,11 @@ static int collect_inter_dsts(const struct plan_node *src_node, int ubpu_id,
 				continue;
 
 			dst_item =
-				cJSON_CreateString(other->ubpu_eids[ubpu_id]);
+				sh_json_create_str(other->ubpu_eids[ubpu_id]);
 			if (!dst_item)
 				return -ENOMEM;
 
-			cJSON_AddItemToArray(dst_array, dst_item);
+			sh_json_push(dst_array, dst_item);
 
 			/* Count only destinations actually added. */
 			select_num++;
@@ -734,29 +659,29 @@ static int collect_inter_dsts(const struct plan_node *src_node, int ubpu_id,
 /* ========================================================================
  * 将全局 L1 的 EID 映射表直接写入节点 JSON
  * ======================================================================== */
-static int add_global_l1_maps(cJSON *root)
+static int add_global_l1_maps(sh_json *root)
 {
-	cJSON *maps_obj;
+	sh_json *maps_obj;
 	int i;
 	int ret;
 
 	if (root == NULL)
 		return -EINVAL;
 
-	maps_obj = cJSON_CreateObject();
+	maps_obj = sh_json_create_obj();
 	if (maps_obj == NULL)
 		return -ENOMEM;
 
 	for (i = 0; i < g_l1_count; i++) {
 		const struct plan_l1 *l1 = &g_l1s[i];
-		cJSON *eids_arr;
+		sh_json *eids_arr;
 		int j;
 		int k;
 
 		if (l1->redundant)
 			continue;
 
-		eids_arr = cJSON_CreateArray();
+		eids_arr = sh_json_create_arr();
 		if (eids_arr == NULL) {
 			ret = -ENOMEM;
 			goto err_maps;
@@ -774,23 +699,23 @@ static int add_global_l1_maps(cJSON *root)
 			node = &g_nodes[node_index];
 
 			for (k = 0; k < node->ubpu_num; k++) {
-				cJSON *eid_item;
+				sh_json *eid_item;
 
 				if (node->ubpu_eids[k][0] == '\0')
 					continue;
 
 				eid_item =
-					cJSON_CreateString(node->ubpu_eids[k]);
+					sh_json_create_str(node->ubpu_eids[k]);
 				if (eid_item == NULL) {
 					ret = -ENOMEM;
 					goto err_array;
 				}
 
-				cJSON_AddItemToArray(eids_arr, eid_item);
+				sh_json_push(eids_arr, eid_item);
 			}
 		}
 
-		if (!cJSON_AddItemToObjectChecked(maps_obj, l1->name,
+		if (!sh_json_attach_checked(maps_obj, l1->name,
 						  eids_arr)) {
 			ret = -ENOMEM;
 			goto err_array;
@@ -800,11 +725,11 @@ static int add_global_l1_maps(cJSON *root)
 		continue;
 
 		err_array:
-				cJSON_Delete(eids_arr);
+				sh_json_delete(eids_arr);
 		goto err_maps;
 	}
 
-	if (!cJSON_AddItemToObjectChecked(root, "_l1_maps", maps_obj)) {
+	if (!sh_json_attach_checked(root, "_l1_maps", maps_obj)) {
 		ret = -ENOMEM;
 		goto err_maps;
 	}
@@ -813,7 +738,7 @@ static int add_global_l1_maps(cJSON *root)
 	return 0;
 
 	err_maps:
-		cJSON_Delete(maps_obj);
+		sh_json_delete(maps_obj);
 	return ret;
 }
 static int build_ubpu_probe_json(const struct plan_node *src_node,
@@ -821,11 +746,11 @@ static int build_ubpu_probe_json(const struct plan_node *src_node,
 				 uint32_t packet_count_intra,
 				 uint32_t packet_count_inter,
 				 uint32_t packet_size,
-				 cJSON **out)
+				 sh_json **out)
 {
-	cJSON *obj = NULL;
-	cJSON *intra_arr = NULL;
-	cJSON *inter_arr = NULL;
+	sh_json *obj = NULL;
+	sh_json *intra_arr = NULL;
+	sh_json *inter_arr = NULL;
 	int ret;
 
 	if (out == NULL)
@@ -839,35 +764,35 @@ static int build_ubpu_probe_json(const struct plan_node *src_node,
 		src_node->ubpu_eids[ubpu_id][0] == '\0')
 		return -EINVAL;
 
-	obj = cJSON_CreateObject();
+	obj = sh_json_create_obj();
 	if (obj == NULL)
 		return -ENOMEM;
 
-	if (cJSON_AddNumberToObject(obj, "packet_count_intra",
+	if (sh_json_put_num(obj, "packet_count_intra",
 					packet_count_intra) == NULL) {
 		ret = -ENOMEM;
 		goto err;
 					}
 
-	if (cJSON_AddNumberToObject(obj, "packet_count_inter",
+	if (sh_json_put_num(obj, "packet_count_inter",
 					packet_count_inter) == NULL) {
 		ret = -ENOMEM;
 		goto err;
 					}
 
-	if (cJSON_AddNumberToObject(obj, "packet_size",
+	if (sh_json_put_num(obj, "packet_size",
 					packet_size) == NULL) {
 		ret = -ENOMEM;
 		goto err;
 					}
 
-	if (!cJSON_AddStringToObjectChecked(
+	if (!sh_json_put_str_checked(
 			obj, "src_eid", src_node->ubpu_eids[ubpu_id])) {
 		ret = -ENOMEM;
 		goto err;
 			}
 
-	intra_arr = cJSON_CreateArray();
+	intra_arr = sh_json_create_arr();
 	if (intra_arr == NULL) {
 		ret = -ENOMEM;
 		goto err;
@@ -877,7 +802,7 @@ static int build_ubpu_probe_json(const struct plan_node *src_node,
 	if (ret != 0)
 		goto err;
 
-	if (!cJSON_AddItemToObjectChecked(
+	if (!sh_json_attach_checked(
 			obj, "intra_l1_dst_eids", intra_arr)) {
 		ret = -ENOMEM;
 		goto err;
@@ -886,7 +811,7 @@ static int build_ubpu_probe_json(const struct plan_node *src_node,
 	/* Ownership transferred to obj. */
 	intra_arr = NULL;
 
-	inter_arr = cJSON_CreateArray();
+	inter_arr = sh_json_create_arr();
 	if (inter_arr == NULL) {
 		ret = -ENOMEM;
 		goto err;
@@ -896,7 +821,7 @@ static int build_ubpu_probe_json(const struct plan_node *src_node,
 	if (ret != 0)
 		goto err;
 
-	if (!cJSON_AddItemToObjectChecked(
+	if (!sh_json_attach_checked(
 			obj, "inter_l1_dst_eids", inter_arr)) {
 		ret = -ENOMEM;
 		goto err;
@@ -913,20 +838,22 @@ static int build_ubpu_probe_json(const struct plan_node *src_node,
 		 * Non-NULL arrays have not been attached to obj yet.
 		 * Attached arrays are recursively released with obj.
 		 */
-		cJSON_Delete(inter_arr);
-	cJSON_Delete(intra_arr);
-	cJSON_Delete(obj);
+		sh_json_delete(inter_arr);
+	sh_json_delete(intra_arr);
+	sh_json_delete(obj);
 	return ret;
 }
 /* ========================================================================
  * 生成完整探测计划 JSON
  * ======================================================================== */
-static int generate_probe_plan_json(uint32_t packet_count_intra,
+static int generate_probe_plan_json(uint32_t coverage_k,
+					uint32_t packet_count_intra,
 					uint32_t packet_count_inter,
 					uint32_t packet_size,
-					cJSON **out)
+					sh_json **out)
 {
-	cJSON *root;
+	sh_json *config;
+	sh_json *root;
 	int ret;
 	int i;
 
@@ -935,9 +862,27 @@ static int generate_probe_plan_json(uint32_t packet_count_intra,
 
 	*out = NULL;
 
-	root = cJSON_CreateObject();
+	root = sh_json_create_obj();
 	if (root == NULL)
 		return -ENOMEM;
+
+	config = sh_json_create_obj();
+	if (config == NULL) {
+		ret = -ENOMEM;
+		goto err_root;
+	}
+
+	if (sh_json_put_num(config, "coverage_k", coverage_k) == NULL) {
+		sh_json_delete(config);
+		ret = -ENOMEM;
+		goto err_root;
+	}
+
+	if (!sh_json_attach_checked(root, "_probe_config", config)) {
+		sh_json_delete(config);
+		ret = -ENOMEM;
+		goto err_root;
+	}
 
 	ret = add_global_l1_maps(root);
 	if (ret != 0)
@@ -945,7 +890,7 @@ static int generate_probe_plan_json(uint32_t packet_count_intra,
 
 	for (i = 0; i < g_node_count; i++) {
 		const struct plan_node *node = &g_nodes[i];
-		cJSON *node_obj;
+		sh_json *node_obj;
 		int u;
 
 		if (node->l1_id < 0 || node->l1_id >= g_l1_count) {
@@ -956,14 +901,14 @@ static int generate_probe_plan_json(uint32_t packet_count_intra,
 		if (g_l1s[node->l1_id].redundant)
 			continue;
 
-		node_obj = cJSON_CreateObject();
+		node_obj = sh_json_create_obj();
 		if (node_obj == NULL) {
 			ret = -ENOMEM;
 			goto err_root;
 		}
 
 		for (u = 0; u < node->ubpu_num; u++) {
-			cJSON *ubpu_obj = NULL;
+			sh_json *ubpu_obj = NULL;
 			char ubpu_key[16];
 			int written;
 
@@ -988,20 +933,20 @@ static int generate_probe_plan_json(uint32_t packet_count_intra,
 					   "%d", u);
 			if (written < 0 ||
 				(size_t)written >= sizeof(ubpu_key)) {
-				cJSON_Delete(ubpu_obj);
+				sh_json_delete(ubpu_obj);
 				ret = -E2BIG;
 				goto err_node;
 				}
 
-			if (!cJSON_AddItemToObjectChecked(
+			if (!sh_json_attach_checked(
 					node_obj, ubpu_key, ubpu_obj)) {
-				cJSON_Delete(ubpu_obj);
+				sh_json_delete(ubpu_obj);
 				ret = -ENOMEM;
 				goto err_node;
 					}
 		}
 
-		if (!cJSON_AddItemToObjectChecked(
+		if (!sh_json_attach_checked(
 				root, node->ip, node_obj)) {
 			ret = -ENOMEM;
 			goto err_node;
@@ -1011,7 +956,7 @@ static int generate_probe_plan_json(uint32_t packet_count_intra,
 		continue;
 
 		err_node:
-				cJSON_Delete(node_obj);
+				sh_json_delete(node_obj);
 		goto err_root;
 	}
 
@@ -1019,7 +964,7 @@ static int generate_probe_plan_json(uint32_t packet_count_intra,
 	return 0;
 
 	err_root:
-		cJSON_Delete(root);
+		sh_json_delete(root);
 	return ret;
 }
 /* ========================================================================
@@ -1029,7 +974,7 @@ int sub_health_probe_plan(const char *topology_file, uint32_t coverage_k,
 			  uint32_t packet_size, const char *output_file)
 {
 	char *content = NULL;
-	cJSON *root = NULL;
+	sh_json *root = NULL;
 	char *json_str = NULL;
 	FILE *fp;
 	size_t json_len;
@@ -1050,12 +995,6 @@ int sub_health_probe_plan(const char *topology_file, uint32_t coverage_k,
 	if (ret != 0)
 		return ret;
 
-	/* 输入已经是探测计划，直接复制。 */
-	if (is_probe_pairs_file(content)) {
-		free(content);
-		return copy_file(topology_file, output_file);
-	}
-
 	ret = parse_topology(content);
 	free(content);
 	content = NULL;
@@ -1072,15 +1011,16 @@ int sub_health_probe_plan(const char *topology_file, uint32_t coverage_k,
 			   &packet_count_intra,
 			   &packet_count_inter);
 
-	ret = generate_probe_plan_json(packet_count_intra,
+	ret = generate_probe_plan_json(coverage_k,
+					   packet_count_intra,
 					   packet_count_inter,
 					   packet_size,
 					   &root);
 	if (ret != 0)
 		return ret;
 
-	json_str = cJSON_Print(root);
-	cJSON_Delete(root);
+	json_str = sh_json_write(root);
+	sh_json_delete(root);
 	root = NULL;
 	if (json_str == NULL)
 		return -ENOMEM;

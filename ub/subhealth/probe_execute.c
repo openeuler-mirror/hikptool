@@ -12,7 +12,7 @@
  */
 
 #include "sub_health.h"
-#include "cJSON.h"
+#include "sh_json.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -23,6 +23,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <time.h>
+#include <float.h>
 /* ========================================================================
  * 常量
  * ======================================================================== */
@@ -31,7 +32,7 @@
 #define MAX_PING_RESULTS     4096       /* 单次 urma_ping 结果行数上限 */
 #define URMA_PING_LOG_FILE   "urma_ping_output.log"
 #define URMA_PING_RAW_OUTPUT_MAX   (512U * 1024U)
-#define PROBE_EXEC_WATCHDOG_SEC   75U
+#define PROBE_EXEC_WATCHDOG_SEC   180U
 #define PROBE_EXEC_KILL_GRACE_SEC 5U
 #define WATCHDOG_POLL_NS          100000000L /* 100 ms */
 /* RESTCONF 查询命令（获取 slot ID 以构造 slot.slot.slot.slot 本地 IP） */
@@ -479,50 +480,50 @@ static bool is_local_ip(const char *ip)
  * 探测计划 JSON 解析
  * ======================================================================== */
 
-static int parse_eid_list(cJSON *obj, const char *key, const char *alias,
+static int parse_eid_list(sh_json *obj, const char *key, const char *alias,
 			  char (*eids)[MAX_EID_LEN], int max_num)
 {
-	cJSON *item;
+	sh_json *item;
 	int count = 0;
 
-	item = cJSON_GetObjectItem(obj, key);
+	item = sh_json_get_item(obj, key);
 	if (!item && alias)
-		item = cJSON_GetObjectItem(obj, alias);
-	if (!item || item->type != cJSON_Array)
+		item = sh_json_get_item(obj, alias);
+	if (!item || item->kind != SH_JSON_SEQ)
 		return 0;
 
-	for (cJSON *e = item->child; e && count < max_num; e = e->next) {
-		if (e->type != cJSON_String)
+	for (sh_json *e = item->head; e && count < max_num; e = e->fwd) {
+		if (e->kind != SH_JSON_BUF)
 			continue;
-		snprintf(eids[count], MAX_EID_LEN, "%s", e->valuestring);
+		snprintf(eids[count], MAX_EID_LEN, "%s", e->str);
 		count++;
 	}
 	return count;
 }
 
-static void parse_ubpu_probe_data(cJSON *ubpu_obj, struct ubpu_probe_data *ubpu)
+static void parse_ubpu_probe_data(sh_json *ubpu_obj, struct ubpu_probe_data *ubpu)
 {
-	cJSON *item;
+	sh_json *item;
 
 	ubpu->present = true;
 
-	item = cJSON_GetObjectItem(ubpu_obj, "src_eid");
+	item = sh_json_get_item(ubpu_obj, "src_eid");
 	if (!item)
-		item = cJSON_GetObjectItem(ubpu_obj, "src_port_eid");
-	if (item && item->type == cJSON_String)
-		snprintf(ubpu->src_eid, MAX_EID_LEN, "%s", item->valuestring);
+		item = sh_json_get_item(ubpu_obj, "src_port_eid");
+	if (item && item->kind == SH_JSON_BUF)
+		snprintf(ubpu->src_eid, MAX_EID_LEN, "%s", item->str);
 
-	item = cJSON_GetObjectItem(ubpu_obj, "packet_count_intra");
+	item = sh_json_get_item(ubpu_obj, "packet_count_intra");
 	if (item)
-		ubpu->packet_count_intra = (uint32_t)item->valuedouble;
+		ubpu->packet_count_intra = (uint32_t)item->dval;
 
-	item = cJSON_GetObjectItem(ubpu_obj, "packet_count_inter");
+	item = sh_json_get_item(ubpu_obj, "packet_count_inter");
 	if (item)
-		ubpu->packet_count_inter = (uint32_t)item->valuedouble;
+		ubpu->packet_count_inter = (uint32_t)item->dval;
 
-	item = cJSON_GetObjectItem(ubpu_obj, "packet_size");
+	item = sh_json_get_item(ubpu_obj, "packet_size");
 	if (item)
-		ubpu->packet_size = (uint32_t)item->valuedouble;
+		ubpu->packet_size = (uint32_t)item->dval;
 
 	ubpu->intra_dst_num = parse_eid_list(ubpu_obj, "intra_l1_dst_eids",
 					     "intra_l1_dst_port_eids",
@@ -534,18 +535,18 @@ static void parse_ubpu_probe_data(cJSON *ubpu_obj, struct ubpu_probe_data *ubpu)
 					     MAX_PROBE_TARGETS);
 }
 
-static void parse_local_node_ubpus(cJSON *node_obj, struct node_probe_data *node)
+static void parse_local_node_ubpus(sh_json *node_obj, struct node_probe_data *node)
 {
 	memset(node, 0, sizeof(*node));
 
-	for (cJSON *child = node_obj->child; child; child = child->next) {
+	for (sh_json *child = node_obj->head; child; child = child->fwd) {
 		int ubpu_id;
 
-		if (!child->string)
+		if (!child->name)
 			continue;
 
 		/* "0"/"1" 是 UBPU 端口 key */
-		ubpu_id = atoi(child->string);
+		ubpu_id = atoi(child->name);
 		if (ubpu_id < 0 || ubpu_id >= MAX_SUPPORTED_UBPU)
 			continue;
 
@@ -555,24 +556,99 @@ static void parse_local_node_ubpus(cJSON *node_obj, struct node_probe_data *node
 	}
 }
 
+/* ========================================================================
+ * 校验输入文件是否为探测对计划（probe plan）
+ *
+ * 探测对计划的结构要求：
+ *   1) 顶层存在 "_l1_maps"（L1 交换机 -> EID 列表映射）；
+ *   2) 至少存在一个 IP 节点，其下 UBPU 含有非空 src_eid，
+ *      且具备至少一个 intra_l1_dst_eids / inter_l1_dst_eids 元素。
+ * 不符合时返回 -EINVAL。
+ * ======================================================================== */
+static int check_probe_plan_file(sh_json *root)
+{
+	struct in_addr addr;
+	sh_json *l1_maps;
+	sh_json *top;
+
+	if (root == NULL || root->kind != SH_JSON_MAP)
+		return -EINVAL;
+
+	/* 1) 必须有 L1 映射表 */
+	l1_maps = sh_json_get_item_cs(root, "_l1_maps");
+	if (l1_maps == NULL || l1_maps->kind != SH_JSON_MAP)
+		return -EINVAL;
+
+	/* 2) 至少一个 IP 节点下存在有效探测对（src_eid + 目标列表） */
+	for (top = root->head; top != NULL; top = top->fwd) {
+		sh_json *ubpu;
+
+		if (top->name == NULL ||
+		    top->kind != SH_JSON_MAP ||
+		    inet_pton(AF_INET, top->name, &addr) != 1)
+			continue;
+
+		for (ubpu = top->head; ubpu != NULL; ubpu = ubpu->fwd) {
+			sh_json *src_eid;
+			sh_json *dsts;
+			int addr_num = 0;
+			int idst_num = 0;
+
+			if (ubpu->kind != SH_JSON_MAP)
+				continue;
+
+			src_eid = sh_json_get_item_cs(ubpu,
+								   "src_eid");
+			if (src_eid == NULL || src_eid->kind != SH_JSON_BUF ||
+			    src_eid->str == NULL ||
+			    src_eid->str[0] == '\0')
+				continue;
+
+			dsts = sh_json_get_item_cs(
+				ubpu, "intra_l1_dst_eids");
+			if (dsts != NULL && dsts->kind == SH_JSON_SEQ)
+				idst_num = sh_json_item_count(dsts);
+			dsts = sh_json_get_item_cs(
+				ubpu, "inter_l1_dst_eids");
+			if (dsts != NULL && dsts->kind == SH_JSON_SEQ)
+				addr_num = sh_json_item_count(dsts);
+
+			if (idst_num > 0 || addr_num > 0)
+				return 0;
+		}
+	}
+
+	return -EINVAL;
+}
+
+/* ========================================================================
+ * 输出探测计划输入文件的格式错误信息。
+ * ======================================================================== */
+static void report_invalid_probe_plan(const char *plan_file)
+{
+	fprintf(stderr,
+		"[ERROR] '%s' is not a valid probe plan file: "
+		"missing _probe_config.\n", plan_file);
+}
+
 /* 遍历 JSON 顶层 key，收集本机节点的探测数据 */
-static void collect_probe_data(cJSON *root, struct node_probe_data *nodes,
+static void collect_probe_data(sh_json *root, struct node_probe_data *nodes,
 			       int *node_count)
 {
 	struct in_addr addr;
 
-	for (cJSON *top = root->child; top; top = top->next) {
-		if (!top->string)
+	for (sh_json *top = root->head; top; top = top->fwd) {
+		if (!top->name)
 			continue;
 
 		/* 顶层 key 不是合法 IPv4（如 L1 映射表）→ 跳过 */
-		if (inet_pton(AF_INET, top->string, &addr) != 1)
+		if (inet_pton(AF_INET, top->name, &addr) != 1)
 			continue;
-		if (top->type != cJSON_Object)
+		if (top->kind != SH_JSON_MAP)
 			continue;
 
 		/* 非本机节点 → 跳过 */
-		if (!is_local_ip(top->string))
+		if (!is_local_ip(top->name))
 			continue;
 
 		if (*node_count >= MAX_NODE_NUM)
@@ -580,7 +656,7 @@ static void collect_probe_data(cJSON *root, struct node_probe_data *nodes,
 
 		parse_local_node_ubpus(top, &nodes[*node_count]);
 		snprintf(nodes[*node_count].ip, sizeof(nodes[*node_count].ip),
-			 "%s", top->string);
+			 "%s", top->name);
 		(*node_count)++;
 	}
 }
@@ -879,12 +955,12 @@ static void create_probe_threads(const struct probe_task *tasks, int task_count,
  * 结果输出（仅保留真实且样本充足的时延结果）
  * ======================================================================== */
 
-static void write_intra_results(cJSON *ubpu_obj,
+static void write_intra_results(sh_json *ubpu_obj,
 				const struct probe_task *tasks, int task_count,
 				const struct probe_task_result *results)
 {
-	cJSON *dst_arr = cJSON_CreateArray();
-	cJSON *lat_arr = cJSON_CreateArray();
+	sh_json *dst_arr = sh_json_create_arr();
+	sh_json *lat_arr = sh_json_create_arr();
 	int i;
 
 	for (i = 0; i < task_count; i++) {
@@ -893,20 +969,20 @@ static void write_intra_results(cJSON *ubpu_obj,
 		if (results[i].status != PROBE_EXEC_OK)
 			continue;
 
-		cJSON_AddItemToArray(dst_arr, cJSON_CreateString(tasks[i].dst_eid));
-		cJSON_AddItemToArray(lat_arr, cJSON_CreateNumber(results[i].latency));
+		sh_json_push(dst_arr, sh_json_create_str(tasks[i].dst_eid));
+		sh_json_push(lat_arr, sh_json_create_num(results[i].latency));
 	}
 
-	cJSON_AddItemToObject(ubpu_obj, "intra_l1_dst_eids", dst_arr);
-	cJSON_AddItemToObject(ubpu_obj, "intra_l1_latencies", lat_arr);
+	sh_json_attach(ubpu_obj, "intra_l1_dst_eids", dst_arr);
+	sh_json_attach(ubpu_obj, "intra_l1_latencies", lat_arr);
 }
 
-static void write_inter_results(cJSON *ubpu_obj,
+static void write_inter_results(sh_json *ubpu_obj,
 				const struct probe_task *tasks, int task_count,
 				const struct probe_task_result *results)
 {
-	cJSON *dst_arr = cJSON_CreateArray();
-	cJSON *lat_arr = cJSON_CreateArray();
+	sh_json *dst_arr = sh_json_create_arr();
+	sh_json *lat_arr = sh_json_create_arr();
 	int i;
 
 	for (i = 0; i < task_count; i++) {
@@ -915,21 +991,21 @@ static void write_inter_results(cJSON *ubpu_obj,
 		if (results[i].status != PROBE_EXEC_OK)
 			continue;
 
-		cJSON_AddItemToArray(dst_arr, cJSON_CreateString(tasks[i].dst_eid));
-		cJSON_AddItemToArray(lat_arr, cJSON_CreateNumber(results[i].latency));
+		sh_json_push(dst_arr, sh_json_create_str(tasks[i].dst_eid));
+		sh_json_push(lat_arr, sh_json_create_num(results[i].latency));
 	}
 
-	cJSON_AddItemToObject(ubpu_obj, "inter_l1_dst_eids", dst_arr);
-	cJSON_AddItemToObject(ubpu_obj, "inter_l1_latencies", lat_arr);
+	sh_json_attach(ubpu_obj, "inter_l1_dst_eids", dst_arr);
+	sh_json_attach(ubpu_obj, "inter_l1_latencies", lat_arr);
 }
 
 /* 输出单个本机节点的探测结果 JSON */
-static cJSON *build_node_result_json(const struct node_probe_data *node,
+static sh_json *build_node_result_json(const struct node_probe_data *node,
 				     const struct probe_task *tasks,
 				     const struct probe_task_result *results,
 				     int task_count, const int *ubpu_offsets)
 {
-	cJSON *node_obj = cJSON_CreateObject();
+	sh_json *node_obj = sh_json_create_obj();
 	int u;
 
 	(void)task_count; /* 使用 ubpu_offsets 确定任务范围 */
@@ -939,7 +1015,7 @@ static cJSON *build_node_result_json(const struct node_probe_data *node,
 
 	for (u = 0; u < node->ubpu_count; u++) {
 		const struct ubpu_probe_data *ubpu = &node->ubpus[u];
-		cJSON *ubpu_obj;
+		sh_json *ubpu_obj;
 		char ubpu_key[16];
 		int ubpu_task_start;
 		int ubpu_task_count;
@@ -947,17 +1023,17 @@ static cJSON *build_node_result_json(const struct node_probe_data *node,
 		if (!ubpu->present)
 			continue;
 
-		ubpu_obj = cJSON_CreateObject();
+		ubpu_obj = sh_json_create_obj();
 		if (!ubpu_obj)
 			continue;
 
-		cJSON_AddNumberToObject(ubpu_obj, "packet_count_intra",
+		sh_json_put_num(ubpu_obj, "packet_count_intra",
 					ubpu->packet_count_intra);
-		cJSON_AddNumberToObject(ubpu_obj, "packet_count_inter",
+		sh_json_put_num(ubpu_obj, "packet_count_inter",
 					ubpu->packet_count_inter);
-		cJSON_AddNumberToObject(ubpu_obj, "packet_size",
+		sh_json_put_num(ubpu_obj, "packet_size",
 					ubpu->packet_size);
-		cJSON_AddStringToObject(ubpu_obj, "src_eid", ubpu->src_eid);
+		sh_json_put_str(ubpu_obj, "src_eid", ubpu->src_eid);
 
 		/* 仅输出该 UBPU 自身的探测任务结果 */
 		ubpu_task_start = ubpu_offsets[u];
@@ -969,7 +1045,7 @@ static cJSON *build_node_result_json(const struct node_probe_data *node,
 				    ubpu_task_count, results + ubpu_task_start);
 
 		snprintf(ubpu_key, sizeof(ubpu_key), "%d", u);
-		cJSON_AddItemToObject(node_obj, ubpu_key, ubpu_obj);
+		sh_json_attach(node_obj, ubpu_key, ubpu_obj);
 	}
 
 	return node_obj;
@@ -1017,24 +1093,48 @@ static void print_probe_exec_summary(const struct probe_exec_summary *summary)
  * 公开接口
  * ======================================================================== */
 
-static int sub_health_probe_execute_impl(const char *plan_file, const char *result_file,
-			     uint32_t coverage_k)
+static int get_plan_coverage_k(sh_json *root, uint32_t *coverage_k)
+{
+	sh_json *config;
+	sh_json *item;
+	double value;
+
+	if (root == NULL || coverage_k == NULL)
+		return -EINVAL;
+
+	config = sh_json_get_item_cs(root, "_probe_config");
+	if (config == NULL || config->kind != SH_JSON_MAP)
+		return -EINVAL;
+
+	item = sh_json_get_item_cs(config, "coverage_k");
+	if (item == NULL || item->kind != SH_JSON_NUM)
+		return -EINVAL;
+
+	value = item->dval;
+	if (value < MIN_COVERAGE_K || value > MAX_COVERAGE_K ||
+	    fabs(value - (double)item->ival) > DBL_EPSILON)
+		return -EINVAL;
+
+	*coverage_k = (uint32_t)item->ival;
+	return 0;
+}
+
+static int sub_health_probe_execute_impl(const char *plan_file,
+					 const char *result_file)
 {
 	char *content = NULL;
-	cJSON *root = NULL;
-	cJSON *result_root = NULL;
+	sh_json *root = NULL;
+	sh_json *result_root = NULL;
 	struct node_probe_data *nodes = NULL;
 	struct probe_exec_summary summary = {0};
 	FILE *log_fp;
 	int node_count = 0;
 	int next_task_id = 0;
+	uint32_t coverage_k;
 	int ret = 0;
 	int n;
 
 	if (!plan_file || !result_file)
-		return -EINVAL;
-
-	if (coverage_k < MIN_COVERAGE_K || coverage_k > MAX_COVERAGE_K)
 		return -EINVAL;
 
 	/* 堆分配以避免超大栈帧（每节点 ~4MB，栈上限 8KB） */
@@ -1085,15 +1185,38 @@ static int sub_health_probe_execute_impl(const char *plan_file, const char *resu
 		content[fsize] = '\0';
 	}
 
-	root = cJSON_Parse(content);
+	root = sh_json_parse(content);
 	free(content);
 	if (!root) {
 		ret = -EINVAL;
 		goto cleanup;
 	}
 
+	ret = get_plan_coverage_k(root, &coverage_k);
+	if (ret != 0) {
+		if (sh_json_get_item_cs(root, "_probe_config") == NULL) {
+			report_invalid_probe_plan(plan_file);
+		} else {
+			fprintf(stderr,
+				"[ERROR] Probe plan requires integer "
+				"_probe_config.coverage_k in range [%d, %d].\n",
+				MIN_COVERAGE_K, MAX_COVERAGE_K);
+		}
+		goto cleanup;
+	}
+
+	/* 校验输入确为探测对计划（拒绝拓扑/结果/检测等其它文件） */
+	ret = check_probe_plan_file(root);
+	if (ret != 0) {
+		fprintf(stderr,
+			"[ERROR] '%s' is not a valid probe plan file: "
+			"missing _l1_maps or valid node UBPU probe pairs.\n",
+			plan_file);
+		goto cleanup;
+	}
+
 	/* 提取顶层 L1 映射表（供探测结果输出） */
-	cJSON *plan_l1_maps = cJSON_GetObjectItem(root, "_l1_maps");
+	sh_json *plan_l1_maps = sh_json_get_item(root, "_l1_maps");
 
 	/* 每次运行清空重写原始探测日志 */
 	log_fp = fopen(URMA_PING_LOG_FILE, "w");
@@ -1104,44 +1227,44 @@ static int sub_health_probe_execute_impl(const char *plan_file, const char *resu
 	collect_probe_data(root, nodes, &node_count);
 
 	if (node_count == 0) {
-		cJSON_Delete(root);
+		sh_json_delete(root);
 		ret = -ENOENT;
 		goto cleanup;
 	}
 
 	/* Step 3-4: 填充任务并多线程并发执行探测 */
-	result_root = cJSON_CreateObject();
+	result_root = sh_json_create_obj();
 	if (!result_root) {
-		cJSON_Delete(root);
+		sh_json_delete(root);
 		ret = -ENOMEM;
 		goto cleanup;
 	}
 
 	/* 将全局 L1 映射表写入结果顶层（供 Step 3 使用） */
-	if (plan_l1_maps && plan_l1_maps->type == cJSON_Object) {
-		cJSON *result_maps = cJSON_CreateObject();
+	if (plan_l1_maps && plan_l1_maps->kind == SH_JSON_MAP) {
+		sh_json *result_maps = sh_json_create_obj();
 
 		if (result_maps) {
-			for (cJSON *map = plan_l1_maps->child; map;
-			     map = map->next) {
-				if (!map->string || map->type != cJSON_Array)
+			for (sh_json *map = plan_l1_maps->head; map;
+			     map = map->fwd) {
+				if (!map->name || map->kind != SH_JSON_SEQ)
 					continue;
-				cJSON *arr = cJSON_CreateArray();
+				sh_json *arr = sh_json_create_arr();
 
 				if (arr) {
-					for (cJSON *e = map->child; e;
-					     e = e->next) {
-						if (e->type != cJSON_String)
+					for (sh_json *e = map->head; e;
+					     e = e->fwd) {
+						if (e->kind != SH_JSON_BUF)
 							continue;
-						cJSON_AddItemToArray(arr,
-							cJSON_CreateString(
-								e->valuestring));
+						sh_json_push(arr,
+							sh_json_create_str(
+								e->str));
 					}
-					cJSON_AddItemToObject(result_maps,
-							      map->string, arr);
+					sh_json_attach(result_maps,
+							      map->name, arr);
 				}
 			}
-			cJSON_AddItemToObject(result_root, "_l1_maps",
+			sh_json_attach(result_root, "_l1_maps",
 					      result_maps);
 		}
 	}
@@ -1152,7 +1275,7 @@ static int sub_health_probe_execute_impl(const char *plan_file, const char *resu
 		struct probe_task_result *results;
 		int ubpu_offsets[MAX_SUPPORTED_UBPU + 1];
 		int task_count;
-		cJSON *node_obj;
+		sh_json *node_obj;
 		int i;
 
 		tasks = (struct probe_task *)calloc((size_t)max_tasks,
@@ -1162,8 +1285,8 @@ static int sub_health_probe_execute_impl(const char *plan_file, const char *resu
 		if (!tasks || !results) {
 			free(tasks);
 			free(results);
-			cJSON_Delete(result_root);
-			cJSON_Delete(root);
+			sh_json_delete(result_root);
+			sh_json_delete(root);
 			ret = -ENOMEM;
 			goto cleanup;
 		}
@@ -1182,22 +1305,22 @@ static int sub_health_probe_execute_impl(const char *plan_file, const char *resu
 		node_obj = build_node_result_json(&nodes[n], tasks, results,
 						  task_count, ubpu_offsets);
 		if (node_obj)
-			cJSON_AddItemToObject(result_root, nodes[n].ip, node_obj);
+			sh_json_attach(result_root, nodes[n].ip, node_obj);
 
 		free(tasks);
 		free(results);
 	}
 
-	cJSON_Delete(root);
+	sh_json_delete(root);
 	root = NULL;
 	print_probe_exec_summary(&summary);
 
 	/* Step 5: 输出探测结果 */
 	{
-		char *json_str = cJSON_Print(result_root);
+		char *json_str = sh_json_write(result_root);
 		FILE *fp;
 
-		cJSON_Delete(result_root);
+		sh_json_delete(result_root);
 		if (!json_str) {
 			ret = -ENOMEM;
 			goto cleanup;
@@ -1227,8 +1350,7 @@ cleanup:
 }
 
 int sub_health_probe_execute(const char *plan_file,
-			     const char *result_file,
-			     uint32_t coverage_k)
+			     const char *result_file)
 {
 	int ret_pipe[2];
 	int child_status;
@@ -1238,10 +1360,6 @@ int sub_health_probe_execute(const char *plan_file,
 	pid_t child_pid;
 
 	if (plan_file == NULL || result_file == NULL)
-		return -EINVAL;
-
-	if (coverage_k < MIN_COVERAGE_K ||
-	    coverage_k > MAX_COVERAGE_K)
 		return -EINVAL;
 
 	if (pipe(ret_pipe) != 0)
@@ -1274,7 +1392,7 @@ int sub_health_probe_execute(const char *plan_file,
 			child_ret = -errno;
 		else
 			child_ret = sub_health_probe_execute_impl(
-				plan_file, result_file, coverage_k);
+				plan_file, result_file);
 
 		/*
 		 * _exit() 不刷新stdio，所以这里主动刷新，

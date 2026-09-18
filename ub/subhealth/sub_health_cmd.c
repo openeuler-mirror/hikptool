@@ -87,43 +87,47 @@ static int cmd_help(struct major_cmd_ctrl *self, const char *argv)
 	printf("    %s, %-25s %s\n", "-h", "--help",
 	       "display this help and exit");
 	printf("    %s, %-25s %s\n", "-t", "--topology=<file>",
-	       "topology file (step1/full, optional in full: auto gen)");
+	       "topology input (required for step1, optional in full)");
 	printf("    %s, %-25s %s\n", "-p", "--probe-plan=<file>",
-	       "probe plan input file (default: probe_plan.json in CWD)");
+	       "probe plan input file (required for step2)");
 	printf("    %s, %-25s %s\n", "-r", "--result=<file>",
-	       "probe result input file (default: probe_result.json in CWD)");
+	       "probe result input file (required for step3)");
 	printf("    %s, %-25s %s\n", "-k", "--coverage=<num>",
-	       "link coverage times [3-20], default 5");
+	       "link coverage times [3-20], default 5; valid in step1/full");
 	printf("    %s, %-25s %s\n", "-s", "--packet-size=<num>",
-	       "packet size in bytes [4-4096], default 4096");
+	       "packet size in bytes [4-4096], default 4096; valid in step1/full");
 	printf("    %s, %-25s %s\n", "-T", "--time-threshold=<num>",
-	       "latency threshold in ms, default 100");
+	       "latency threshold in ms, default 100; valid in step3/full");
 	printf("    %s, %-25s %s\n", "-1", "--step1",
-	       "execute step 1 only (probe planning)");
+	       "execute step 1 only (probe planning), options: -t -k -s");
 	printf("    %s, %-25s %s\n", "-2", "--step2",
-	       "execute step 2 only (probe execution)");
+	       "execute step 2 only (probe execution), options: -p");
 	printf("    %s, %-25s %s\n", "-3", "--step3",
-	       "execute step 3 only (fault detection)");
+	       "execute step 3 only (fault detection), options: -r -T");
 
 	printf("\n  Examples:\n\n");
 
 	printf("    # Full pipeline with auto topology (electric link only)\n");
 	printf("    %s %s\n", get_tool_name(), self->cmd_ptr->name);
 
-	printf("    # Full pipeline with manual topology\n");
+	printf("    # Full pipeline with a topology file\n");
 	printf("    %s %s -t topology.json\n",
 	       get_tool_name(), self->cmd_ptr->name);
 
-	printf("    # Step 1 only: probe planning\n");
-	printf("    %s %s -1 -t topology.json\n",
+	printf("    # Full pipeline with tuning\n");
+	printf("    %s %s -t topology.json -k 10 -s 4096 -T 1000\n",
 	       get_tool_name(), self->cmd_ptr->name);
 
-	printf("    # Step 2 only: probe execution\n");
+	printf("    # Step 1 only: probe planning (options: -t -k -s)\n");
+	printf("    %s %s -1 -t topology.json -k 5 -s 4096\n",
+	       get_tool_name(), self->cmd_ptr->name);
+
+	printf("    # Step 2 only: probe execution (options: -p)\n");
 	printf("    %s %s -2 -p probe_plan.json\n",
 	       get_tool_name(), self->cmd_ptr->name);
 
-	printf("    # Step 3 only: fault detection\n");
-	printf("    %s %s -3 -r probe_result.json\n",
+	printf("    # Step 3 only: fault detection (options: -r -T)\n");
+	printf("    %s %s -3 -r probe_result.json -T 1000\n",
 	       get_tool_name(), self->cmd_ptr->name);
 
 	printf("\n  Outputs are always written to the current directory:\n");
@@ -344,43 +348,73 @@ static void apply_defaults(void)
 		g_args_info.packet_size = DEFAULT_PACKET_SIZE;
 	if (!(g_args_info.param_mask & PARAM_TIME_THRESHOLD_MASK))
 		g_args_info.time_threshold = THRESHOLD_TIME_DEFAULT;
-
-	/* Step 2 / 全流程的探测计划输入，默认 CWD/probe_plan.json */
-	if (!(g_args_info.param_mask & PARAM_PLAN_MASK) &&
-	    (g_args_info.exec_step == STEP_FULL ||
-	     g_args_info.exec_step == STEP_EXECUTE)) {
-		snprintf(g_args_info.probe_plan_file,
-			 sizeof(g_args_info.probe_plan_file), "%s",
-			 fixed_plan_name);
-		g_args_info.param_mask |= PARAM_PLAN_MASK;
-	}
-
-	/* Step 3 / 全流程的探测结果输入，默认 CWD/probe_result.json */
-	if (!(g_args_info.param_mask & PARAM_RESULT_MASK) &&
-	    (g_args_info.exec_step == STEP_FULL ||
-	     g_args_info.exec_step == STEP_DETECT)) {
-		snprintf(g_args_info.result_file,
-			 sizeof(g_args_info.result_file), "%s",
-			 fixed_result_name);
-		g_args_info.param_mask |= PARAM_RESULT_MASK;
-	}
 }
 
 /* ========================================================================
  * 参数校验
  * ======================================================================== */
 
+static int set_usage_error(struct major_cmd_ctrl *self,
+			   const char *reason, const char *usage)
+{
+	snprintf(self->err_str, sizeof(self->err_str),
+		 "%s Usage: %s %s %s", reason, get_tool_name(),
+		 self->cmd_ptr->name, usage);
+	self->err_no = -EINVAL;
+	return -EINVAL;
+}
+
 static int validate_args(struct major_cmd_ctrl *self)
 {
 	uint32_t step = g_args_info.exec_step;
+	uint32_t mask = g_args_info.param_mask;
 
-	/* Step 1 需要拓扑文件；全流程未指定 -t 时自动生成 */
-	if (step == STEP_PLAN &&
-	    (g_args_info.param_mask & PARAM_TOPOLOGY_MASK) == 0) {
-		snprintf(self->err_str, sizeof(self->err_str),
-			 "Step 1 requires topology file (-t).");
-		self->err_no = -EINVAL;
-		return -EINVAL;
+	switch (step) {
+	case STEP_FULL:
+		if (mask & (PARAM_PLAN_MASK | PARAM_RESULT_MASK))
+			return set_usage_error(
+				self, "Invalid option for full process.",
+				"[-t <topology_file>] [-k num] [-s num] [-T num].");
+		break;
+	case STEP_PLAN:
+		if (mask & (PARAM_PLAN_MASK | PARAM_RESULT_MASK |
+			    PARAM_TIME_THRESHOLD_MASK))
+			return set_usage_error(
+				self, "Invalid option for Step 1.",
+				"-1 -t <topology_file> [-k num] [-s num].");
+		if (!(mask & PARAM_TOPOLOGY_MASK))
+			return set_usage_error(
+				self, "Step 1 requires -t.",
+				"-1 -t <topology_file> [-k num] [-s num].");
+		break;
+		case STEP_EXECUTE:
+			if (mask & (PARAM_TOPOLOGY_MASK |
+					PARAM_RESULT_MASK |
+					PARAM_COVERAGE_MASK |
+					PARAM_PACKET_SIZE_MASK |
+					PARAM_TIME_THRESHOLD_MASK))
+				return set_usage_error(
+					self, "Invalid option for Step 2.",
+					"-2 -p <probe_plan_file>.");
+		if (!(mask & PARAM_PLAN_MASK))
+			return set_usage_error(
+				self, "Step 2 requires -p.",
+				"-2 -p <probe_plan_file>.");
+		break;
+	case STEP_DETECT:
+		if (mask & (PARAM_TOPOLOGY_MASK | PARAM_PLAN_MASK |
+			    PARAM_COVERAGE_MASK | PARAM_PACKET_SIZE_MASK))
+			return set_usage_error(
+				self, "Invalid option for Step 3.",
+				"-3 -r <probe_result_file> [-T num].");
+		if (!(mask & PARAM_RESULT_MASK))
+			return set_usage_error(
+				self, "Step 3 requires -r.",
+				"-3 -r <probe_result_file> [-T num].");
+		break;
+	default:
+		return set_usage_error(self, "Invalid execution step.",
+				       "-t <topology_file>.");
 	}
 
 	return 0;
@@ -439,11 +473,10 @@ static void run_step1(struct execute_ctx *ctx)
 	const char *topology_file = g_args_info.topology_file;
 	char cwd_buf[MAX_PATH_LEN];
 	const char *cwd = get_cwd_str(cwd_buf, sizeof(cwd_buf));
+	int ret;
 
-	/* 全流程且未指定 -t：自动生成拓扑（仅电组网） */
+	/* 全流程且未指定 -t：自动生成拓扑（仅电组网）。 */
 	if (ctx->full_process && ctx->auto_gen_topology) {
-		int ret;
-
 		printf("[INFO] Generating topology from RESTCONF API...\n");
 		ret = generate_topology_from_restconf(ctx->temp_topology);
 		if (ret != 0) {
@@ -456,8 +489,6 @@ static void run_step1(struct execute_ctx *ctx)
 		}
 		topology_file = ctx->temp_topology;
 	} else {
-		int ret;
-
 		ret = check_input_exists(ctx->major_cmd, topology_file,
 					 "Topology");
 		if (ret != 0) {
@@ -466,7 +497,6 @@ static void run_step1(struct execute_ctx *ctx)
 		}
 	}
 
-	warn_if_overwrite(fixed_plan_name);
 	printf("[INFO] Generating probe plan (k=%u)...\n",
 	       g_args_info.coverage_k);
 
@@ -485,11 +515,12 @@ static void run_step1(struct execute_ctx *ctx)
 		return;
 	}
 
+	warn_if_overwrite(fixed_plan_name);
 	PERF_PRINT(step1, "Probe planning");
 	printf("[INFO] Probe plan written to: %s/%s\n",
 	       cwd, fixed_plan_name);
 
-	/* 自动生成的拓扑文件在 Step 1 完成后删除 */
+	/* 自动生成的拓扑文件在 Step 1 完成后删除。 */
 	if (ctx->full_process && ctx->auto_gen_topology)
 		unlink(ctx->temp_topology);
 }
@@ -508,11 +539,9 @@ static void run_step2(struct execute_ctx *ctx)
 	}
 
 	printf("[INFO] Executing probes...\n");
-	warn_if_overwrite(fixed_result_name);
 
 	PERF_START(step2);
-	ctx->ret = sub_health_probe_execute(plan_in, fixed_result_name,
-					    g_args_info.coverage_k);
+	ctx->ret = sub_health_probe_execute(plan_in, fixed_result_name);
 	PERF_END(step2);
 
 	if (ctx->ret != 0) {
@@ -523,6 +552,7 @@ static void run_step2(struct execute_ctx *ctx)
 		return;
 	}
 
+	warn_if_overwrite(fixed_result_name);
 	PERF_PRINT(step2, "Probe execution");
 	printf("[INFO] Probe results written to: %s/%s\n",
 	       cwd, fixed_result_name);
@@ -543,7 +573,6 @@ static void run_step3(struct execute_ctx *ctx)
 
 	printf("[INFO] Detecting faults (threshold=%ums)...\n",
 	       g_args_info.time_threshold);
-	warn_if_overwrite(fixed_output_name);
 
 	PERF_START(step3);
 	ctx->ret = sub_health_detect(result_in, fixed_output_name,
@@ -558,6 +587,7 @@ static void run_step3(struct execute_ctx *ctx)
 		return;
 	}
 
+	warn_if_overwrite(fixed_output_name);
 	PERF_PRINT(step3, "Fault detection");
 	printf("[INFO] Detection results written to: %s/%s\n",
 	       cwd, fixed_output_name);

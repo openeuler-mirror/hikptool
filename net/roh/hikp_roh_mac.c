@@ -35,10 +35,12 @@ static int hikp_roh_mac_help(struct major_cmd_ctrl *self, const char *argv)
 static int hikp_roh_mac_target(struct major_cmd_ctrl *self, const char *argv)
 {
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &(g_roh_mac_param.target));
-	if (self->err_no != 0)
+	if (self->err_no != 0) {
 		snprintf(self->err_str, sizeof(self->err_str), "Unknown device %s.", argv);
+		return self->err_no;
+	}
 
-	return self->err_no;
+	return hikp_net_check_pf_only(self, &g_roh_mac_param.target.bdf);
 }
 
 static void cmd_show_mac_type_parse(void)

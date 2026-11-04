@@ -562,6 +562,7 @@ int hikp_dev_init(void)
 	if (g_hikp_req == MAP_FAILED) {
 		printf("failed to mmap %s.\n", iep);
 		ret = -errno;
+		g_hikp_req = NULL;
 		goto out_close_fd;
 	}
 	g_hikp_rsp = (union hikp_space_rsp *)(void *)g_hikp_req;

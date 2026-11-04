@@ -170,7 +170,8 @@ static int hikp_roh_show_mib_target(struct major_cmd_ctrl *self, const char *arg
 		snprintf(self->err_str, sizeof(self->err_str), "Unknown device %s.", argv);
 		return self->err_no;
 	}
-	return 0;
+
+	return hikp_net_check_pf_only(self, &roh_show_mib_param.target.bdf);
 }
 
 static int hikp_roh_fill_pmu_cnt(int round)

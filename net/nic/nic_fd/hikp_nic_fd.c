@@ -917,11 +917,11 @@ static int hikp_nic_fd_check_input_param(struct major_cmd_ctrl *self,
 {
 	const struct bdf_t *bdf = &fd_param->target.bdf;
 	const struct fd_feature_cmd *fd_cmd;
+	int ret;
 
-	if (bdf->dev_id != 0) {
-		snprintf(self->err_str, sizeof(self->err_str), "VF does not support query!");
-		return -EINVAL;
-	}
+	ret = hikp_net_check_pf_only(self, bdf);
+	if (ret != 0)
+		return ret;
 
 	if (fd_param->feature_idx == -1) {
 		hikp_nic_fd_cmd_help(self, NULL);

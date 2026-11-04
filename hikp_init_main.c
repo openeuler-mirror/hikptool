@@ -38,6 +38,13 @@ static const char *g_nic_cmd_list[] = {
 	"nic_torus",        "nic_xsfp",      "nic_led",
 };
 
+static const char *g_chip_hip11_nic_cmd_list[] = {
+	"nic_dfx",          "nic_fec",          "nic_info",       "nic_log",          "nic_mac",
+	"nic_ncsi",         "nic_notify_pkt",   "nic_port",       "nic_port_fault",   "nic_ppp",
+	"nic_qos",          "nic_queue",        "nic_rss",        "nic_torus",        "nic_xsfp",
+	"nic_led",
+};
+
 static const char *g_pcie_cmd_list[] = {
 	"pcie_dumpreg",     "pcie_info",     "pcie_regrd",     "pcie_trace",
 };
@@ -125,7 +132,7 @@ const struct cmd_list_info g_chip_hip11_cmd_list[] = {
 	{g_core_ring_cmd_list,      HIKP_ARRAY_SIZE(g_core_ring_cmd_list)},
 	{g_hccs_cmd_list,           HIKP_ARRAY_SIZE(g_hccs_cmd_list)},
 	{g_log_collect_cmd_list,    HIKP_ARRAY_SIZE(g_log_collect_cmd_list)},
-	{g_nic_cmd_list,            HIKP_ARRAY_SIZE(g_nic_cmd_list)},
+	{g_chip_hip11_nic_cmd_list, HIKP_ARRAY_SIZE(g_chip_hip11_nic_cmd_list)},
 	{g_pcie_cmd_list,           HIKP_ARRAY_SIZE(g_pcie_cmd_list)},
 	{g_roce_cmd_list,           HIKP_ARRAY_SIZE(g_roce_cmd_list)},
 	{g_roh_cmd_list,            HIKP_ARRAY_SIZE(g_roh_cmd_list)},

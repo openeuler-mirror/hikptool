@@ -201,6 +201,7 @@ static int hikp_roce_ext_get_res(enum roce_cmd_type cmd_type,
 	ret = get_data(&cmd_ret, block_id, reg_name);
 	if (ret) {
 		printf("hikptool roce_%s get data failed!\n", cmd_name);
+		hikp_roce_ext_reg_data_free(reg);
 		goto get_data_error;
 	}
 

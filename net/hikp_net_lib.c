@@ -207,6 +207,17 @@ int tool_check_and_get_valid_bdf_id(const char *name, struct tool_target *target
 	return tool_get_bdf_by_dev_name(name, target);
 }
 
+int hikp_net_check_pf_only(struct major_cmd_ctrl *self, const struct bdf_t *bdf)
+{
+	if (bdf && bdf->dev_id != 0) {
+		snprintf(self->err_str, sizeof(self->err_str), "VF does not support query!");
+		self->err_no = -EINVAL;
+		return self->err_no;
+	}
+
+	return 0;
+}
+
 bool is_dev_valid_and_special(int sockfd, struct tool_target *target)
 {
 	if (!check_dev_name_and_get_bdf(sockfd, target))

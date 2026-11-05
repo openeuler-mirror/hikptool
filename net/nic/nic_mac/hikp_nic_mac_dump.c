@@ -2802,11 +2802,18 @@ void mac_cmd_dump_execute(struct major_cmd_ctrl *self)
 
 int mac_cmd_dump_reg_target(struct major_cmd_ctrl *self, const char *argv)
 {
+	int ret;
+
 	self->err_no = tool_check_and_get_valid_bdf_id(argv, &g_dump_reg_info.target);
 	if (self->err_no) {
 		snprintf(self->err_str, sizeof(self->err_str), "Unknown device %s.", argv);
 		return self->err_no;
 	}
+
+	ret = hikp_net_check_pf_only(self, &g_dump_reg_info.target.bdf);
+	if (ret != 0)
+		return ret;
+
 	g_dump_reg_info.port_flag = true;
 
 	return 0;
